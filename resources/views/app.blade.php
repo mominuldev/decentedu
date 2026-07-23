@@ -7,7 +7,7 @@
     <title>{{ config('app.name', 'DecentEdu') }}</title>
 
     {{-- Set theme before paint to avoid a flash of the wrong theme --}}
-    <script>
+    <script nonce="{{ Illuminate\Support\Facades\Vite::cspNonce() }}">
         (function () {
             try {
                 var t = localStorage.getItem('decentedu-theme');
