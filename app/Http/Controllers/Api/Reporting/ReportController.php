@@ -55,15 +55,32 @@ class ReportController extends Controller
         return Excel::download($export, $definition->key().'.xlsx');
     }
 
+    /** Cached by (report, format, params): an identical request within the hour reuses the artifact instead of re-running the job. */
     private function queue(Request $request, string $report, string $format, array $params): array
     {
         $branchId = app(BranchContext::class)->idOrFail();
+        ksort($params);
+        $paramsHash = md5(json_encode($params));
+
+        $existing = ReportArtifact::where('branch_id', $branchId)
+            ->where('report_key', $report)
+            ->where('format', $format)
+            ->where('params_hash', $paramsHash)
+            ->where('status', 'ready')
+            ->where('completed_at', '>=', now()->subHour())
+            ->latest('id')
+            ->first();
+
+        if ($existing) {
+            return ['artifact_id' => $existing->id, 'status' => $existing->status];
+        }
 
         $artifact = ReportArtifact::create([
             'branch_id' => $branchId,
             'report_key' => $report,
             'format' => $format,
             'params' => $params,
+            'params_hash' => $paramsHash,
             'status' => 'pending',
             'requested_by' => $request->user()?->id,
         ]);

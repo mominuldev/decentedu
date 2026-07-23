@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Loader2, Plus, Trash2 } from 'lucide-react';
+import { Loader2, Plus, Trash2, Printer } from 'lucide-react';
 import { Card, Button } from '@/components/ui';
 import { Modal, ConfirmDialog } from '@/components/Modal';
 import { toApiError } from '@/lib/api';
@@ -49,14 +49,21 @@ export function ClassRoutinePanel() {
                     <h3 className="text-[15px] font-semibold text-fg">Class routine</h3>
                     <p className="text-[12.5px] text-muted">Weekly day × period grid — one subject per class per slot</p>
                 </div>
-                <select
-                    value={classConfigId}
-                    onChange={(e) => setClassConfigId(Number(e.target.value))}
-                    className="rounded-xl border border-border-strong bg-surface px-3.5 py-2.5 text-[14px] text-fg outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25"
-                >
-                    <option value={0} disabled>Select a class</option>
-                    {classConfigs.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
-                </select>
+                <div className="flex items-center gap-2">
+                    <select
+                        value={classConfigId}
+                        onChange={(e) => setClassConfigId(Number(e.target.value))}
+                        className="rounded-xl border border-border-strong bg-surface px-3.5 py-2.5 text-[14px] text-fg outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25"
+                    >
+                        <option value={0} disabled>Select a class</option>
+                        {classConfigs.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
+                    </select>
+                    {!!classConfigId && (
+                        <a href={`/print/routine/${classConfigId}`} target="_blank" rel="noreferrer">
+                            <Button variant="outline"><Printer size={16} /> Print</Button>
+                        </a>
+                    )}
+                </div>
             </div>
 
             <div className="overflow-x-auto border-t border-border">

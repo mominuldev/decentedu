@@ -47,11 +47,14 @@ class IdCardController extends Controller
         ], 'ID cards generated.');
     }
 
+    private const CLASS_CONFIG_CHAIN = ['currentEnrollment.classConfig.schoolClass', 'currentEnrollment.classConfig.section', 'currentEnrollment.classConfig.shift'];
+
     private function students(array $ids, ?int $classConfigId): \Illuminate\Support\Collection
     {
         $students = $classConfigId
-            ? Enrollment::with('student')->where('class_config_id', $classConfigId)->current()->get()->pluck('student')->filter()
-            : Student::whereIn('id', $ids)->get();
+            ? Enrollment::with(array_merge(['student'], array_map(fn ($p) => 'student.'.$p, self::CLASS_CONFIG_CHAIN)))
+                ->where('class_config_id', $classConfigId)->current()->get()->pluck('student')->filter()
+            : Student::whereIn('id', $ids)->with(self::CLASS_CONFIG_CHAIN)->get();
 
         return $students->map(fn (Student $s) => [
             'photo' => $s->photo_path,

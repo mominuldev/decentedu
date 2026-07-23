@@ -12,7 +12,7 @@ class ReportArtifact extends Model
     use BelongsToBranch;
 
     protected $fillable = [
-        'branch_id', 'report_key', 'format', 'params', 'status',
+        'branch_id', 'report_key', 'format', 'params', 'params_hash', 'status',
         'file_path', 'error_message', 'requested_by', 'completed_at',
     ];
 

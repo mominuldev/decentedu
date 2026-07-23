@@ -34,7 +34,7 @@ class FeeDuesSummaryReport extends ReportDefinition
 
     public function data(array $params): array
     {
-        $rows = StudentFee::with('classConfig.schoolClass', 'classConfig.section')
+        $rows = StudentFee::with('classConfig.schoolClass', 'classConfig.section', 'classConfig.shift')
             ->where('academic_year_id', $params['academic_year_id'])
             ->where('status', '!=', 'paid')
             ->get()

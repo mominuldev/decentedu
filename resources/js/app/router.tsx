@@ -22,6 +22,7 @@ import CredentialsPage from '@/features/credentials/CredentialsPage';
 import CmsPage from '@/features/cms/CmsPage';
 import UsersPage from '@/features/users/UsersPage';
 import AuditLogPage from '@/features/audit/AuditLogPage';
+import PrintClassRoutinePage from '@/features/routines/PrintClassRoutinePage';
 import Placeholder from '@/features/misc/Placeholder';
 
 // Protected page = auth gate + dashboard chrome.
@@ -57,6 +58,7 @@ export const router = createBrowserRouter([
     { path: '/website', element: page(<CmsPage />) },
     { path: '/users', element: page(<UsersPage />) },
     { path: '/audit-log', element: page(<AuditLogPage />) },
+    { path: '/print/routine/:classConfigId', element: <ProtectedRoute><PrintClassRoutinePage /></ProtectedRoute> },
     { path: '/settings', element: stub('Settings', 'Phase 2') },
     { path: '*', element: stub('Page not found', 'Unknown route') },
 ]);
