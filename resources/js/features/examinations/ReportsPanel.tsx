@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { Loader2, Search } from 'lucide-react';
+import { Download, FileSpreadsheet, Loader2, Search } from 'lucide-react';
 import { Card, Button, Badge } from '@/components/ui';
 import { toApiError } from '@/lib/api';
 import { classConfigOptions, listClassConfigs } from '@/features/academic/api';
+import { downloadReport } from '@/features/reporting/api';
 import { listSetup, marksheet, tabulationSheet, meritList, failList } from './api';
 
 type ReportKind = 'marksheet' | 'tabulation' | 'merit-class' | 'merit-section' | 'fail-class' | 'fail-section';
@@ -16,6 +17,16 @@ const kinds: { key: ReportKind; label: string }[] = [
     { key: 'fail-class', label: 'Fail list (class-wise)' },
     { key: 'fail-section', label: 'Fail list (section-wise)' },
 ];
+
+/** Maps a ReportsPanel kind to its ReportRegistry key + the params the report endpoint expects. */
+const reportKeys: Record<ReportKind, string> = {
+    marksheet: 'marksheet',
+    tabulation: 'tabulation-sheet',
+    'merit-class': 'merit-list',
+    'merit-section': 'merit-list',
+    'fail-class': 'fail-list',
+    'fail-section': 'fail-list',
+};
 
 export function ReportsPanel() {
     const { data: classConfigs = [] } = useQuery({ queryKey: ['class-configs'], queryFn: listClassConfigs });
@@ -40,6 +51,11 @@ export function ReportsPanel() {
 
     const active = kind === 'marksheet' ? marksheetQ : kind === 'tabulation' ? tabulationQ : kind.startsWith('merit') ? meritQ : failQ;
     const ready = needsClass ? !!classId && !!examId : !!classConfigId && !!examId;
+    const reportParams = needsClass ? { class_id: classId, exam_id: examId } : { class_config_id: classConfigId, exam_id: examId };
+    const supportsExcel = kind !== 'tabulation';
+
+    const downloadPdf = useMutation({ mutationFn: () => downloadReport(reportKeys[kind], 'pdf', reportParams) });
+    const downloadExcel = useMutation({ mutationFn: () => downloadReport(reportKeys[kind], 'excel', reportParams) });
 
     const selectCls = 'rounded-xl border border-border-strong bg-surface px-3.5 py-2.5 text-[14px] text-fg outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25';
 
@@ -72,11 +88,22 @@ export function ReportsPanel() {
                     <Button onClick={() => active.mutate()} disabled={!ready || active.isPending}>
                         {active.isPending ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />} Run
                     </Button>
+                    <Button variant="outline" onClick={() => downloadPdf.mutate()} disabled={!ready || downloadPdf.isPending}>
+                        {downloadPdf.isPending ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />} PDF
+                    </Button>
+                    {supportsExcel && (
+                        <Button variant="outline" onClick={() => downloadExcel.mutate()} disabled={!ready || downloadExcel.isPending}>
+                            {downloadExcel.isPending ? <Loader2 size={16} className="animate-spin" /> : <FileSpreadsheet size={16} />} Excel
+                        </Button>
+                    )}
                 </div>
             </div>
 
             <div className="overflow-x-auto border-t border-border">
                 {active.isError && <div className="p-5 text-[13.5px] text-rose-500">{toApiError(active.error).message}</div>}
+                {(downloadPdf.isError || downloadExcel.isError) && (
+                    <div className="p-5 text-[13.5px] text-rose-500">{(downloadPdf.error ?? downloadExcel.error)?.message ?? 'Download failed.'}</div>
+                )}
 
                 {kind === 'marksheet' && marksheetQ.data && (
                     <div className="divide-y divide-border">

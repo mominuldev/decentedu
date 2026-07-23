@@ -3,10 +3,9 @@
 namespace App\Http\Controllers\Api\Accounting;
 
 use App\Http\Controllers\Controller;
-use App\Models\Accounting\LedgerAccount;
-use App\Models\Accounting\VoucherEntry;
 use App\Support\ApiResponse;
-use App\Support\BranchContext;
+use App\Support\Reporting\Definitions\IncomeStatementReport;
+use App\Support\Reporting\Definitions\TrialBalanceReport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -21,100 +20,29 @@ class AccountingReportController extends Controller
         };
     }
 
-    /** Debit/credit totals per ledger account (incl. opening balance), within an optional date range. */
     private function trialBalance(Request $request): JsonResponse
     {
-        app(BranchContext::class)->idOrFail();
-        $data = $request->validate(['from' => ['nullable', 'date'], 'to' => ['nullable', 'date']]);
-
-        $accounts = LedgerAccount::where('status', true)->orderBy('type')->orderBy('name')->get();
-        $entryTotals = VoucherEntry::query()
-            ->selectRaw('ledger_account_id, SUM(debit) as debit, SUM(credit) as credit')
-            ->whereIn('ledger_account_id', $accounts->pluck('id'))
-            ->when(! empty($data['from']) || ! empty($data['to']), function ($q) use ($data) {
-                $q->whereHas('voucher', function ($v) use ($data) {
-                    if (! empty($data['from'])) {
-                        $v->whereDate('date', '>=', $data['from']);
-                    }
-                    if (! empty($data['to'])) {
-                        $v->whereDate('date', '<=', $data['to']);
-                    }
-                });
-            })
-            ->groupBy('ledger_account_id')
-            ->get()
-            ->keyBy('ledger_account_id');
-
-        $rows = $accounts->map(function (LedgerAccount $a) use ($entryTotals) {
-            $totals = $entryTotals->get($a->id);
-            $debit = (float) ($totals->debit ?? 0);
-            $credit = (float) ($totals->credit ?? 0);
-            $opening = (float) $a->opening_balance;
-            $isDebitNature = in_array($a->type, ['asset', 'expense'], true);
-            $balance = $isDebitNature ? $opening + $debit - $credit : $opening + $credit - $debit;
-
-            return [
-                'ledger_account_id' => $a->id,
-                'name' => $a->name,
-                'code' => $a->code,
-                'type' => $a->type,
-                'debit' => round($debit, 2),
-                'credit' => round($credit, 2),
-                'balance' => round($balance, 2),
-                'balance_side' => $isDebitNature ? 'debit' : 'credit',
-            ];
-        });
+        $definition = app(TrialBalanceReport::class);
+        $data = $definition->data($request->validate($definition->rules()));
 
         return ApiResponse::success([
-            'rows' => $rows,
-            'total_debit' => round($rows->sum('debit'), 2),
-            'total_credit' => round($rows->sum('credit'), 2),
+            'rows' => $data['rows'],
+            'total_debit' => $data['total_debit'],
+            'total_credit' => $data['total_credit'],
         ], 'Trial balance retrieved.');
     }
 
-    /** Total income minus total expense, within an optional date range. */
     private function incomeStatement(Request $request): JsonResponse
     {
-        app(BranchContext::class)->idOrFail();
-        $data = $request->validate(['from' => ['nullable', 'date'], 'to' => ['nullable', 'date']]);
-
-        $accounts = LedgerAccount::whereIn('type', ['income', 'expense'])->where('status', true)->get();
-        $entryTotals = VoucherEntry::query()
-            ->selectRaw('ledger_account_id, SUM(debit) as debit, SUM(credit) as credit')
-            ->whereIn('ledger_account_id', $accounts->pluck('id'))
-            ->when(! empty($data['from']) || ! empty($data['to']), function ($q) use ($data) {
-                $q->whereHas('voucher', function ($v) use ($data) {
-                    if (! empty($data['from'])) {
-                        $v->whereDate('date', '>=', $data['from']);
-                    }
-                    if (! empty($data['to'])) {
-                        $v->whereDate('date', '<=', $data['to']);
-                    }
-                });
-            })
-            ->groupBy('ledger_account_id')
-            ->get()
-            ->keyBy('ledger_account_id');
-
-        $income = collect();
-        $expense = collect();
-        foreach ($accounts as $a) {
-            $totals = $entryTotals->get($a->id);
-            $debit = (float) ($totals->debit ?? 0);
-            $credit = (float) ($totals->credit ?? 0);
-            $row = ['name' => $a->name, 'code' => $a->code, 'amount' => round($a->type === 'income' ? $credit - $debit : $debit - $credit, 2)];
-            $a->type === 'income' ? $income->push($row) : $expense->push($row);
-        }
-
-        $totalIncome = round($income->sum('amount'), 2);
-        $totalExpense = round($expense->sum('amount'), 2);
+        $definition = app(IncomeStatementReport::class);
+        $data = $definition->data($request->validate($definition->rules()));
 
         return ApiResponse::success([
-            'income' => $income->values(),
-            'expense' => $expense->values(),
-            'total_income' => $totalIncome,
-            'total_expense' => $totalExpense,
-            'net' => round($totalIncome - $totalExpense, 2),
+            'income' => $data['income'],
+            'expense' => $data['expense'],
+            'total_income' => $data['total_income'],
+            'total_expense' => $data['total_expense'],
+            'net' => $data['net'],
         ], 'Income statement retrieved.');
     }
 }

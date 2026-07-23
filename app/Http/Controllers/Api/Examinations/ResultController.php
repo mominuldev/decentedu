@@ -14,6 +14,10 @@ use App\Models\Examinations\StudentFourthSubject;
 use App\Models\Students\Enrollment;
 use App\Support\ApiResponse;
 use App\Support\BranchContext;
+use App\Support\Reporting\Definitions\FailListReport;
+use App\Support\Reporting\Definitions\MarksheetReport;
+use App\Support\Reporting\Definitions\MeritListReport;
+use App\Support\Reporting\Definitions\TabulationSheetReport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -267,150 +271,34 @@ class ResultController extends Controller
     /** Per-student, per-subject breakdown for one class_config x exam — the printable marksheet. */
     public function marksheet(Request $request): JsonResponse
     {
-        $branchId = app(BranchContext::class)->idOrFail();
-        $data = $request->validate([
-            'class_config_id' => ['required', 'integer', Rule::exists('class_configs', 'id')->where('branch_id', $branchId)],
-            'exam_id' => ['required', 'integer', Rule::exists('exams', 'id')->where('branch_id', $branchId)],
-        ]);
+        $definition = app(MarksheetReport::class);
+        $data = $definition->data($request->validate($definition->rules()));
 
-        $summaries = StudentExamSummary::with('student')
-            ->where('class_config_id', $data['class_config_id'])
-            ->where('exam_id', $data['exam_id'])
-            ->get()
-            ->keyBy('student_id');
-
-        $subjectResults = StudentExamResult::with(['subject', 'grade'])
-            ->where('class_config_id', $data['class_config_id'])
-            ->where('exam_id', $data['exam_id'])
-            ->get()
-            ->groupBy('student_id');
-
-        $rows = $subjectResults->map(function ($rows, $studentId) use ($summaries) {
-            $summary = $summaries->get($studentId);
-
-            return [
-                'student_id' => $studentId,
-                'name' => $rows->first()->student?->name,
-                'subjects' => $rows->map(fn (StudentExamResult $r) => [
-                    'subject_name' => $r->subject?->name,
-                    'total_marks' => $r->total_marks,
-                    'obtained_marks' => $r->obtained_marks,
-                    'grade' => $r->grade?->name,
-                    'grade_point' => $r->grade_point,
-                    'is_pass' => $r->is_pass,
-                    'is_absent' => $r->is_absent,
-                ])->values(),
-                'total_marks' => $summary?->total_marks,
-                'total_obtained' => $summary?->total_obtained,
-                'gpa' => $summary?->gpa,
-                'is_pass' => $summary?->is_pass,
-                'class_position' => $summary?->class_position,
-                'section_position' => $summary?->section_position,
-            ];
-        })->values();
-
-        return ApiResponse::success($rows, 'Marksheet retrieved.');
+        return ApiResponse::success($data['rows'], 'Marksheet retrieved.');
     }
 
     /** Subject x student matrix for one class_config x exam. */
     public function tabulationSheet(Request $request): JsonResponse
     {
-        $branchId = app(BranchContext::class)->idOrFail();
-        $data = $request->validate([
-            'class_config_id' => ['required', 'integer', Rule::exists('class_configs', 'id')->where('branch_id', $branchId)],
-            'exam_id' => ['required', 'integer', Rule::exists('exams', 'id')->where('branch_id', $branchId)],
-        ]);
+        $definition = app(TabulationSheetReport::class);
+        $data = $definition->data($request->validate($definition->rules()));
 
-        $results = StudentExamResult::with(['student', 'subject'])
-            ->where('class_config_id', $data['class_config_id'])
-            ->where('exam_id', $data['exam_id'])
-            ->get();
-
-        $subjects = $results->pluck('subject')->unique('id')->values()->map(fn ($s) => ['id' => $s->id, 'name' => $s->name]);
-
-        $rows = $results->groupBy('student_id')->map(function ($rows, $studentId) {
-            $bySubject = $rows->keyBy('subject_id');
-
-            return [
-                'student_id' => $studentId,
-                'name' => $rows->first()->student?->name,
-                'marks' => $bySubject->map(fn (StudentExamResult $r) => $r->is_absent ? 'Ab' : $r->obtained_marks),
-            ];
-        })->values();
-
-        return ApiResponse::success(['subjects' => $subjects, 'rows' => $rows], 'Tabulation sheet retrieved.');
+        return ApiResponse::success(['subjects' => $data['subjects'], 'rows' => $data['rows']], 'Tabulation sheet retrieved.');
     }
 
     public function meritList(Request $request): JsonResponse
     {
-        $branchId = app(BranchContext::class)->idOrFail();
-        $data = $request->validate([
-            'exam_id' => ['required', 'integer', Rule::exists('exams', 'id')->where('branch_id', $branchId)],
-            'class_id' => ['nullable', 'integer', Rule::exists('classes', 'id')->where('branch_id', $branchId)],
-            'class_config_id' => ['nullable', 'integer', Rule::exists('class_configs', 'id')->where('branch_id', $branchId)],
-        ]);
-        abort_if(empty($data['class_id']) && empty($data['class_config_id']), 422, 'Provide class_id (class-wise) or class_config_id (section-wise).');
+        $definition = app(MeritListReport::class);
+        $data = $definition->data($request->validate($definition->rules()));
 
-        $query = StudentExamSummary::with(['student', 'classConfig.section'])
-            ->where('exam_id', $data['exam_id'])
-            ->where('is_pass', true);
-
-        if (! empty($data['class_config_id'])) {
-            $query->where('class_config_id', $data['class_config_id'])->orderBy('section_position');
-        } else {
-            $classConfigIds = ClassConfig::where('class_id', $data['class_id'])->pluck('id');
-            $query->whereIn('class_config_id', $classConfigIds)->orderBy('class_position');
-        }
-
-        $rows = $query->get()->map(fn (StudentExamSummary $s) => [
-            'student_id' => $s->student_id,
-            'name' => $s->student?->name,
-            'section' => $s->classConfig?->section?->name,
-            'total_obtained' => $s->total_obtained,
-            'gpa' => $s->gpa,
-            'position' => ! empty($data['class_config_id']) ? $s->section_position : $s->class_position,
-        ])->values();
-
-        return ApiResponse::success($rows, 'Merit list retrieved.');
+        return ApiResponse::success($data['rows'], 'Merit list retrieved.');
     }
 
     public function failList(Request $request): JsonResponse
     {
-        $branchId = app(BranchContext::class)->idOrFail();
-        $data = $request->validate([
-            'exam_id' => ['required', 'integer', Rule::exists('exams', 'id')->where('branch_id', $branchId)],
-            'class_id' => ['nullable', 'integer', Rule::exists('classes', 'id')->where('branch_id', $branchId)],
-            'class_config_id' => ['nullable', 'integer', Rule::exists('class_configs', 'id')->where('branch_id', $branchId)],
-        ]);
-        abort_if(empty($data['class_id']) && empty($data['class_config_id']), 422, 'Provide class_id (class-wise) or class_config_id (section-wise).');
+        $definition = app(FailListReport::class);
+        $data = $definition->data($request->validate($definition->rules()));
 
-        $query = StudentExamSummary::with(['student', 'classConfig.section'])
-            ->where('exam_id', $data['exam_id'])
-            ->where('is_pass', false);
-
-        if (! empty($data['class_config_id'])) {
-            $query->where('class_config_id', $data['class_config_id']);
-        } else {
-            $classConfigIds = ClassConfig::where('class_id', $data['class_id'])->pluck('id');
-            $query->whereIn('class_config_id', $classConfigIds);
-        }
-
-        $summaries = $query->get();
-        $failedSubjects = StudentExamResult::where('exam_id', $data['exam_id'])
-            ->whereIn('student_id', $summaries->pluck('student_id'))
-            ->where('is_pass', false)
-            ->with('subject')
-            ->get()
-            ->groupBy('student_id');
-
-        $rows = $summaries->map(fn (StudentExamSummary $s) => [
-            'student_id' => $s->student_id,
-            'name' => $s->student?->name,
-            'section' => $s->classConfig?->section?->name,
-            'total_obtained' => $s->total_obtained,
-            'failed_subjects' => $failedSubjects->get($s->student_id, collect())->pluck('subject.name'),
-        ])->values();
-
-        return ApiResponse::success($rows, 'Fail list retrieved.');
+        return ApiResponse::success($data['rows'], 'Fail list retrieved.');
     }
 }

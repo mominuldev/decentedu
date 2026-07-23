@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Loader2 } from 'lucide-react';
-import { Card } from '@/components/ui';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { Download, FileSpreadsheet, Loader2 } from 'lucide-react';
+import { Button, Card } from '@/components/ui';
+import { downloadReport } from '@/features/reporting/api';
 import { trialBalance, incomeStatement } from './api';
 
 export function AccountingReportsPanel() {
@@ -10,6 +11,10 @@ export function AccountingReportsPanel() {
 
     const { data: tb, isLoading: tbLoading } = useQuery({ queryKey: ['trial-balance', from, to], queryFn: () => trialBalance({ from: from || undefined, to: to || undefined }) });
     const { data: is, isLoading: isLoading2 } = useQuery({ queryKey: ['income-statement', from, to], queryFn: () => incomeStatement({ from: from || undefined, to: to || undefined }) });
+
+    const rangeParams = { from: from || undefined, to: to || undefined };
+    const downloadTb = useMutation({ mutationFn: (format: 'pdf' | 'excel') => downloadReport('trial-balance', format, rangeParams) });
+    const downloadIs = useMutation({ mutationFn: (format: 'pdf' | 'excel') => downloadReport('income-statement', format, rangeParams) });
 
     return (
         <div className="space-y-6">
@@ -26,7 +31,18 @@ export function AccountingReportsPanel() {
             </Card>
 
             <Card>
-                <div className="px-5 py-4"><h3 className="text-[15px] font-semibold text-fg">Trial balance</h3></div>
+                <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
+                    <h3 className="text-[15px] font-semibold text-fg">Trial balance</h3>
+                    <div className="flex gap-2">
+                        <Button variant="outline" onClick={() => downloadTb.mutate('pdf')} disabled={downloadTb.isPending}>
+                            {downloadTb.isPending ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />} PDF
+                        </Button>
+                        <Button variant="outline" onClick={() => downloadTb.mutate('excel')} disabled={downloadTb.isPending}>
+                            <FileSpreadsheet size={16} /> Excel
+                        </Button>
+                    </div>
+                </div>
+                {downloadTb.isError && <div className="border-t border-border px-5 py-3 text-[13.5px] text-rose-500">{downloadTb.error?.message}</div>}
                 <div className="overflow-x-auto border-t border-border">
                     {tbLoading ? (
                         <div className="flex items-center justify-center gap-2 py-10 text-muted"><Loader2 size={18} className="animate-spin" /> Loading…</div>
@@ -64,7 +80,18 @@ export function AccountingReportsPanel() {
             </Card>
 
             <Card>
-                <div className="px-5 py-4"><h3 className="text-[15px] font-semibold text-fg">Income statement</h3></div>
+                <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
+                    <h3 className="text-[15px] font-semibold text-fg">Income statement</h3>
+                    <div className="flex gap-2">
+                        <Button variant="outline" onClick={() => downloadIs.mutate('pdf')} disabled={downloadIs.isPending}>
+                            {downloadIs.isPending ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />} PDF
+                        </Button>
+                        <Button variant="outline" onClick={() => downloadIs.mutate('excel')} disabled={downloadIs.isPending}>
+                            <FileSpreadsheet size={16} /> Excel
+                        </Button>
+                    </div>
+                </div>
+                {downloadIs.isError && <div className="border-t border-border px-5 py-3 text-[13.5px] text-rose-500">{downloadIs.error?.message}</div>}
                 <div className="border-t border-border px-5 py-4">
                     {isLoading2 ? (
                         <div className="flex items-center justify-center gap-2 py-10 text-muted"><Loader2 size={18} className="animate-spin" /> Loading…</div>

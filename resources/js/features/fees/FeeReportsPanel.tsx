@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Loader2 } from 'lucide-react';
-import { Card } from '@/components/ui';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { Download, FileSpreadsheet, Loader2 } from 'lucide-react';
+import { Button, Card } from '@/components/ui';
 import { listSetup as listAcademicSetup } from '@/features/academic/api';
+import { downloadReport } from '@/features/reporting/api';
 import { dailyCollectionReport, duesSummaryReport } from './api';
 
 export function FeeReportsPanel() {
@@ -20,6 +21,10 @@ export function FeeReportsPanel() {
         enabled: !!academicYearId,
     });
 
+    const downloadDaily = useMutation({ mutationFn: (format: 'pdf' | 'excel') => downloadReport('fee-daily-collection', format, { from, to }) });
+    // Dues summary is a queued report — downloadReport() polls the artifact until it's ready.
+    const downloadDues = useMutation({ mutationFn: (format: 'pdf' | 'excel') => downloadReport('fee-dues-summary', format, { academic_year_id: academicYearId }) });
+
     return (
         <div className="space-y-6">
             <Card>
@@ -30,8 +35,15 @@ export function FeeReportsPanel() {
                             className="rounded-xl border border-border-strong bg-surface px-3 py-2 text-[13.5px] text-fg outline-none focus:border-brand-500" />
                         <input type="date" value={to} onChange={(e) => setTo(e.target.value)}
                             className="rounded-xl border border-border-strong bg-surface px-3 py-2 text-[13.5px] text-fg outline-none focus:border-brand-500" />
+                        <Button variant="outline" onClick={() => downloadDaily.mutate('pdf')} disabled={downloadDaily.isPending}>
+                            {downloadDaily.isPending ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />} PDF
+                        </Button>
+                        <Button variant="outline" onClick={() => downloadDaily.mutate('excel')} disabled={downloadDaily.isPending}>
+                            <FileSpreadsheet size={16} /> Excel
+                        </Button>
                     </div>
                 </div>
+                {downloadDaily.isError && <div className="border-t border-border px-5 py-3 text-[13.5px] text-rose-500">{downloadDaily.error?.message}</div>}
                 <div className="border-t border-border px-5 py-4">
                     {dailyLoading ? (
                         <div className="flex items-center justify-center gap-2 py-6 text-muted"><Loader2 size={18} className="animate-spin" /> Loading…</div>
@@ -60,7 +72,14 @@ export function FeeReportsPanel() {
                         <option value={0} disabled>Select a year</option>
                         {years.map((y) => <option key={y.id} value={y.id}>{y.name}</option>)}
                     </select>
+                    <Button variant="outline" onClick={() => downloadDues.mutate('pdf')} disabled={!academicYearId || downloadDues.isPending}>
+                        {downloadDues.isPending ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />} PDF
+                    </Button>
+                    <Button variant="outline" onClick={() => downloadDues.mutate('excel')} disabled={!academicYearId || downloadDues.isPending}>
+                        <FileSpreadsheet size={16} /> Excel
+                    </Button>
                 </div>
+                {downloadDues.isError && <div className="border-t border-border px-5 py-3 text-[13.5px] text-rose-500">{downloadDues.error?.message}</div>}
                 <div className="border-t border-border px-5 py-4">
                     {!academicYearId ? (
                         <div className="py-6 text-center text-[13.5px] text-muted">Select an academic year</div>

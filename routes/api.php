@@ -49,7 +49,9 @@ use App\Http\Controllers\Api\Routines\PeriodController;
 use App\Http\Controllers\Api\Students\StudentController;
 use App\Http\Controllers\Api\Hr\EmployeeController;
 use App\Http\Controllers\Api\Hr\SetupController as HrSetupController;
+use App\Http\Controllers\Api\Reporting\ReportController;
 use App\Support\ApiResponse;
+use App\Support\Reporting\ReportRegistry;
 use Illuminate\Support\Facades\Route;
 
 // Slugs handled by the generic setup controller.
@@ -365,6 +367,16 @@ Route::prefix('v1')->group(function () use ($setupSlugs) {
 
             Route::get('website-settings', [WebsiteSettingController::class, 'show']);
             Route::match(['put', 'patch'], 'website-settings', [WebsiteSettingController::class, 'update']);
+        });
+
+        // ---- Reporting subsystem ------------------------------------------------
+        // Generic entry point behind a slug whitelist (ReportRegistry), same pattern as the
+        // module SetupControllers — add a new report to the registry, not a new route/controller.
+        Route::prefix('reports')->group(function () {
+            Route::get('{report}/pdf', [ReportController::class, 'pdf'])->where('report', ReportRegistry::keys());
+            Route::get('{report}/excel', [ReportController::class, 'excel'])->where('report', ReportRegistry::keys());
+            Route::get('artifacts/{id}', [ReportController::class, 'artifactStatus'])->whereNumber('id');
+            Route::get('artifacts/{id}/download', [ReportController::class, 'download'])->whereNumber('id')->name('reports.artifacts.download');
         });
     });
 });

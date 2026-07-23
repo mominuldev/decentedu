@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { Loader2 } from 'lucide-react';
+import { Download, Loader2 } from 'lucide-react';
 import { Card, Button } from '@/components/ui';
 import { toApiError, api } from '@/lib/api';
 import { listClassConfigs } from '@/features/academic/api';
+import { downloadReport } from '@/features/reporting/api';
 import { listSetup } from './api';
 
 interface AdmitCardData {
@@ -49,6 +50,19 @@ export function AdmitPanel() {
         else attendanceSheet.mutate();
     };
 
+    const parsedRooms = () => roomsText.split('\n').filter(Boolean).map((line) => {
+        const [name, capacity] = line.split(':');
+        return { name: name.trim(), capacity: Number(capacity) || 30 };
+    });
+
+    const downloadPdf = useMutation({
+        mutationFn: () => {
+            if (view === 'admit') return downloadReport('admit-card', 'pdf', { class_config_id: classConfigId, exam_id: examId });
+            if (view === 'seat') return downloadReport('seat-plan', 'pdf', { class_config_id: classConfigId, rooms: parsedRooms() });
+            return downloadReport('attendance-sheet', 'pdf', { class_config_id: classConfigId });
+        },
+    });
+
     return (
         <Card>
             <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
@@ -81,12 +95,16 @@ export function AdmitPanel() {
                 </div>
             )}
 
-            <div className="flex justify-end border-t border-border px-5 py-4">
+            <div className="flex justify-end gap-2 border-t border-border px-5 py-4">
+                <Button variant="outline" onClick={() => downloadPdf.mutate()} disabled={!ready || downloadPdf.isPending}>
+                    {downloadPdf.isPending ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />} PDF
+                </Button>
                 <Button onClick={run} disabled={!ready || admitCard.isPending || seatPlan.isPending || attendanceSheet.isPending}>
                     {(admitCard.isPending || seatPlan.isPending || attendanceSheet.isPending) && <Loader2 size={16} className="animate-spin" />}
                     Generate
                 </Button>
             </div>
+            {downloadPdf.isError && <div className="border-t border-border px-5 py-3 text-[13.5px] text-rose-500">{downloadPdf.error?.message ?? 'Download failed.'}</div>}
 
             <div className="overflow-x-auto border-t border-border">
                 {view === 'admit' && admitCard.data && (
