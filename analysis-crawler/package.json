@@ -1,0 +1,14 @@
+{
+  "name": "safeeduman-analysis-crawler",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Authenticated read-only crawler that captures HTML, screenshots and API traffic from the existing Safe Eduman app for architecture analysis.",
+  "scripts": {
+    "crawl": "node crawl.mjs"
+  },
+  "dependencies": {
+    "playwright": "^1.47.0",
+    "dotenv": "^16.4.5"
+  }
+}

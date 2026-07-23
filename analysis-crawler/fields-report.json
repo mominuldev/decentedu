@@ -1,0 +1,2468 @@
+{
+ "admin_accessories_certification": {
+  "fields": [
+   "academic_year_id:select*",
+   "type:select*",
+   "section_id:select*",
+   "class_id:select"
+  ],
+  "cols": [
+   "Student ID",
+   "Student Name",
+   "Roll",
+   "Group",
+   "Father",
+   "Mother",
+   "Gender",
+   "English",
+   "Bangla",
+   "Pad Print"
+  ]
+ },
+ "admin_accessories_hrm_id_card": {
+  "fields": [
+   "designation_id:select",
+   "section_id:select",
+   "print_side:select*",
+   "only_show:checkbox"
+  ],
+  "cols": []
+ },
+ "admin_accessories_id_card": {
+  "fields": [
+   "only_show:checkbox",
+   "choosable_subject:checkbox",
+   "template_slug:select",
+   "orientation:select",
+   "class_roll_start:number",
+   "class_roll_end:number",
+   "academic_year_id:select*",
+   "section_id:select",
+   "group_id:select",
+   "valid_date:text*",
+   "print_style:select*"
+  ],
+  "cols": []
+ },
+ "admin_accessories_id_card_template": {
+  "fields": [],
+  "cols": [
+   "Title",
+   "Action"
+  ]
+ },
+ "admin_accessories_tc": {
+  "fields": [],
+  "cols": [
+   "SL",
+   "Student ID",
+   "Name",
+   "Section",
+   "Action"
+  ]
+ },
+ "admin_accessories_tc_create": {
+  "fields": [
+   "academic_year_id:select",
+   "section_id:select*",
+   "student_id:select",
+   "TcReason:text",
+   "LeftDate:text*"
+  ],
+  "cols": []
+ },
+ "admin_accessories_testimonial": {
+  "fields": [],
+  "cols": [
+   "SL",
+   "Student ID",
+   "Name",
+   "Section",
+   "Action"
+  ]
+ },
+ "admin_accessories_testimonial_create": {
+  "fields": [
+   "academic_year_id:select",
+   "section_id:select*",
+   "student_id:select",
+   "exam:text",
+   "trade_group:text",
+   "board_id:select",
+   "board_roll:text",
+   "board_reg_no:text",
+   "centre_name:text",
+   "centre_code:text",
+   "session:text",
+   "passing_year:text",
+   "gpa:text",
+   "grade:text",
+   "comment:text"
+  ],
+  "cols": []
+ },
+ "admin_accounts_report_cash_summary": {
+  "fields": [
+   "from_date:text*",
+   "to_date:text*"
+  ],
+  "cols": []
+ },
+ "admin_accounts_report_income_statement": {
+  "fields": [
+   "from_date:text*",
+   "to_date:text*"
+  ],
+  "cols": []
+ },
+ "admin_accounts_report_journal_report": {
+  "fields": [
+   "from_date:text*",
+   "to_date:text*"
+  ],
+  "cols": []
+ },
+ "admin_accounts_report_trial_balance": {
+  "fields": [
+   "from_date:text*",
+   "to_date:text*"
+  ],
+  "cols": []
+ },
+ "admin_accounts_report_voucher_list": {
+  "fields": [
+   "from_date:text*",
+   "to_date:text*",
+   "type:select*"
+  ],
+  "cols": []
+ },
+ "admin_accounts_transaction_contra_create": {
+  "fields": [
+   "credit_ledger_id:select",
+   "debit_ledger_id:select",
+   "amount:number*",
+   "date:text*",
+   "note:text"
+  ],
+  "cols": []
+ },
+ "admin_accounts_transaction_journal_create": {
+  "fields": [
+   "ledger_ids[]:select",
+   "debit_amounts[]:number",
+   "credit_amounts[]:number",
+   "total_debit_amount:number",
+   "total_credit_amount:number",
+   "date:text*",
+   "note:text"
+  ],
+  "cols": [
+   "Ledger Name",
+   "Debit Amount",
+   "Credit Amount",
+   "Add/Remove",
+   "Total:"
+  ]
+ },
+ "admin_accounts_transaction_payment_create": {
+  "fields": [
+   "ledger_ids[]:select",
+   "amounts[]:number",
+   "total_amount:number*",
+   "ledger_id:select",
+   "date:text*",
+   "note:text"
+  ],
+  "cols": [
+   "Payment To",
+   "Amount",
+   "Add/Remove"
+  ]
+ },
+ "admin_accounts_transaction_receive_create": {
+  "fields": [
+   "ledger_ids[]:select",
+   "amounts[]:number",
+   "total_amount:number*",
+   "ledger_id:select",
+   "date:text*",
+   "note:text"
+  ],
+  "cols": [
+   "Received From",
+   "Amount",
+   "Add/Remove"
+  ]
+ },
+ "admin_attendance_hrm_report_daily_report": {
+  "fields": [
+   "startDate:text",
+   "endDate:text"
+  ],
+  "cols": []
+ },
+ "admin_attendance_hrm_report_daily_report_single": {
+  "fields": [
+   "employee_id:select",
+   "startDate:text",
+   "endDate:text"
+  ],
+  "cols": []
+ },
+ "admin_attendance_hrm_report_daily_report_single_all": {
+  "fields": [
+   "startDate:text",
+   "endDate:text"
+  ],
+  "cols": []
+ },
+ "admin_attendance_hrm_setting_device_map": {
+  "fields": [
+   "designation_id:select",
+   "section_id:select",
+   "machine_user_ids[${item.employee_id}]:number"
+  ],
+  "cols": [
+   "ID",
+   "Name",
+   "Designation",
+   "Machine ID"
+  ]
+ },
+ "admin_attendance_hrm_setting_generate": {
+  "fields": [
+   "from_date:text*",
+   "to_date:text*"
+  ],
+  "cols": []
+ },
+ "admin_attendance_hrm_setting_time_config": {
+  "fields": [
+   "designation_id:select",
+   "section_id:select",
+   "select_all:checkbox",
+   "intime:time",
+   "delaytime:time",
+   "outtime:time",
+   "dayname[]:checkbox",
+   "stuff_ids[]:checkbox"
+  ],
+  "cols": [
+   "ID",
+   "Name",
+   "Designation",
+   "Dayname",
+   "Intime",
+   "Delaytime",
+   "Outtime",
+   "Action"
+  ]
+ },
+ "admin_attendance_student_report_daily_report": {
+  "fields": [
+   "academic_year_id:select*",
+   "type:select*",
+   "section_id:select",
+   "class_id:select",
+   "group_id:select",
+   "start_date:text*",
+   "end_date:text*"
+  ],
+  "cols": [
+   "Student Name",
+   "Student ID",
+   "Roll"
+  ]
+ },
+ "admin_attendance_student_setting_device_map": {
+  "fields": [
+   "academic_year_id:select",
+   "section_id:select",
+   "select_all:checkbox",
+   "student_ids[]:checkbox",
+   "machine_user_ids[${item.student_id}]:number"
+  ],
+  "cols": [
+   "Student ID",
+   "Name",
+   "Roll",
+   "Mobile",
+   "Machine ID"
+  ]
+ },
+ "admin_attendance_student_setting_take_period": {
+  "fields": [],
+  "cols": [
+   "Serial",
+   "Name",
+   "Action"
+  ]
+ },
+ "admin_attendance_student_setting_time_config": {
+  "fields": [
+   "period_id:select",
+   "section_ids[]:select",
+   "start_time:time",
+   "end_time:time"
+  ],
+  "cols": [
+   "Period",
+   "Section",
+   "Start Time",
+   "End Time",
+   "Action"
+  ]
+ },
+ "admin_attendance_student_take_attendance": {
+  "fields": [
+   "academic_year_id:select",
+   "section_id:select",
+   "group_id:select",
+   "period_id:select",
+   "date:text*",
+   "absent_sms:checkbox",
+   "absents[${item.student_id}]:checkbox",
+   "remarks[${item.student_id}]:number"
+  ],
+  "cols": [
+   "SL",
+   "Student ID",
+   "Name",
+   "Roll",
+   "Mobile",
+   "Time",
+   "Check for Absent",
+   "Comments"
+  ]
+ },
+ "admin_attendance_student_update_attendance": {
+  "fields": [
+   "section_id:select",
+   "period_id:select",
+   "date:text*",
+   "absent_sms:checkbox",
+   "absents[${item.id}]:checkbox",
+   "remarks[${item.id}]:number"
+  ],
+  "cols": [
+   "Student ID",
+   "Name",
+   "Roll",
+   "Mobile",
+   "Check for Absent",
+   "Comments"
+  ]
+ },
+ "admin_basic_settings": {
+  "fields": [
+   "name:text",
+   "academic_year_id:select",
+   "address:text",
+   "website:text",
+   "contact:text",
+   "email:email",
+   "head:text",
+   "head_email:email",
+   "head_contact:text",
+   "head_designation:text",
+   "logo:file",
+   "remove_logo:checkbox",
+   "head_sign:file",
+   "remove_head_sign:checkbox",
+   "qr_img:file",
+   "remove_qr_img:checkbox",
+   "sms_to[]:checkbox",
+   "sms_present:checkbox"
+  ],
+  "cols": []
+ },
+ "admin_class_routine": {
+  "fields": [],
+  "cols": [
+   "${name}"
+  ]
+ },
+ "admin_editProfile": {
+  "fields": [
+   "name:text",
+   "username:text",
+   "email:email",
+   "mobile:text",
+   "Designation:text",
+   "CurrentPassword:password",
+   "password:password",
+   "password_confirmation:password"
+  ],
+  "cols": []
+ },
+ "admin_exam_admit_admit_card": {
+  "fields": [
+   "academic_year_id:select*",
+   "type:select*",
+   "section_id:select*",
+   "class_id:select",
+   "group_id:select*",
+   "exam_id:select*",
+   "exam_start_date:text",
+   "only_show:checkbox",
+   "with_routine:checkbox"
+  ],
+  "cols": []
+ },
+ "admin_exam_admit_attendance_sheet": {
+  "fields": [
+   "academic_year_id:select*",
+   "type:select*",
+   "section_id:select*",
+   "class_id:select",
+   "group_id:select*",
+   "exam_id:select*"
+  ],
+  "cols": []
+ },
+ "admin_exam_admit_seat_plan": {
+  "fields": [
+   "academic_year_id:select*",
+   "type:select*",
+   "section_id:select*",
+   "class_id:select",
+   "group_id:select*",
+   "exam_id:select*",
+   "sex:select",
+   "exam_start_date:text",
+   "exam_room:text",
+   "to_roll:number"
+  ],
+  "cols": []
+ },
+ "admin_exam_configation_admit_instruction": {
+  "fields": [
+   "instruction1:textarea*",
+   "instruction2:textarea*",
+   "instruction3:textarea*",
+   "instruction4:textarea*"
+  ],
+  "cols": []
+ },
+ "admin_exam_configation_class_teacher_config": {
+  "fields": [],
+  "cols": [
+   "Sl",
+   "Class Name",
+   "Shift Name",
+   "Section",
+   "Signature",
+   "Teacher Name",
+   "Action"
+  ]
+ },
+ "admin_exam_configation_class_teacher_config_70_edit": {
+  "fields": [
+   "remove_signature:checkbox",
+   "signature:file",
+   "employee_id:select"
+  ],
+  "cols": []
+ },
+ "admin_exam_configation_class_teacher_config_71_edit": {
+  "fields": [
+   "remove_signature:checkbox",
+   "signature:file",
+   "employee_id:select"
+  ],
+  "cols": []
+ },
+ "admin_exam_configation_class_teacher_config_72_edit": {
+  "fields": [
+   "remove_signature:checkbox",
+   "signature:file",
+   "employee_id:select"
+  ],
+  "cols": []
+ },
+ "admin_exam_configation_class_teacher_config_73_edit": {
+  "fields": [
+   "remove_signature:checkbox",
+   "signature:file",
+   "employee_id:select"
+  ],
+  "cols": []
+ },
+ "admin_exam_configation_class_teacher_config_74_edit": {
+  "fields": [
+   "remove_signature:checkbox",
+   "signature:file",
+   "employee_id:select"
+  ],
+  "cols": []
+ },
+ "admin_exam_configation_class_teacher_config_75_edit": {
+  "fields": [
+   "remove_signature:checkbox",
+   "signature:file",
+   "employee_id:select"
+  ],
+  "cols": []
+ },
+ "admin_exam_configation_exam_config": {
+  "fields": [
+   "class_id:select*",
+   "merit_process_type_id:select*",
+   "exam_ids[]:checkbox"
+  ],
+  "cols": [
+   "Class",
+   "Exam",
+   "Merit Process Type",
+   "Action"
+  ]
+ },
+ "admin_exam_configation_exam_config_155_edit": {
+  "fields": [
+   "merit_process_type_id:select*"
+  ],
+  "cols": []
+ },
+ "admin_exam_configation_exam_config_156_edit": {
+  "fields": [
+   "merit_process_type_id:select*"
+  ],
+  "cols": []
+ },
+ "admin_exam_configation_exam_config_157_edit": {
+  "fields": [
+   "merit_process_type_id:select*"
+  ],
+  "cols": []
+ },
+ "admin_exam_configation_exam_config_158_edit": {
+  "fields": [
+   "merit_process_type_id:select*"
+  ],
+  "cols": []
+ },
+ "admin_exam_configation_exam_config_159_edit": {
+  "fields": [
+   "merit_process_type_id:select*"
+  ],
+  "cols": []
+ },
+ "admin_exam_configation_exam_config_160_edit": {
+  "fields": [
+   "merit_process_type_id:select*"
+  ],
+  "cols": []
+ },
+ "admin_exam_configation_exam_config_161_edit": {
+  "fields": [
+   "merit_process_type_id:select*"
+  ],
+  "cols": []
+ },
+ "admin_exam_configation_exam_config_162_edit": {
+  "fields": [
+   "merit_process_type_id:select*"
+  ],
+  "cols": []
+ },
+ "admin_exam_configation_exam_config_163_edit": {
+  "fields": [
+   "merit_process_type_id:select*"
+  ],
+  "cols": []
+ },
+ "admin_exam_configation_exam_config_164_edit": {
+  "fields": [
+   "merit_process_type_id:select*"
+  ],
+  "cols": []
+ },
+ "admin_exam_configation_exam_config_165_edit": {
+  "fields": [
+   "merit_process_type_id:select*"
+  ],
+  "cols": []
+ },
+ "admin_exam_configation_exam_config_166_edit": {
+  "fields": [
+   "merit_process_type_id:select*"
+  ],
+  "cols": []
+ },
+ "admin_exam_configation_final_mark_config": {
+  "fields": [],
+  "cols": [
+   "Class",
+   "Action"
+  ]
+ },
+ "admin_exam_configation_final_mark_config_edit_57": {
+  "fields": [
+   "percentage[155]:number*",
+   "serial[155]:number*",
+   "percentage[156]:number*",
+   "serial[156]:number*",
+   "percentage[163]:number*",
+   "serial[163]:number*"
+  ],
+  "cols": []
+ },
+ "admin_exam_configation_final_mark_config_edit_58": {
+  "fields": [
+   "percentage[159]:number*",
+   "serial[159]:number*",
+   "percentage[160]:number*",
+   "serial[160]:number*",
+   "percentage[164]:number*",
+   "serial[164]:number*"
+  ],
+  "cols": []
+ },
+ "admin_exam_configation_final_mark_config_edit_59": {
+  "fields": [
+   "percentage[161]:number*",
+   "serial[161]:number*",
+   "percentage[162]:number*",
+   "serial[162]:number*",
+   "percentage[165]:number*",
+   "serial[165]:number*"
+  ],
+  "cols": []
+ },
+ "admin_exam_configation_final_mark_config_edit_60": {
+  "fields": [
+   "percentage[157]:number*",
+   "serial[157]:number*",
+   "percentage[158]:number*",
+   "serial[158]:number*",
+   "percentage[166]:number*",
+   "serial[166]:number*"
+  ],
+  "cols": []
+ },
+ "admin_exam_configation_fourth_assign": {
+  "fields": [
+   "academic_year_id:select*",
+   "section_id:select*",
+   "group_id:select*",
+   "select_all:checkbox",
+   "student_ids[]:checkbox"
+  ],
+  "cols": [
+   "Student ID",
+   "Student Name",
+   "Roll",
+   "Group",
+   "Subject",
+   "Status"
+  ]
+ },
+ "admin_exam_configation_fourth_assign_create": {
+  "fields": [
+   "academic_year_id:select*",
+   "section_id:select*",
+   "group_id:select*",
+   "select_all:checkbox",
+   "compulsory_subject_ids[]:checkbox",
+   "forth_subject_ids[]:checkbox",
+   "student_ids[]:checkbox"
+  ],
+  "cols": [
+   "Student ID",
+   "Student Name",
+   "Roll",
+   "Group"
+  ]
+ },
+ "admin_exam_configation_mark_config": {
+  "fields": [
+   "class_id:select*",
+   "group_id:select*",
+   "exam_id:select*",
+   "subject_ids[]:checkbox",
+   "exam_ids[]:checkbox",
+   "total_marks[${value.id}]:number",
+   "pass_mark[${value.id}]:number",
+   "acceptance[${value.id}]:number",
+   "sc_merge[${value.id}]:number"
+  ],
+  "cols": [
+   "Short Code Title",
+   "Total Mark",
+   "Pass Mark",
+   "Acceptance",
+   "SC Merge",
+   "Action",
+   "Subject Name",
+   "Short Code",
+   "#"
+  ]
+ },
+ "admin_exam_configation_subject": {
+  "fields": [
+   "class_id:select*",
+   "group_id:select*",
+   "subject_ids[]:checkbox",
+   "subject_type[${value.id}]:select",
+   "serial[${value.id}]:number",
+   "merge_id[${value.id}]:number"
+  ],
+  "cols": [
+   "Subject",
+   "Subject Type",
+   "Subject Serial",
+   "Merge ID",
+   "Action"
+  ]
+ },
+ "admin_exam_marks_input": {
+  "fields": [
+   "academic_year_id:select*",
+   "section_id:select*",
+   "group_id:select",
+   "exam_id:select*",
+   "subject_id:select*",
+   "is_absent[${student.id}]:checkbox",
+   "mark_list[${student.id}][${mark_config.id}]:text"
+  ],
+  "cols": [
+   "Student Name",
+   "Student ID",
+   "Roll",
+   "Is Absent?"
+  ]
+ },
+ "admin_exam_marks_update": {
+  "fields": [
+   "academic_year_id:select*",
+   "section_id:select*",
+   "group_id:select*",
+   "exam_id:select*",
+   "subject_id:select*",
+   "is_absent[${student.id}]:checkbox",
+   "mark_list[${student.id}][${mark.id}]:text"
+  ],
+  "cols": [
+   "Student Name",
+   "Student ID",
+   "Roll",
+   "Is Absent?"
+  ]
+ },
+ "admin_exam_result_fail_class_wise": {
+  "fields": [
+   "academic_year_id:select*",
+   "class_id:select*",
+   "exam_id:select*"
+  ],
+  "cols": [
+   "Exam Name",
+   "Class Name",
+   "SL",
+   "Student ID",
+   "Student Name",
+   "Roll",
+   "Section",
+   "Total Marks",
+   "Failed Subjects"
+  ]
+ },
+ "admin_exam_result_fail_section_wise": {
+  "fields": [
+   "academic_year_id:select*",
+   "section_id:select*",
+   "exam_id:select*"
+  ],
+  "cols": [
+   "Exam Name",
+   "Section Name",
+   "SL",
+   "Student ID",
+   "Student Name",
+   "Student Roll",
+   "Total Marks",
+   "Failed Subjects"
+  ]
+ },
+ "admin_exam_result_final_process": {
+  "fields": [
+   "academic_year_id:select*",
+   "section_id:select*",
+   "exam_id:select*"
+  ],
+  "cols": []
+ },
+ "admin_exam_result_general_process": {
+  "fields": [
+   "academic_year_id:select*",
+   "section_id:select*",
+   "exam_id:select*"
+  ],
+  "cols": []
+ },
+ "admin_exam_result_marksheet": {
+  "fields": [
+   "academic_year_id:select*",
+   "section_id:select*",
+   "exam_id:select*",
+   "only_show:checkbox"
+  ],
+  "cols": []
+ },
+ "admin_exam_result_marksheet_final": {
+  "fields": [
+   "academic_year_id:select*",
+   "section_id:select*",
+   "exam_id:select*",
+   "only_show:checkbox"
+  ],
+  "cols": []
+ },
+ "admin_exam_result_merit_class_wise": {
+  "fields": [
+   "academic_year_id:select*",
+   "class_id:select*",
+   "exam_id:select*"
+  ],
+  "cols": [
+   "Exam Name",
+   "Class Name",
+   "SL",
+   "Student ID",
+   "Student Name",
+   "Roll",
+   "Section",
+   "Total Marks",
+   "Class Position",
+   "Grade",
+   "CGPA"
+  ]
+ },
+ "admin_exam_result_merit_process": {
+  "fields": [
+   "academic_year_id:select*",
+   "class_id:select",
+   "exam_id:select*"
+  ],
+  "cols": []
+ },
+ "admin_exam_result_merit_section_wise": {
+  "fields": [
+   "academic_year_id:select*",
+   "section_id:select*",
+   "exam_id:select*"
+  ],
+  "cols": [
+   "Exam Name",
+   "Section Name",
+   "SL",
+   "Student ID",
+   "Student Name",
+   "Student Roll",
+   "Total Marks",
+   "Section Position",
+   "Class Position",
+   "Grade",
+   "CGPA"
+  ]
+ },
+ "admin_exam_result_short_tabulation_sheet": {
+  "fields": [
+   "academic_year_id:select*",
+   "section_id:select*",
+   "group_id:select*",
+   "exam_id:select*",
+   "tabulation_type:select*"
+  ],
+  "cols": []
+ },
+ "admin_exam_result_tabulation_sheet": {
+  "fields": [
+   "academic_year_id:select*",
+   "section_id:select*",
+   "exam_id:select*",
+   "only_show:checkbox"
+  ],
+  "cols": []
+ },
+ "admin_exam_routine": {
+  "fields": [
+   "academic_year_id:select*",
+   "class_id:select*",
+   "group_id:select*",
+   "exam_id:select*"
+  ],
+  "cols": [
+   "Academic Year",
+   "Class Name",
+   "Group Name",
+   "Exam Name",
+   "Exam Date",
+   "Subject Name",
+   "Start Time",
+   "End Time",
+   "Room No.",
+   "Exam Session",
+   "Action"
+  ]
+ },
+ "admin_exam_routine_create": {
+  "fields": [
+   "academic_year_id:select*",
+   "class_id:select*",
+   "group_id:select*",
+   "exam_id:select*",
+   "select_all:checkbox",
+   "subject_config_id[${value.id}]:checkbox",
+   "exam_date[${value.id}]:text",
+   "start_time[${value.id}]:text",
+   "end_time[${value.id}]:text",
+   "room_no[${value.id}]:text",
+   "exam_session[${value.id}]:text"
+  ],
+  "cols": [
+   "Subject Name",
+   "Exam Date*",
+   "Start Time*",
+   "End Time*",
+   "Room No.",
+   "Exam Session"
+  ]
+ },
+ "admin_exam_setup_examGrade": {
+  "fields": [
+   "class_id:select*",
+   "selectAll:checkbox",
+   "grade_id[]:checkbox",
+   "grade_point:text",
+   "grade_range:text"
+  ],
+  "cols": [
+   "Grade",
+   "Grade Point",
+   "Grade Range",
+   "Class",
+   "Action"
+  ]
+ },
+ "admin_exam_setup_examList": {
+  "fields": [],
+  "cols": [
+   "Sl",
+   "Name",
+   "Exam Type",
+   "Status",
+   "Action"
+  ]
+ },
+ "admin_exam_setup_examList_38_edit": {
+  "fields": [
+   "name:text",
+   "exam_type_id:select",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_exam_setup_examList_39_edit": {
+  "fields": [
+   "name:text",
+   "exam_type_id:select",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_exam_setup_examList_40_edit": {
+  "fields": [
+   "name:text",
+   "exam_type_id:select",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_exam_setup_examList_41_edit": {
+  "fields": [
+   "name:text",
+   "exam_type_id:select",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_exam_setup_examList_42_edit": {
+  "fields": [
+   "name:text",
+   "exam_type_id:select",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_exam_setup_examList_create": {
+  "fields": [
+   "name:text",
+   "exam_type_id:select",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_exam_setup_examShortCode": {
+  "fields": [
+   "class_id:select*",
+   "short_code_id[]:checkbox",
+   "code_title[106]:text",
+   "code_title[107]:text",
+   "code_title[108]:text",
+   "code_title[109]:text",
+   "code_title[110]:text",
+   "code_title[111]:text",
+   "code_title[112]:text",
+   "code_title[113]:text",
+   "code_title[114]:text",
+   "code_title[115]:text",
+   "code_title[116]:text",
+   "code_title[117]:text",
+   "code_title[118]:text",
+   "code_title[119]:text",
+   "code_title[120]:text"
+  ],
+  "cols": [
+   "Select",
+   "Title",
+   "Total Marks",
+   "Pass mark",
+   "Acceptance",
+   "Class",
+   "Default ID",
+   "Short Code Title",
+   "Total Mark",
+   "Pass Mark",
+   "Action"
+  ]
+ },
+ "admin_exam_setup_examSubject": {
+  "fields": [],
+  "cols": [
+   "Sl",
+   "Name",
+   "Status",
+   "Action"
+  ]
+ },
+ "admin_exam_setup_examSubject_177_edit": {
+  "fields": [
+   "name:text",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_exam_setup_examSubject_178_edit": {
+  "fields": [
+   "name:text",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_exam_setup_examSubject_179_edit": {
+  "fields": [
+   "name:text",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_exam_setup_examSubject_180_edit": {
+  "fields": [
+   "name:text",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_exam_setup_examSubject_181_edit": {
+  "fields": [
+   "name:text",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_exam_setup_examSubject_182_edit": {
+  "fields": [
+   "name:text",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_exam_setup_examSubject_183_edit": {
+  "fields": [
+   "name:text",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_exam_setup_examSubject_184_edit": {
+  "fields": [
+   "name:text",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_exam_setup_examSubject_185_edit": {
+  "fields": [
+   "name:text",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_exam_setup_examSubject_186_edit": {
+  "fields": [
+   "name:text",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_exam_setup_examSubject_187_edit": {
+  "fields": [
+   "name:text",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_exam_setup_examSubject_188_edit": {
+  "fields": [
+   "name:text",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_exam_setup_examSubject_189_edit": {
+  "fields": [
+   "name:text",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_exam_setup_examSubject_190_edit": {
+  "fields": [
+   "name:text",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_exam_setup_examSubject_191_edit": {
+  "fields": [
+   "name:text",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_exam_setup_examSubject_192_edit": {
+  "fields": [
+   "name:text",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_exam_setup_examSubject_193_edit": {
+  "fields": [
+   "name:text",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_exam_setup_examSubject_194_edit": {
+  "fields": [
+   "name:text",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_exam_setup_examSubject_create": {
+  "fields": [
+   "name:text",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_home": {
+  "fields": [
+   "branch_id:select"
+  ],
+  "cols": []
+ },
+ "admin_hrm_designation": {
+  "fields": [],
+  "cols": [
+   "Serial",
+   "Name",
+   "Status",
+   "Action"
+  ]
+ },
+ "admin_hrm_designation_6_edit": {
+  "fields": [
+   "name:text",
+   "desig_type:select",
+   "serial:number",
+   "status:checkbox"
+  ],
+  "cols": []
+ },
+ "admin_hrm_designation_create": {
+  "fields": [
+   "name:text",
+   "desig_type:select",
+   "serial:number"
+  ],
+  "cols": []
+ },
+ "admin_hrm_employee": {
+  "fields": [],
+  "cols": [
+   "Serial",
+   "Name",
+   "Designation",
+   "Section",
+   "Father",
+   "Mother",
+   "Gender",
+   "Religion",
+   "Blood Group",
+   "Mobile",
+   "Photo",
+   "Status",
+   "Action"
+  ]
+ },
+ "admin_hrm_employee_create": {
+  "fields": [
+   "name:text",
+   "designation_id:select",
+   "section_id:select",
+   "father:text",
+   "mother:text",
+   "email:email",
+   "mobile:text",
+   "gender:select",
+   "religion:select",
+   "blood_group:select",
+   "address:textarea"
+  ],
+  "cols": []
+ },
+ "admin_hrm_employee_list": {
+  "fields": [],
+  "cols": [
+   "Photo",
+   "Serial",
+   "Name",
+   "Designation",
+   "Section",
+   "Father",
+   "Mother",
+   "Gender",
+   "Religion",
+   "Blood Group",
+   "Mobile"
+  ]
+ },
+ "admin_hrm_section": {
+  "fields": [],
+  "cols": [
+   "Serial",
+   "Name",
+   "Status",
+   "Action"
+  ]
+ },
+ "admin_hrm_section_create": {
+  "fields": [
+   "name:text",
+   "serial:number"
+  ],
+  "cols": []
+ },
+ "admin_hrm_subject_teacher": {
+  "fields": [
+   "subject_id:select*",
+   "teacher_id:select*",
+   "section_ids[]:checkbox",
+   "subject_type[${value.id}]:select",
+   "serial[${value.id}]:number",
+   "merge_id[${value.id}]:number"
+  ],
+  "cols": [
+   "ID",
+   "Teacher Name",
+   "Section",
+   "Subject",
+   "Action"
+  ]
+ },
+ "admin_menus": {
+  "fields": [],
+  "cols": [
+   "Menu ID",
+   "Title",
+   "Action"
+  ]
+ },
+ "admin_posts_create_type_committee": {
+  "fields": [
+   "title:text*",
+   "postMeta[role]:text*",
+   "sort:number",
+   "image:file"
+  ],
+  "cols": []
+ },
+ "admin_posts_create_type_gallery": {
+  "fields": [
+   "title:text*",
+   "image:file"
+  ],
+  "cols": []
+ },
+ "admin_posts_create_type_homepage_person": {
+  "fields": [
+   "title:text*",
+   "body:textarea*",
+   "files:file",
+   "postMeta[dasignation]:text*",
+   "sort:number",
+   "image:file"
+  ],
+  "cols": []
+ },
+ "admin_posts_create_type_news": {
+  "fields": [
+   "title:text*",
+   "body:textarea*",
+   "files:file",
+   "description:textarea",
+   "keywords:textarea",
+   "image:file"
+  ],
+  "cols": []
+ },
+ "admin_posts_create_type_notice": {
+  "fields": [
+   "title:text*",
+   "body:textarea*",
+   "files:file",
+   "postMeta[urgent]:checkbox",
+   "image:file"
+  ],
+  "cols": []
+ },
+ "admin_posts_create_type_page": {
+  "fields": [
+   "title:text*",
+   "body:textarea*",
+   "files:file",
+   "description:textarea",
+   "keywords:textarea",
+   "image:file"
+  ],
+  "cols": []
+ },
+ "admin_posts_create_type_result": {
+  "fields": [
+   "title:text*",
+   "image:file"
+  ],
+  "cols": []
+ },
+ "admin_posts_create_type_slider": {
+  "fields": [
+   "title:text*",
+   "postMeta[show_photo_only]:checkbox",
+   "postMeta[btn_label]:text*",
+   "postMeta[btn_route]:text*",
+   "sort:number",
+   "image:file"
+  ],
+  "cols": []
+ },
+ "admin_posts_create_type_stuff": {
+  "fields": [
+   "title:text*",
+   "body:textarea*",
+   "files:file",
+   "postMeta[dasignation]:text*",
+   "sort:number",
+   "image:file"
+  ],
+  "cols": []
+ },
+ "admin_posts_create_type_teacher": {
+  "fields": [
+   "title:text*",
+   "body:textarea*",
+   "files:file",
+   "postMeta[dasignation]:text*",
+   "sort:number",
+   "image:file"
+  ],
+  "cols": []
+ },
+ "admin_posts_type_committee": {
+  "fields": [],
+  "cols": [
+   "#",
+   "Title",
+   "Created date"
+  ]
+ },
+ "admin_posts_type_gallery": {
+  "fields": [],
+  "cols": [
+   "#",
+   "Title",
+   "Created date"
+  ]
+ },
+ "admin_posts_type_homepage_person": {
+  "fields": [],
+  "cols": [
+   "#",
+   "Title",
+   "Created date"
+  ]
+ },
+ "admin_posts_type_news": {
+  "fields": [],
+  "cols": [
+   "#",
+   "Title",
+   "Created date"
+  ]
+ },
+ "admin_posts_type_notice": {
+  "fields": [],
+  "cols": [
+   "#",
+   "Title",
+   "Created date"
+  ]
+ },
+ "admin_posts_type_page": {
+  "fields": [],
+  "cols": [
+   "#",
+   "Title",
+   "Created date"
+  ]
+ },
+ "admin_posts_type_result": {
+  "fields": [],
+  "cols": [
+   "#",
+   "Title",
+   "Created date"
+  ]
+ },
+ "admin_posts_type_slider": {
+  "fields": [],
+  "cols": [
+   "#",
+   "Title",
+   "Created date"
+  ]
+ },
+ "admin_posts_type_stuff": {
+  "fields": [],
+  "cols": [
+   "#",
+   "Title",
+   "Created date"
+  ]
+ },
+ "admin_posts_type_teacher": {
+  "fields": [],
+  "cols": [
+   "#",
+   "Title",
+   "Created date"
+  ]
+ },
+ "admin_signature_config_create_sig_type_marksheet": {
+  "fields": [
+   "sig_position:select",
+   "sig_select:select",
+   "sig_person:text",
+   "sig_designation:text",
+   "sig_image:file",
+   "remove_sig_image:checkbox"
+  ],
+  "cols": []
+ },
+ "admin_signature_config_sig_type_marksheet": {
+  "fields": [],
+  "cols": [
+   "Position",
+   "Title",
+   "Action"
+  ]
+ },
+ "admin_student_accounts_configation_feeConfig": {
+  "fields": [
+   "academic_year_id:select*",
+   "class_id:select*",
+   "group_id:select*",
+   "category_id:select*",
+   "head_id:select*",
+   "amount:number",
+   "fee_config_id[${data.id}]:checkbox",
+   "fee_amount[${data.id}]:number",
+   "fine_amount[${data.id}]:number",
+   "fee_amount:number",
+   "fine_amount:number"
+  ],
+  "cols": [
+   "Check",
+   "Fee SubHead",
+   "Class",
+   "Group",
+   "Category",
+   "Fee Amount",
+   "Fine Amount",
+   "Update",
+   "Delete"
+  ]
+ },
+ "admin_student_accounts_configation_feeWaiverConfig": {
+  "fields": [
+   "academic_year_id:select*",
+   "type:select*",
+   "section_id:select*",
+   "class_id:select",
+   "group_id:select*",
+   "category_id:select*",
+   "head_id:select*",
+   "student_ids[${value.student.reg_no}]:checkbox",
+   "sub_head_ids[${value.student.reg_no}][]:select",
+   "amount[${value.student.reg_no}]:number",
+   "free_waiver_ids[${value.student.reg_no}]:select"
+  ],
+  "cols": [
+   "Student ID",
+   "Student Name",
+   "Roll",
+   "SubHead",
+   "Amount",
+   "Waiver Reason"
+  ]
+ },
+ "admin_student_accounts_configation_feeWaiverConfig_waiver_list": {
+  "fields": [
+   "academic_year_id:select*",
+   "type:select*",
+   "section_id:select*",
+   "class_id:select",
+   "group_id:select*",
+   "category_id:select*",
+   "student_ids[]:checkbox",
+   "sub_head_ids[${value.id}][]:select"
+  ],
+  "cols": [
+   "Sl",
+   "Student Name",
+   "Student ID",
+   "Roll",
+   "SubHead",
+   "Action"
+  ]
+ },
+ "admin_student_accounts_configation_subHeadConfig": {
+  "fields": [
+   "head_id:select*",
+   "sub_head_ids[]:select*"
+  ],
+  "cols": [
+   "Serial",
+   "Head",
+   "Sub Head",
+   "Action"
+  ]
+ },
+ "admin_student_accounts_configation_timeConfig": {
+  "fields": [
+   "academic_year_id:select*",
+   "head_id:select*",
+   "fee_head_id:select*",
+   "sub_head_ids[${value.id}]:checkbox",
+   "years[${value.id}]:select*",
+   "months[${value.id}]:select*"
+  ],
+  "cols": [
+   "Fee Subhead",
+   "Payable Year",
+   "Payable Month",
+   "Fee Head",
+   "Action"
+  ]
+ },
+ "admin_student_accounts_reports_fee_head_due_list": {
+  "fields": [
+   "academic_year_id:select*",
+   "section_id:select*",
+   "head_id:select*"
+  ],
+  "cols": [
+   "Student ID",
+   "Name",
+   "Roll",
+   "Total"
+  ]
+ },
+ "admin_student_accounts_reports_section_due_summary": {
+  "fields": [
+   "academic_year_id:select*",
+   "from_date:text*",
+   "to_date:text*"
+  ],
+  "cols": [
+   "SL",
+   "Name",
+   "Total"
+  ]
+ },
+ "admin_student_accounts_setup_feeWaiver": {
+  "fields": [],
+  "cols": [
+   "Sl",
+   "Name",
+   "Status",
+   "Action"
+  ]
+ },
+ "admin_student_accounts_setup_feeWaiver_create": {
+  "fields": [
+   "name:text",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_student_accounts_setup_head": {
+  "fields": [],
+  "cols": [
+   "Sl",
+   "Name",
+   "Account Ledger",
+   "Ledger Fine",
+   "Status",
+   "Action"
+  ]
+ },
+ "admin_student_accounts_setup_subHead": {
+  "fields": [],
+  "cols": [
+   "Sl",
+   "Name",
+   "Status",
+   "Action"
+  ]
+ },
+ "admin_student_accounts_setup_subHead_create": {
+  "fields": [
+   "name:text",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_student_migration_general": {
+  "fields": [
+   "academic_year_id:select*",
+   "section_id:select*",
+   "group_id:select*",
+   "to_academic_year_id:select*",
+   "to_section_id:select*",
+   "to_group_id:select*",
+   "select_all:checkbox",
+   "student_ids[]:checkbox",
+   "new_roll[${value.student_id}]:text"
+  ],
+  "cols": [
+   "Student ID",
+   "Student Name",
+   "Current Roll",
+   "New Roll"
+  ]
+ },
+ "admin_student_migration_merit": {
+  "fields": [
+   "academic_year_id:select*",
+   "section_id:select*",
+   "group_id:select*",
+   "to_academic_year_id:select*",
+   "to_section_id:select*",
+   "to_group_id:select*",
+   "select_all:checkbox",
+   "student_ids[]:checkbox",
+   "new_roll[${value.student_id}]:text"
+  ],
+  "cols": [
+   "Student ID",
+   "Student Name",
+   "Current Roll",
+   "New Roll"
+  ]
+ },
+ "admin_student_migration_push_back": {
+  "fields": [
+   "academic_year_id:select*",
+   "section_id:select*",
+   "group_id:select*",
+   "select_all:checkbox",
+   "student_ids[]:checkbox"
+  ],
+  "cols": [
+   "Student ID",
+   "Student Name",
+   "Roll"
+  ]
+ },
+ "admin_student_registration_address_edit": {
+  "fields": [
+   "academic_year_id:select*",
+   "section_id:select*",
+   "group_id:select*",
+   "category_id:select",
+   "sex:select",
+   "select_all:checkbox"
+  ],
+  "cols": [
+   "Registration No",
+   "Roll",
+   "Name",
+   "Class",
+   "Shift",
+   "Section",
+   "Group",
+   "Category",
+   "Gender"
+  ]
+ },
+ "admin_student_registration_class_info": {
+  "fields": [
+   "academic_year_id:select*",
+   "section_id:select*",
+   "group_id:select*",
+   "category_id:select",
+   "sex:select",
+   "select_all:checkbox",
+   "new_section_id:select*",
+   "new_group_id:select*",
+   "new_category_id:select*",
+   "student_id[]:checkbox"
+  ],
+  "cols": [
+   "Registration No",
+   "Roll",
+   "Name",
+   "Class",
+   "Shift",
+   "Section",
+   "Group",
+   "Category",
+   "Gender"
+  ]
+ },
+ "admin_student_registration_multiple_create": {
+  "fields": [
+   "academic_year_id:select*",
+   "section_id:select*",
+   "group_id:select*",
+   "category_id:select*",
+   "file:file",
+   "class_roll[1]:text*",
+   "name[1]:text*",
+   "sex[1]:select*",
+   "religion[1]:select*",
+   "fathersName[1]:text*",
+   "mothersName[1]:text*",
+   "mobile[1]:text*",
+   "fatherMobile[1]:text*",
+   "motherMobile[1]:text*",
+   "blood_group[1]:select",
+   "class_roll[${index}]:text*",
+   "name[${index}]:text*",
+   "sex[${index}]:select*",
+   "religion[${index}]:select*",
+   "fathersName[${index}]:text*",
+   "mothersName[${index}]:text*",
+   "mobile[${index}]:text*",
+   "fatherMobile[${index}]:text*",
+   "motherMobile[${index}]:text*",
+   "blood_group[${index}]:select",
+   "class_roll[]:text*",
+   "name[]:text*",
+   "sex[]:select*",
+   "religion[]:select*",
+   "fathersName[]:text*",
+   "mothersName[]:text*",
+   "mobile[]:text*"
+  ],
+  "cols": [
+   "Roll",
+   "Name",
+   "Gender",
+   "Religion",
+   "Father Name",
+   "Mother Name",
+   "Mobile No",
+   "Father Mobile",
+   "Mother Mobile",
+   "Blood Group",
+   "Action"
+  ]
+ },
+ "admin_student_registration_multiple_edit": {
+  "fields": [
+   "reg_no_btn:checkbox",
+   "class_roll_btn:checkbox",
+   "sex_btn:checkbox",
+   "religion_btn:checkbox",
+   "fathersName_btn:checkbox",
+   "mothersName_btn:checkbox",
+   "mobile_btn:checkbox",
+   "fatherMobile_btn:checkbox",
+   "motherMobile_btn:checkbox",
+   "dateOfBirth_btn:checkbox",
+   "studentBirthRegNo_btn:checkbox",
+   "presentAddress_btn:checkbox",
+   "academic_year_id:select*",
+   "section_id:select*",
+   "group_id:select*",
+   "category_id:select",
+   "select_all:checkbox",
+   "student_id[]:checkbox",
+   "reg_no[${value.student_id}]:text",
+   "class_roll[${value.student_id}]:text*",
+   "name[${value.student_id}]:text*",
+   "sex[${value.student_id}]:select*",
+   "religion[${value.student_id}]:select*",
+   "fathersName[${value.student_id}]:text*",
+   "mothersName[${value.student_id}]:text*",
+   "mobile[${value.student_id}]:text*",
+   "fatherMobile[${value.student_id}]:text",
+   "motherMobile[${value.student_id}]:text",
+   "dateOfBirth[${value.student_id}]:text",
+   "studentBirthRegNo[${value.student_id}]:text",
+   "presentAddress[${value.student_id}]:text"
+  ],
+  "cols": [
+   "Registration No",
+   "Roll",
+   "Name",
+   "Gender",
+   "Religion",
+   "Father Name",
+   "Mother Name",
+   "Mobile No",
+   "Father Mobile",
+   "Mother Mobile",
+   "Date of Birth",
+   "Birth Reg No",
+   "Present Address"
+  ]
+ },
+ "admin_student_registration_multiple_photo": {
+  "fields": [
+   "academic_year_id:select*",
+   "section_id:select*",
+   "group_id:select",
+   "category_id:select",
+   "photos[${value.student_id}]:file"
+  ],
+  "cols": [
+   "Registration No",
+   "Roll",
+   "Name",
+   "Photo",
+   "Upload",
+   "Delete Photo"
+  ]
+ },
+ "admin_student_report_class_wise": {
+  "fields": [
+   "academic_year_id:select*",
+   "class_id:select*",
+   "photo_btn:checkbox"
+  ],
+  "cols": [
+   "Academic Year",
+   "Class",
+   "SL",
+   "Photo",
+   "Student ID",
+   "Student Name",
+   "Roll",
+   "Group",
+   "Father",
+   "Mother",
+   "Gender",
+   "Religion",
+   "Mobile No"
+  ]
+ },
+ "admin_student_report_group_wise": {
+  "fields": [
+   "academic_year_id:select*",
+   "section_id:select*",
+   "group_id:select*"
+  ],
+  "cols": [
+   "Academic Year",
+   "Class",
+   "Group",
+   "SL",
+   "Student ID",
+   "Student Name",
+   "Roll",
+   "Father",
+   "Mother",
+   "Gender",
+   "Religion",
+   "Mobile No"
+  ]
+ },
+ "admin_student_report_section_wise": {
+  "fields": [
+   "academic_year_id:select*",
+   "section_id:select*"
+  ],
+  "cols": [
+   "Academic Year",
+   "Class",
+   "SL",
+   "Student ID",
+   "Student Name",
+   "Roll",
+   "Group",
+   "Father",
+   "Mother",
+   "Gender",
+   "Religion",
+   "Mobile No"
+  ]
+ },
+ "admin_student_setup_academicYear": {
+  "fields": [],
+  "cols": [
+   "Sl",
+   "Year",
+   "Status",
+   "Action"
+  ]
+ },
+ "admin_student_setup_academicYear_17_edit": {
+  "fields": [
+   "year:text",
+   "sl:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_student_setup_academicYear_create": {
+  "fields": [
+   "year:text",
+   "sl:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_student_setup_category": {
+  "fields": [],
+  "cols": [
+   "Sl",
+   "Name",
+   "Status",
+   "Action"
+  ]
+ },
+ "admin_student_setup_category_13_edit": {
+  "fields": [
+   "name:text",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_student_setup_category_create": {
+  "fields": [
+   "name:text",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_student_setup_class_config": {
+  "fields": [],
+  "cols": [
+   "Sl",
+   "Class Name",
+   "Shift Name",
+   "Section",
+   "Status",
+   "Action"
+  ]
+ },
+ "admin_student_setup_class_config_70_edit": {
+  "fields": [
+   "class_id:select",
+   "shift_id:select",
+   "section_id:select",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_student_setup_class_config_71_edit": {
+  "fields": [
+   "class_id:select",
+   "shift_id:select",
+   "section_id:select",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_student_setup_class_config_72_edit": {
+  "fields": [
+   "class_id:select",
+   "shift_id:select",
+   "section_id:select",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_student_setup_class_config_73_edit": {
+  "fields": [
+   "class_id:select",
+   "shift_id:select",
+   "section_id:select",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_student_setup_class_config_74_edit": {
+  "fields": [
+   "class_id:select",
+   "shift_id:select",
+   "section_id:select",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_student_setup_class_config_75_edit": {
+  "fields": [
+   "class_id:select",
+   "shift_id:select",
+   "section_id:select",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_student_setup_class_config_create": {
+  "fields": [
+   "class_id:select",
+   "shift_id:select",
+   "section_id:select",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_student_setup_group": {
+  "fields": [],
+  "cols": [
+   "Sl",
+   "Name",
+   "Status",
+   "Action"
+  ]
+ },
+ "admin_student_setup_group_24_edit": {
+  "fields": [
+   "name:text",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_student_setup_group_25_edit": {
+  "fields": [
+   "name:text",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_student_setup_group_26_edit": {
+  "fields": [
+   "name:text",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_student_setup_group_config": {
+  "fields": [],
+  "cols": [
+   "Sl",
+   "Class Name",
+   "Group Name",
+   "Status",
+   "Action"
+  ]
+ },
+ "admin_student_setup_group_config_55_edit": {
+  "fields": [
+   "class_id:select",
+   "group_id:select",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_student_setup_group_config_56_edit": {
+  "fields": [
+   "class_id:select",
+   "group_id:select",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_student_setup_group_config_57_edit": {
+  "fields": [
+   "class_id:select",
+   "group_id:select",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_student_setup_group_config_58_edit": {
+  "fields": [
+   "class_id:select",
+   "group_id:select",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_student_setup_group_config_59_edit": {
+  "fields": [
+   "class_id:select",
+   "group_id:select",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_student_setup_group_config_create": {
+  "fields": [
+   "class_id:select",
+   "group_id:select",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_student_setup_group_create": {
+  "fields": [
+   "name:text",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_student_setup_section": {
+  "fields": [],
+  "cols": [
+   "Sl",
+   "Name",
+   "Status",
+   "Action"
+  ]
+ },
+ "admin_student_setup_section_22_edit": {
+  "fields": [
+   "name:text",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_student_setup_section_23_edit": {
+  "fields": [
+   "name:text",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_student_setup_section_create": {
+  "fields": [
+   "name:text",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_student_setup_semester": {
+  "fields": [],
+  "cols": [
+   "Sl",
+   "Name",
+   "Name Bangla",
+   "Status",
+   "Action"
+  ]
+ },
+ "admin_student_setup_semester_57_edit": {
+  "fields": [
+   "name:text",
+   "name_bn:text",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_student_setup_semester_58_edit": {
+  "fields": [
+   "name:text",
+   "name_bn:text",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_student_setup_semester_59_edit": {
+  "fields": [
+   "name:text",
+   "name_bn:text",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_student_setup_semester_60_edit": {
+  "fields": [
+   "name:text",
+   "name_bn:text",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_student_setup_semester_61_edit": {
+  "fields": [
+   "name:text",
+   "name_bn:text",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_student_setup_semester_create": {
+  "fields": [
+   "name:text",
+   "name_bn:text",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_student_setup_shift": {
+  "fields": [],
+  "cols": [
+   "Sl",
+   "Name",
+   "Status",
+   "Action"
+  ]
+ },
+ "admin_student_setup_shift_13_edit": {
+  "fields": [
+   "name:text",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_student_setup_shift_create": {
+  "fields": [
+   "name:text",
+   "serial:number",
+   "status:select"
+  ],
+  "cols": []
+ },
+ "admin_student_student": {
+  "fields": [
+   "academic_year_id:select",
+   "section_id:select",
+   "group_id:select",
+   "category_id:select",
+   "reg_no:text",
+   "class_roll:text"
+  ],
+  "cols": [
+   "Action",
+   "Photo",
+   "Name",
+   "Class Roll",
+   "Reg No",
+   "Class",
+   "Section",
+   "Group",
+   "Category",
+   "Sex",
+   "Mobile",
+   "Father Name",
+   "Father Mobile",
+   "Mother Name",
+   "Mother Mobile"
+  ]
+ },
+ "admin_users": {
+  "fields": [
+   "branch_id:select"
+  ],
+  "cols": [
+   "Id",
+   "Name",
+   "Email",
+   "Branch",
+   "Role",
+   "Permissions",
+   "Tools"
+  ]
+ },
+ "sms_contact": {
+  "fields": [
+   "file:file*"
+  ],
+  "cols": [
+   "ID",
+   "Name",
+   "Phone",
+   "Category",
+   "Note",
+   "Action"
+  ]
+ },
+ "sms_report": {
+  "fields": [],
+  "cols": [
+   "#",
+   "Mobile",
+   "Message",
+   "Status",
+   "Date",
+   "Sent By"
+  ]
+ },
+ "sms_send_class_wise": {
+  "fields": [
+   "template:select",
+   "content:textarea",
+   "academic_year_id:select*",
+   "class_id:select*",
+   "student_id[]:checkbox"
+  ],
+  "cols": [
+   "Roll",
+   "Name",
+   "Father Name",
+   "Mother Name",
+   "Mobile"
+  ]
+ },
+ "sms_send_contact_wise": {
+  "fields": [
+   "template:select",
+   "content:textarea",
+   "category_id:select*",
+   "student_id[]:checkbox"
+  ],
+  "cols": [
+   "Name",
+   "Mobile"
+  ]
+ },
+ "sms_send_file_wise": {
+  "fields": [
+   "template:select",
+   "content:textarea",
+   "file:file",
+   "student_id[${index}]:checkbox"
+  ],
+  "cols": [
+   "Mobile",
+   "Name"
+  ]
+ },
+ "sms_send_section_wise": {
+  "fields": [
+   "template:select",
+   "content:textarea",
+   "academic_year_id:select*",
+   "section_id:select*",
+   "student_id[]:checkbox"
+  ],
+  "cols": [
+   "Roll",
+   "Name",
+   "Father Name",
+   "Mother Name",
+   "Mobile"
+  ]
+ },
+ "sms_smsTemplate": {
+  "fields": [],
+  "cols": [
+   "ID",
+   "Title",
+   "Content",
+   "Action"
+  ]
+ },
+ "sms_smsTemplate_attendence": {
+  "fields": [
+   "content:textarea"
+  ],
+  "cols": []
+ }
+}
