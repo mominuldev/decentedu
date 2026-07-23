@@ -9,6 +9,8 @@ use App\Models\Academic\Section;
 use App\Models\Academic\Shift;
 use App\Models\Academic\Subject;
 use App\Models\Academic\Category;
+use App\Models\Academic\ClassConfig;
+use App\Models\Academic\GroupConfig;
 use Illuminate\Database\Seeder;
 
 class AcademicSeeder extends Seeder
@@ -188,6 +190,52 @@ class AcademicSeeder extends Seeder
                         'status' => true,
                     ]
                 );
+            }
+
+            // Create Class Configurations (Class × Shift × Section combinations)
+            $classes = SchoolClass::where('branch_id', $branch->id)->get();
+            $shifts = Shift::where('branch_id', $branch->id)->get();
+            $sections = Section::where('branch_id', $branch->id)->get();
+
+            foreach ($classes as $class) {
+                foreach ($shifts as $shift) {
+                    foreach ($sections as $section) {
+                        ClassConfig::firstOrCreate(
+                            [
+                                'branch_id' => $branch->id,
+                                'class_id' => $class->id,
+                                'shift_id' => $shift->id,
+                                'section_id' => $section->id,
+                            ],
+                            [
+                                'name' => "{$class->name} - {$shift->name} - {$section->name}",
+                                'serial' => ($class->serial * 100) + ($shift->serial * 10) + $section->serial,
+                                'status' => true,
+                            ]
+                        );
+                    }
+                }
+            }
+
+            // Create Group Configurations (Class × Group combinations for higher classes)
+            $higherClasses = $classes->filter(fn($c) => $c->serial >= 9); // Nine and Ten
+            $groups = Group::where('branch_id', $branch->id)->get();
+
+            foreach ($higherClasses as $class) {
+                foreach ($groups as $group) {
+                    GroupConfig::firstOrCreate(
+                        [
+                            'branch_id' => $branch->id,
+                            'class_id' => $class->id,
+                            'group_id' => $group->id,
+                        ],
+                        [
+                            'name' => "{$class->name} - {$group->name}",
+                            'serial' => ($class->serial * 10) + $group->serial,
+                            'status' => true,
+                        ]
+                    );
+                }
             }
         }
 
