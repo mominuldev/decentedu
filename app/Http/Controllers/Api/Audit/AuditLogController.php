@@ -27,7 +27,7 @@ class AuditLogController extends Controller
         $logs = $query->paginate($perPage);
 
         return ApiResponse::success(
-            $logs->through(fn (AuditLog $log) => [
+            collect($logs->items())->map(fn (AuditLog $log) => [
                 'id' => $log->id,
                 'user' => $log->user?->name,
                 'auditable_type' => class_basename($log->auditable_type),
