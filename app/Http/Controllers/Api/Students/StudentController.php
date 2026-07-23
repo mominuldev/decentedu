@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Students;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\StudentResource;
 use App\Models\Students\Student;
 use App\Models\Students\Enrollment;
 use App\Support\ApiResponse;

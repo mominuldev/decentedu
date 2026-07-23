@@ -195,9 +195,11 @@ class StudentSeeder extends Seeder
 
         $statuses = ['transferred', 'left', 'passed_out'];
         $specialStudents = 5; // 5 students per status
+        $rollCounter = 900; // High range so it never collides with a class's regular rolls
 
         foreach ($statuses as $status) {
             for ($i = 0; $i < $specialStudents; $i++) {
+                $rollCounter++;
                 $gender = $faker->randomElement(['male', 'female']);
 
                 $student = Student::create([
@@ -226,7 +228,7 @@ class StudentSeeder extends Seeder
                     'student_id' => $student->id,
                     'academic_year_id' => $academicYear->id,
                     'class_config_id' => $classConfigs->random()->id,
-                    'roll' => str_pad($i + 1, 3, '0', STR_PAD_LEFT),
+                    'roll' => (string) $rollCounter,
                     'is_current' => false,
                     'enrolled_at' => $faker->dateTimeBetween('2024-01-01', '2024-12-31')->format('Y-m-d'),
                     'left_at' => $status === 'passed_out' ? null : $faker->dateTimeBetween('2024-06-01', '2024-12-31')->format('Y-m-d'),

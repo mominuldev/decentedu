@@ -200,7 +200,7 @@ class HrSeeder extends Seeder
             // Create some employees with different statuses
             if ($i >= 25) {
                 $statuses = ['resigned', 'terminated', 'retired'];
-                $status = $statuses[$i - 25];
+                $status = $statuses[($i - 25) % count($statuses)];
 
                 $employee->update([
                     'status' => $status,

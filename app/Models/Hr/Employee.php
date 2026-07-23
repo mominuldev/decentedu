@@ -25,6 +25,7 @@ class Employee extends Model
         'hr_section_id',
         'sex',
         'religion',
+        'blood_group',
         'dob',
         'mobile',
         'email',

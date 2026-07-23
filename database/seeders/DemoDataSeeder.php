@@ -37,6 +37,10 @@ class DemoDataSeeder extends Seeder
             $this->command->info('\n👨‍💼 Step 4: HR & Staff');
             $this->call(HrSeeder::class);
 
+            // 5. Seed Routines & Attendance Data
+            $this->command->info('\n🗓️ Step 5: Routines & Attendance');
+            $this->call(RoutineAttendanceSeeder::class);
+
             $this->command->info('\n==========================================');
             $this->command->info('✅ Demo Data Seeding Completed Successfully!');
             $this->command->info('==========================================');

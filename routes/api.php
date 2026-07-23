@@ -2,8 +2,17 @@
 
 use App\Http\Controllers\Api\Academic\ClassConfigController;
 use App\Http\Controllers\Api\Academic\SetupController;
+use App\Http\Controllers\Api\Attendance\DeviceController;
+use App\Http\Controllers\Api\Attendance\DeviceMapController;
+use App\Http\Controllers\Api\Attendance\EmployeeAttendanceController;
+use App\Http\Controllers\Api\Attendance\HolidayController;
+use App\Http\Controllers\Api\Attendance\PunchController;
+use App\Http\Controllers\Api\Attendance\StudentAttendanceController;
+use App\Http\Controllers\Api\Attendance\TimeConfigController;
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\BranchController;
+use App\Http\Controllers\Api\Routines\ClassRoutineController;
+use App\Http\Controllers\Api\Routines\PeriodController;
 use App\Http\Controllers\Api\Students\StudentController;
 use App\Http\Controllers\Api\Hr\EmployeeController;
 use App\Http\Controllers\Api\Hr\SetupController as HrSetupController;
@@ -82,6 +91,60 @@ Route::prefix('v1')->group(function () use ($setupSlugs) {
                 Route::delete('{id}/subject-assignments/{assignmentId}', [EmployeeController::class, 'removeSubject'])
                     ->whereNumber('id')
                     ->whereNumber('assignmentId');
+            });
+        });
+
+        // ---- Routines module --------------------------------------------------
+        Route::prefix('routines')->group(function () {
+            Route::get('periods', [PeriodController::class, 'index']);
+            Route::post('periods', [PeriodController::class, 'store']);
+            Route::match(['put', 'patch'], 'periods/{id}', [PeriodController::class, 'update'])->whereNumber('id');
+            Route::delete('periods/{id}', [PeriodController::class, 'destroy'])->whereNumber('id');
+
+            Route::get('class-configs/{classConfigId}/options', [ClassRoutineController::class, 'options'])->whereNumber('classConfigId');
+            Route::get('class-configs/{classConfigId}', [ClassRoutineController::class, 'forClassConfig'])->whereNumber('classConfigId');
+            Route::get('teachers/{employeeId}', [ClassRoutineController::class, 'forTeacher'])->whereNumber('employeeId');
+            Route::post('/', [ClassRoutineController::class, 'store']);
+            Route::match(['put', 'patch'], '{id}', [ClassRoutineController::class, 'update'])->whereNumber('id');
+            Route::delete('{id}', [ClassRoutineController::class, 'destroy'])->whereNumber('id');
+        });
+
+        // ---- Attendance module --------------------------------------------------
+        Route::prefix('attendance')->group(function () {
+            Route::get('holidays', [HolidayController::class, 'index']);
+            Route::post('holidays', [HolidayController::class, 'store']);
+            Route::match(['put', 'patch'], 'holidays/{id}', [HolidayController::class, 'update'])->whereNumber('id');
+            Route::delete('holidays/{id}', [HolidayController::class, 'destroy'])->whereNumber('id');
+
+            Route::get('devices', [DeviceController::class, 'index']);
+            Route::post('devices', [DeviceController::class, 'store']);
+            Route::match(['put', 'patch'], 'devices/{id}', [DeviceController::class, 'update'])->whereNumber('id');
+            Route::delete('devices/{id}', [DeviceController::class, 'destroy'])->whereNumber('id');
+
+            Route::get('device-maps', [DeviceMapController::class, 'index']);
+            Route::post('device-maps', [DeviceMapController::class, 'store']);
+            Route::delete('device-maps/{id}', [DeviceMapController::class, 'destroy'])->whereNumber('id');
+
+            Route::get('time-configs', [TimeConfigController::class, 'index']);
+            Route::post('time-configs', [TimeConfigController::class, 'store']);
+            Route::match(['put', 'patch'], 'time-configs/{id}', [TimeConfigController::class, 'update'])->whereNumber('id');
+            Route::delete('time-configs/{id}', [TimeConfigController::class, 'destroy'])->whereNumber('id');
+
+            Route::post('punches', [PunchController::class, 'store']);
+            Route::post('punches/process', [PunchController::class, 'process']);
+
+            Route::prefix('students')->group(function () {
+                Route::get('/', [StudentAttendanceController::class, 'index']);
+                Route::post('take', [StudentAttendanceController::class, 'take']);
+                Route::get('report', [StudentAttendanceController::class, 'report']);
+                Route::match(['put', 'patch'], '{id}', [StudentAttendanceController::class, 'update'])->whereNumber('id');
+            });
+
+            Route::prefix('employees')->group(function () {
+                Route::get('/', [EmployeeAttendanceController::class, 'index']);
+                Route::post('take', [EmployeeAttendanceController::class, 'take']);
+                Route::get('report', [EmployeeAttendanceController::class, 'report']);
+                Route::match(['put', 'patch'], '{id}', [EmployeeAttendanceController::class, 'update'])->whereNumber('id');
             });
         });
     });

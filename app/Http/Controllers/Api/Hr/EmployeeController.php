@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api\Hr;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\EmployeeResource;
+use App\Http\Resources\SubjectTeacherResource;
 use App\Models\Hr\Employee;
 use App\Models\Hr\SubjectTeacher;
 use App\Support\ApiResponse;
