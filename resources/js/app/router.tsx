@@ -9,6 +9,8 @@ import StudentsPage from '@/features/students/StudentsPage';
 import HrPage from '@/features/hr/HrPage';
 import RoutinesPage from '@/features/routines/RoutinesPage';
 import AttendancePage from '@/features/attendance/AttendancePage';
+import ExaminationsPage from '@/features/examinations/ExaminationsPage';
+import ResultsPage from '@/features/examinations/ResultsPage';
 import Placeholder from '@/features/misc/Placeholder';
 
 // Protected page = auth gate + dashboard chrome.
@@ -30,8 +32,8 @@ export const router = createBrowserRouter([
     { path: '/hr', element: page(<HrPage />) },
     { path: '/attendance', element: page(<AttendancePage />) },
     { path: '/routines', element: page(<RoutinesPage />) },
-    { path: '/exams', element: stub('Examinations', 'Phase 6') },
-    { path: '/results', element: stub('Results', 'Phase 6') },
+    { path: '/exams', element: page(<ExaminationsPage />) },
+    { path: '/results', element: page(<ResultsPage />) },
     { path: '/fees', element: stub('Fees', 'Phase 7') },
     { path: '/accounting', element: stub('Accounting', 'Phase 7') },
     { path: '/messaging', element: stub('SMS & Notices', 'Phase 8') },

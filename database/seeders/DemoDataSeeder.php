@@ -41,6 +41,10 @@ class DemoDataSeeder extends Seeder
             $this->command->info('\n🗓️ Step 5: Routines & Attendance');
             $this->call(RoutineAttendanceSeeder::class);
 
+            // 6. Seed Examinations Data
+            $this->command->info('\n📝 Step 6: Examinations');
+            $this->call(ExaminationSeeder::class);
+
             $this->command->info('\n==========================================');
             $this->command->info('✅ Demo Data Seeding Completed Successfully!');
             $this->command->info('==========================================');
@@ -80,5 +84,9 @@ class DemoDataSeeder extends Seeder
         $this->command->info('📋 Designations: ' . \App\Models\Hr\Designation::count());
         $this->command->info('🏢 HR Sections: ' . \App\Models\Hr\HrSection::count());
         $this->command->info('📚 Subject Teachers: ' . \App\Models\Hr\SubjectTeacher::count());
+        $this->command->info('📝 Exams: ' . \App\Models\Examinations\Exam::count());
+        $this->command->info('🧮 Mark Configs: ' . \App\Models\Examinations\MarkConfig::count());
+        $this->command->info('✍️  Marks Entered: ' . \App\Models\Examinations\Mark::count());
+        $this->command->info('🏆 Exam Summaries: ' . \App\Models\Examinations\StudentExamSummary::count());
     }
 }

@@ -11,6 +11,18 @@ use App\Http\Controllers\Api\Attendance\StudentAttendanceController;
 use App\Http\Controllers\Api\Attendance\TimeConfigController;
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\BranchController;
+use App\Http\Controllers\Api\Examinations\AdmitController;
+use App\Http\Controllers\Api\Examinations\AdmitInstructionController;
+use App\Http\Controllers\Api\Examinations\ClassTeacherConfigController;
+use App\Http\Controllers\Api\Examinations\ExamConfigController;
+use App\Http\Controllers\Api\Examinations\ExamRoutineController;
+use App\Http\Controllers\Api\Examinations\FourthSubjectController;
+use App\Http\Controllers\Api\Examinations\GradeController;
+use App\Http\Controllers\Api\Examinations\MarkConfigController;
+use App\Http\Controllers\Api\Examinations\MarksController;
+use App\Http\Controllers\Api\Examinations\ResultController;
+use App\Http\Controllers\Api\Examinations\SetupController as ExaminationsSetupController;
+use App\Http\Controllers\Api\Examinations\SignatureController;
 use App\Http\Controllers\Api\Routines\ClassRoutineController;
 use App\Http\Controllers\Api\Routines\PeriodController;
 use App\Http\Controllers\Api\Students\StudentController;
@@ -146,6 +158,76 @@ Route::prefix('v1')->group(function () use ($setupSlugs) {
                 Route::get('report', [EmployeeAttendanceController::class, 'report']);
                 Route::match(['put', 'patch'], '{id}', [EmployeeAttendanceController::class, 'update'])->whereNumber('id');
             });
+        });
+
+        // ---- Examinations module --------------------------------------------
+        $examSetupSlugs = 'exams|short-codes';
+
+        Route::prefix('examinations')->group(function () use ($examSetupSlugs) {
+            // Setup: exams, short-codes (uniform), grades (per-class scale)
+            Route::get('{resource}', [ExaminationsSetupController::class, 'index'])->where('resource', $examSetupSlugs);
+            Route::post('{resource}', [ExaminationsSetupController::class, 'store'])->where('resource', $examSetupSlugs);
+            Route::get('{resource}/{id}', [ExaminationsSetupController::class, 'show'])->where('resource', $examSetupSlugs)->whereNumber('id');
+            Route::match(['put', 'patch'], '{resource}/{id}', [ExaminationsSetupController::class, 'update'])->where('resource', $examSetupSlugs)->whereNumber('id');
+            Route::delete('{resource}/{id}', [ExaminationsSetupController::class, 'destroy'])->where('resource', $examSetupSlugs)->whereNumber('id');
+
+            Route::get('grades', [GradeController::class, 'index']);
+            Route::post('grades', [GradeController::class, 'store']);
+            Route::match(['put', 'patch'], 'grades/{id}', [GradeController::class, 'update'])->whereNumber('id');
+            Route::delete('grades/{id}', [GradeController::class, 'destroy'])->whereNumber('id');
+
+            // Config
+            Route::get('exam-configs', [ExamConfigController::class, 'index']);
+            Route::post('exam-configs', [ExamConfigController::class, 'store']);
+            Route::match(['put', 'patch'], 'exam-configs/{id}', [ExamConfigController::class, 'update'])->whereNumber('id');
+            Route::delete('exam-configs/{id}', [ExamConfigController::class, 'destroy'])->whereNumber('id');
+
+            Route::get('mark-configs/options', [MarkConfigController::class, 'options']);
+            Route::get('mark-configs', [MarkConfigController::class, 'index']);
+            Route::post('mark-configs', [MarkConfigController::class, 'save']);
+            Route::delete('mark-configs/{id}', [MarkConfigController::class, 'destroy'])->whereNumber('id');
+
+            Route::get('fourth-subjects', [FourthSubjectController::class, 'index']);
+            Route::post('fourth-subjects', [FourthSubjectController::class, 'save']);
+
+            Route::get('class-teacher-configs', [ClassTeacherConfigController::class, 'index']);
+            Route::post('class-teacher-configs', [ClassTeacherConfigController::class, 'store']);
+            Route::delete('class-teacher-configs/{id}', [ClassTeacherConfigController::class, 'destroy'])->whereNumber('id');
+
+            Route::get('signatures', [SignatureController::class, 'index']);
+            Route::post('signatures', [SignatureController::class, 'store']);
+            Route::match(['put', 'patch'], 'signatures/{id}', [SignatureController::class, 'update'])->whereNumber('id');
+            Route::delete('signatures/{id}', [SignatureController::class, 'destroy'])->whereNumber('id');
+
+            Route::get('admit-instructions', [AdmitInstructionController::class, 'show']);
+            Route::match(['put', 'patch'], 'admit-instructions', [AdmitInstructionController::class, 'update']);
+
+            // Exam routine
+            Route::get('exam-routine/options', [ExamRoutineController::class, 'options']);
+            Route::get('exam-routine', [ExamRoutineController::class, 'index']);
+            Route::post('exam-routine', [ExamRoutineController::class, 'store']);
+            Route::match(['put', 'patch'], 'exam-routine/{id}', [ExamRoutineController::class, 'update'])->whereNumber('id');
+            Route::delete('exam-routine/{id}', [ExamRoutineController::class, 'destroy'])->whereNumber('id');
+
+            // Marks input
+            Route::get('marks/grid', [MarksController::class, 'grid']);
+            Route::post('marks', [MarksController::class, 'save']);
+
+            // Result processing
+            Route::post('results/general-process', [ResultController::class, 'generalProcess']);
+            Route::post('results/final-process', [ResultController::class, 'finalProcess']);
+            Route::post('results/merit-process', [ResultController::class, 'meritProcess']);
+
+            // Reports
+            Route::get('results/marksheet', [ResultController::class, 'marksheet']);
+            Route::get('results/tabulation-sheet', [ResultController::class, 'tabulationSheet']);
+            Route::get('results/merit-list', [ResultController::class, 'meritList']);
+            Route::get('results/fail-list', [ResultController::class, 'failList']);
+
+            // Admit
+            Route::get('admit/card', [AdmitController::class, 'admitCard']);
+            Route::post('admit/seat-plan', [AdmitController::class, 'seatPlan']);
+            Route::get('admit/attendance-sheet', [AdmitController::class, 'attendanceSheet']);
         });
     });
 });
