@@ -2,6 +2,9 @@
 
 use App\Http\Controllers\Api\Academic\ClassConfigController;
 use App\Http\Controllers\Api\Academic\SetupController;
+use App\Http\Controllers\Api\Accounting\AccountingReportController;
+use App\Http\Controllers\Api\Accounting\LedgerAccountController;
+use App\Http\Controllers\Api\Accounting\VoucherController;
 use App\Http\Controllers\Api\Attendance\DeviceController;
 use App\Http\Controllers\Api\Attendance\DeviceMapController;
 use App\Http\Controllers\Api\Attendance\EmployeeAttendanceController;
@@ -23,6 +26,12 @@ use App\Http\Controllers\Api\Examinations\MarksController;
 use App\Http\Controllers\Api\Examinations\ResultController;
 use App\Http\Controllers\Api\Examinations\SetupController as ExaminationsSetupController;
 use App\Http\Controllers\Api\Examinations\SignatureController;
+use App\Http\Controllers\Api\Fees\FeeCollectionController;
+use App\Http\Controllers\Api\Fees\FeeConfigController;
+use App\Http\Controllers\Api\Fees\FeeReportController;
+use App\Http\Controllers\Api\Fees\FeeTimeConfigController;
+use App\Http\Controllers\Api\Fees\FeeWaiverConfigController;
+use App\Http\Controllers\Api\Fees\SetupController as FeesSetupController;
 use App\Http\Controllers\Api\Routines\ClassRoutineController;
 use App\Http\Controllers\Api\Routines\PeriodController;
 use App\Http\Controllers\Api\Students\StudentController;
@@ -228,6 +237,55 @@ Route::prefix('v1')->group(function () use ($setupSlugs) {
             Route::get('admit/card', [AdmitController::class, 'admitCard']);
             Route::post('admit/seat-plan', [AdmitController::class, 'seatPlan']);
             Route::get('admit/attendance-sheet', [AdmitController::class, 'attendanceSheet']);
+        });
+
+        // ---- Fees module ------------------------------------------------------
+        $feeSetupSlugs = 'heads|sub-heads|waivers';
+
+        Route::prefix('fees')->group(function () use ($feeSetupSlugs) {
+            // Setup: heads, sub-heads, waivers (uniform)
+            Route::get('{resource}', [FeesSetupController::class, 'index'])->where('resource', $feeSetupSlugs);
+            Route::post('{resource}', [FeesSetupController::class, 'store'])->where('resource', $feeSetupSlugs);
+            Route::get('{resource}/{id}', [FeesSetupController::class, 'show'])->where('resource', $feeSetupSlugs)->whereNumber('id');
+            Route::match(['put', 'patch'], '{resource}/{id}', [FeesSetupController::class, 'update'])->where('resource', $feeSetupSlugs)->whereNumber('id');
+            Route::delete('{resource}/{id}', [FeesSetupController::class, 'destroy'])->where('resource', $feeSetupSlugs)->whereNumber('id');
+
+            // Fee structure (payable amount per class_config x sub_head x academic_year)
+            Route::get('configs', [FeeConfigController::class, 'index']);
+            Route::post('configs', [FeeConfigController::class, 'save']);
+            Route::post('configs/assess', [FeeConfigController::class, 'assess']);
+
+            // Due date + flat fine per sub_head x academic_year
+            Route::get('time-configs', [FeeTimeConfigController::class, 'index']);
+            Route::post('time-configs', [FeeTimeConfigController::class, 'save']);
+
+            // Per-student waiver assignment
+            Route::get('waiver-configs', [FeeWaiverConfigController::class, 'index']);
+            Route::post('waiver-configs', [FeeWaiverConfigController::class, 'store']);
+            Route::delete('waiver-configs/{id}', [FeeWaiverConfigController::class, 'destroy'])->whereNumber('id');
+
+            // Dues + collection (receipts)
+            Route::get('students/{student}/dues', [FeeCollectionController::class, 'dues'])->whereNumber('student');
+            Route::get('collections', [FeeCollectionController::class, 'index']);
+            Route::post('collections', [FeeCollectionController::class, 'store']);
+            Route::get('collections/{id}', [FeeCollectionController::class, 'show'])->whereNumber('id');
+
+            // Reports
+            Route::get('reports/{type}', [FeeReportController::class, 'show'])->where('type', 'daily-collection|dues-summary');
+        });
+
+        // ---- Accounting module -------------------------------------------------
+        Route::prefix('accounting')->group(function () {
+            Route::get('ledgers', [LedgerAccountController::class, 'index']);
+            Route::post('ledgers', [LedgerAccountController::class, 'store']);
+            Route::match(['put', 'patch'], 'ledgers/{id}', [LedgerAccountController::class, 'update'])->whereNumber('id');
+            Route::delete('ledgers/{id}', [LedgerAccountController::class, 'destroy'])->whereNumber('id');
+
+            Route::get('vouchers', [VoucherController::class, 'index']);
+            Route::post('vouchers', [VoucherController::class, 'store']);
+            Route::get('vouchers/{id}', [VoucherController::class, 'show'])->whereNumber('id');
+
+            Route::get('reports/{type}', [AccountingReportController::class, 'show'])->where('type', 'trial-balance|income-statement');
         });
     });
 });

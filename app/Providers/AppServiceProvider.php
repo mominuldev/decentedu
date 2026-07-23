@@ -2,10 +2,13 @@
 
 namespace App\Providers;
 
+use App\Events\FeeCollected;
+use App\Listeners\PostFeeCollectionToLedger;
 use App\Models\Hr\Employee;
 use App\Models\Students\Student;
 use App\Support\BranchContext;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -29,5 +32,9 @@ class AppServiceProvider extends ServiceProvider
             'student' => Student::class,
             'employee' => Employee::class,
         ]);
+
+        // Fees stays ignorant of Accounting internals — a receive voucher is posted async-free,
+        // in the same request, so the receipt response can include GL confirmation.
+        Event::listen(FeeCollected::class, PostFeeCollectionToLedger::class);
     }
 }

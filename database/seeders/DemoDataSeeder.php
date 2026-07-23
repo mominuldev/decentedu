@@ -45,6 +45,10 @@ class DemoDataSeeder extends Seeder
             $this->command->info('\n📝 Step 6: Examinations');
             $this->call(ExaminationSeeder::class);
 
+            // 7. Seed Finance Data (Fees + Accounting)
+            $this->command->info('\n💰 Step 7: Finance (Fees & Accounting)');
+            $this->call(FinanceSeeder::class);
+
             $this->command->info('\n==========================================');
             $this->command->info('✅ Demo Data Seeding Completed Successfully!');
             $this->command->info('==========================================');
@@ -88,5 +92,10 @@ class DemoDataSeeder extends Seeder
         $this->command->info('🧮 Mark Configs: ' . \App\Models\Examinations\MarkConfig::count());
         $this->command->info('✍️  Marks Entered: ' . \App\Models\Examinations\Mark::count());
         $this->command->info('🏆 Exam Summaries: ' . \App\Models\Examinations\StudentExamSummary::count());
+        $this->command->info('💵 Fee Heads: ' . \App\Models\Fees\FeeHead::count());
+        $this->command->info('🧾 Student Fees Assessed: ' . \App\Models\Fees\StudentFee::count());
+        $this->command->info('💳 Fee Collections: ' . \App\Models\Fees\FeeCollection::count());
+        $this->command->info('📒 Ledger Accounts: ' . \App\Models\Accounting\LedgerAccount::count());
+        $this->command->info('🧮 Vouchers Posted: ' . \App\Models\Accounting\Voucher::count());
     }
 }
