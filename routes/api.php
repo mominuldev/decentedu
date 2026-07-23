@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\Attendance\TimeConfigController;
 use App\Http\Controllers\Api\Audit\AuditLogController;
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\BranchController;
+use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\Examinations\AdmitController;
 use App\Http\Controllers\Api\Examinations\AdmitInstructionController;
 use App\Http\Controllers\Api\Examinations\ClassTeacherConfigController;
@@ -54,7 +55,6 @@ use App\Http\Controllers\Api\Reporting\ReportController;
 use App\Http\Controllers\Api\UploadController;
 use App\Http\Controllers\Api\Users\RoleController;
 use App\Http\Controllers\Api\Users\UserController;
-use App\Support\ApiResponse;
 use App\Support\Reporting\ReportRegistry;
 use Illuminate\Support\Facades\Route;
 
@@ -102,14 +102,7 @@ Route::prefix('v1')->group(function () use ($setupSlugs) {
         Route::post('uploads', [UploadController::class, 'store']);
         Route::get('uploads/{path}', [UploadController::class, 'show'])->where('path', '.*');
 
-        Route::get('dashboard', function () {
-            return ApiResponse::success([
-                'total_students' => 1284,
-                'present_today' => 1173,
-                'absent_today' => 111,
-                'collection_today' => 184500,
-            ], 'Dashboard summary');
-        });
+        Route::get('dashboard', [DashboardController::class, 'index']);
 
         // ---- Academic module -------------------------------------------------
         Route::prefix('academic')->middleware('permission:academic.manage')->group(function () use ($setupSlugs) {

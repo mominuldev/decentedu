@@ -12,6 +12,7 @@ use App\Support\ApiResponse;
 use App\Support\BranchContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\Rule;
 
 class ClassConfigController extends Controller
@@ -52,15 +53,25 @@ class ClassConfigController extends Controller
         return ApiResponse::success(null, 'Deleted.');
     }
 
-    /** Select options (classes, shifts, sections, groups) for building the form. */
+    /**
+     * Select options (classes, shifts, sections, groups) — hit by nearly every form in the
+     * app (students, routines, attendance, exams, fees). Writes go through the generic
+     * Academic\SetupController across 4 different resource slugs, so rather than wire
+     * invalidation into every one of them, this relies on a short TTL (doc 08: "reference
+     * lists ... short TTL") — worst case a renamed/added class takes up to a minute to show.
+     */
     public function options(): JsonResponse
     {
-        return ApiResponse::success([
+        $branchId = app(BranchContext::class)->idOrFail();
+
+        $data = Cache::remember("class-config-options:{$branchId}", 60, fn () => [
             'classes' => SchoolClass::where('status', true)->orderBy('serial')->get(['id', 'name']),
             'shifts' => Shift::where('status', true)->orderBy('serial')->get(['id', 'name']),
             'sections' => Section::where('status', true)->orderBy('serial')->get(['id', 'name']),
             'groups' => Group::where('status', true)->orderBy('serial')->get(['id', 'name']),
-        ], 'Options retrieved.');
+        ]);
+
+        return ApiResponse::success($data, 'Options retrieved.');
     }
 
     private function validated(Request $request, ?int $ignoreId): array

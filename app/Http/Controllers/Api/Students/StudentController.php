@@ -8,6 +8,7 @@ use App\Models\Students\Student;
 use App\Models\Students\Enrollment;
 use App\Support\ApiResponse;
 use App\Support\BranchContext;
+use App\Support\Query\Includes;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -17,7 +18,11 @@ class StudentController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $query = Student::query()->with(['currentEnrollment.classConfig', 'guardians']);
+        // currentEnrollment.classConfig + guardians are needed by the existing list view (guardian
+        // column); documents is genuinely optional — StudentResource already guards it with
+        // relationLoaded(), it just was never made opt-in at the query level until now.
+        $with = array_merge(['currentEnrollment.classConfig', 'guardians'], Includes::resolve($request, ['documents']));
+        $query = Student::query()->with($with);
 
         // Search
         if ($search = trim((string) $request->query('search'))) {

@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Support\BranchContext;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
@@ -68,5 +69,9 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('sms', fn (Request $r) => Limit::perMinute(20)->by($r->user()?->id ?? $r->ip()));
         RateLimiter::for('reports', fn (Request $r) => Limit::perMinute(30)->by($r->user()?->id ?? $r->ip()));
         RateLimiter::for('bulk-import', fn (Request $r) => Limit::perMinute(5)->by($r->user()?->id ?? $r->ip()));
+
+        // Throws on any lazy-loaded relation outside prod so N+1s surface in dev/tests
+        // instead of silently costing extra queries per row in production.
+        Model::preventLazyLoading(! app()->isProduction());
     }
 }

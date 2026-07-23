@@ -35,24 +35,33 @@ class StudentResource extends JsonResource
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
 
-            // Relationships
-            'current_enrollment' => $this->when($this->relationLoaded('currentEnrollment') && $this->currentEnrollment, [
-                'id' => $this->currentEnrollment->id,
-                'academic_year_id' => $this->currentEnrollment->academic_year_id,
-                'class_config_id' => $this->currentEnrollment->class_config_id,
-                'group_id' => $this->currentEnrollment->group_id,
-                'category_id' => $this->currentEnrollment->category_id,
-                'roll' => $this->currentEnrollment->roll,
-                'is_current' => $this->currentEnrollment->is_current,
-                'enrolled_at' => $this->currentEnrollment->enrolled_at?->toISOString(),
-                'class_config' => $this->when($this->currentEnrollment->relationLoaded('classConfig') && $this->currentEnrollment->classConfig, [
-                    'id' => $this->currentEnrollment->classConfig->id,
-                    'name' => $this->currentEnrollment->classConfig->name,
-                ]),
-            ]),
+            // Relationships — values are closures so they're only evaluated (and only touch the
+            // relation) when the when() condition is true; a plain value is evaluated eagerly by
+            // PHP regardless of the condition, which both NPEs on a null relation and defeats
+            // relationLoaded() checks by triggering a lazy load of an unrequested relation.
+            'current_enrollment' => $this->when(
+                $this->relationLoaded('currentEnrollment') && $this->currentEnrollment,
+                fn () => [
+                    'id' => $this->currentEnrollment->id,
+                    'academic_year_id' => $this->currentEnrollment->academic_year_id,
+                    'class_config_id' => $this->currentEnrollment->class_config_id,
+                    'group_id' => $this->currentEnrollment->group_id,
+                    'category_id' => $this->currentEnrollment->category_id,
+                    'roll' => $this->currentEnrollment->roll,
+                    'is_current' => $this->currentEnrollment->is_current,
+                    'enrolled_at' => $this->currentEnrollment->enrolled_at?->toISOString(),
+                    'class_config' => $this->when(
+                        $this->currentEnrollment->relationLoaded('classConfig') && $this->currentEnrollment->classConfig,
+                        fn () => [
+                            'id' => $this->currentEnrollment->classConfig->id,
+                            'name' => $this->currentEnrollment->classConfig->name,
+                        ],
+                    ),
+                ],
+            ),
 
-            'guardians' => GuardianResource::collection($this->when($this->relationLoaded('guardians'), $this->guardians)),
-            'documents' => DocumentResource::collection($this->when($this->relationLoaded('documents'), $this->documents)),
+            'guardians' => GuardianResource::collection($this->when($this->relationLoaded('guardians'), fn () => $this->guardians)),
+            'documents' => DocumentResource::collection($this->when($this->relationLoaded('documents'), fn () => $this->documents)),
         ];
     }
 }
