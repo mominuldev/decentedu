@@ -1,21 +1,15 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { Loader2, Upload, X, Check, AlertCircle } from 'lucide-react';
-import { Modal } from '@/components/Modal';
-import { Button } from '@/components/ui';
-import { useAuth } from '@/features/auth/AuthProvider';
+import { Loader2, Upload, X, Check, AlertCircle, ArrowLeft } from 'lucide-react';
+import { Button, Card } from '@/components/ui';
 import { toApiError } from '@/lib/api';
 import { bulkRegister, type BulkRegisterRequest } from './api';
 import { listSetup, listClassConfigs } from '@/features/academic/api';
 import { GENDER_OPTIONS } from './types';
 
-interface BulkRegisterModalProps {
-  onClose: () => void;
-  onSaved: () => void;
-}
-
-export function BulkRegisterModal({ onClose, onSaved }: BulkRegisterModalProps) {
-  const { session } = useAuth();
+export default function BulkRegisterPage() {
+  const navigate = useNavigate();
 
   // Fetch setup data
   const { data: academicYears = [] } = useQuery({
@@ -123,48 +117,28 @@ export function BulkRegisterModal({ onClose, onSaved }: BulkRegisterModalProps) 
     setStudents(updated);
   };
 
-  const resetAndClose = () => {
-    setResult(null);
-    setError(null);
-    setStudents([
-      {
-        student_uid: '',
-        name: '',
-        sex: 'male',
-        fathers_name: '',
-        mothers_name: '',
-        roll: '',
-        mobile: '',
-      },
-    ]);
-    onClose();
-  };
-
   const handleDone = () => {
-    if (result) {
-      onSaved();
-      resetAndClose();
-    }
+    navigate('/students');
   };
 
   return (
-    <Modal
-      open
-      onClose={resetAndClose}
-      title="Bulk Register Students"
-      footer={
-        result ? (
-          <>
-            <Button variant="outline" onClick={resetAndClose}>
-              Close
-            </Button>
-            <Button onClick={handleDone}>
-              Done
-            </Button>
-          </>
-        ) : (
-          <>
-            <Button variant="outline" onClick={resetAndClose}>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Button variant="outline" onClick={() => navigate('/students')}>
+            <ArrowLeft size={16} />
+            Back
+          </Button>
+          <div>
+            <h1 className="text-[22px] font-bold tracking-tight text-fg">Bulk Register Students</h1>
+            <p className="mt-0.5 text-[13.5px] text-muted">
+              Register multiple students at once into a class
+            </p>
+          </div>
+        </div>
+        {!result && (
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => navigate('/students')}>
               Cancel
             </Button>
             <Button
@@ -174,10 +148,10 @@ export function BulkRegisterModal({ onClose, onSaved }: BulkRegisterModalProps) 
               {bulkMutation.isPending && <Loader2 size={16} className="animate-spin" />}
               Register Students
             </Button>
-          </>
-        )
-      }
-    >
+          </div>
+        )}
+      </div>
+
       {result ? (
         <div className="space-y-4">
           <div className="flex items-center gap-3 rounded-xl bg-green-50 p-4">
@@ -212,7 +186,7 @@ export function BulkRegisterModal({ onClose, onSaved }: BulkRegisterModalProps) 
             </div>
           )}
 
-          <div className="rounded-xl border border-border p-4">
+          <Card className="p-4">
             <h4 className="text-sm font-semibold text-fg mb-2">Successfully Registered</h4>
             <div className="space-y-1 text-sm">
               {result.created.map((student, index) => (
@@ -221,6 +195,10 @@ export function BulkRegisterModal({ onClose, onSaved }: BulkRegisterModalProps) 
                 </div>
               ))}
             </div>
+          </Card>
+
+          <div className="flex justify-end">
+            <Button onClick={handleDone}>Done</Button>
           </div>
         </div>
       ) : (
@@ -232,46 +210,49 @@ export function BulkRegisterModal({ onClose, onSaved }: BulkRegisterModalProps) 
           )}
 
           {/* Target Class Selection */}
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className="mb-1.5 block text-[13px] font-medium text-fg">
-                Academic Year <span className="text-rose-500">*</span>
-              </label>
-              <select
-                value={academicYearId}
-                onChange={(e) => setAcademicYearId(Number(e.target.value))}
-                className="w-full rounded-xl border border-border-strong bg-surface px-3.5 py-2.5 text-[14px] text-fg outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25"
-              >
-                <option value="">Select academic year</option>
-                {academicYears.map((year) => (
-                  <option key={year.id} value={year.id}>
-                    {year.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <Card className="p-6">
+            <h3 className="text-sm font-semibold text-fg mb-4">Target Class</h3>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="mb-1.5 block text-[13px] font-medium text-fg">
+                  Academic Year <span className="text-rose-500">*</span>
+                </label>
+                <select
+                  value={academicYearId}
+                  onChange={(e) => setAcademicYearId(Number(e.target.value))}
+                  className="w-full rounded-xl border border-border-strong bg-surface px-3.5 py-2.5 text-[14px] text-fg outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25"
+                >
+                  <option value="">Select academic year</option>
+                  {academicYears.map((year) => (
+                    <option key={year.id} value={year.id}>
+                      {year.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-            <div>
-              <label className="mb-1.5 block text-[13px] font-medium text-fg">
-                Class <span className="text-rose-500">*</span>
-              </label>
-              <select
-                value={classConfigId}
-                onChange={(e) => setClassConfigId(Number(e.target.value))}
-                className="w-full rounded-xl border border-border-strong bg-surface px-3.5 py-2.5 text-[14px] text-fg outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25"
-              >
-                <option value="">Select class</option>
-                {classConfigs.map((config) => (
-                  <option key={config.id} value={config.id}>
-                    {config.label}
-                  </option>
-                ))}
-              </select>
+              <div>
+                <label className="mb-1.5 block text-[13px] font-medium text-fg">
+                  Class <span className="text-rose-500">*</span>
+                </label>
+                <select
+                  value={classConfigId}
+                  onChange={(e) => setClassConfigId(Number(e.target.value))}
+                  className="w-full rounded-xl border border-border-strong bg-surface px-3.5 py-2.5 text-[14px] text-fg outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25"
+                >
+                  <option value="">Select class</option>
+                  {classConfigs.map((config) => (
+                    <option key={config.id} value={config.id}>
+                      {config.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
-          </div>
+          </Card>
 
           {/* Students Table */}
-          <div>
+          <Card className="p-6">
             <div className="mb-3 flex items-center justify-between">
               <h3 className="text-sm font-semibold text-fg">Students Data</h3>
               <Button size="sm" onClick={addStudentRow}>
@@ -284,14 +265,14 @@ export function BulkRegisterModal({ onClose, onSaved }: BulkRegisterModalProps) 
               <table className="w-full text-left text-[13px]">
                 <thead className="bg-surface-2">
                   <tr className="text-[11px] uppercase tracking-wide text-faint">
-                    <th className="px-3 py-2 font-semibold">UID *</th>
-                    <th className="px-3 py-2 font-semibold">Name *</th>
-                    <th className="px-3 py-2 font-semibold">Sex *</th>
-                    <th className="px-3 py-2 font-semibold">Father *</th>
-                    <th className="px-3 py-2 font-semibold">Mother *</th>
-                    <th className="px-3 py-2 font-semibold">Roll *</th>
-                    <th className="px-3 py-2 font-semibold">Mobile</th>
-                    <th className="px-3 py-2 font-semibold"></th>
+                    <th className="px-1 py-2 font-semibold">UID *</th>
+                    <th className="px-1 py-2 font-semibold">Name *</th>
+                    <th className="px-1 py-2 font-semibold">Gender *</th>
+                    <th className="px-1 py-2 font-semibold">Father *</th>
+                    <th className="px-1 py-2 font-semibold">Mother *</th>
+                    <th className="px-1 py-2 font-semibold">Roll *</th>
+                    <th className="px-1 py-2 font-semibold">Mobile</th>
+                    <th className="px-1 py-2 font-semibold"></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -384,15 +365,28 @@ export function BulkRegisterModal({ onClose, onSaved }: BulkRegisterModalProps) 
                 No students added. Click "Add Row" to start.
               </div>
             )}
-          </div>
+          </Card>
 
           <div className="rounded-lg bg-surface-2 p-3 text-xs text-muted">
             <strong className="text-fg">Tip:</strong> You can also prepare your data in a spreadsheet
-            and paste it here. Make sure each student has at least: UID, Name, Sex, Father's Name,
+            and paste it here. Make sure each student has at least: UID, Name, Gender, Father's Name,
             Mother's Name, and Roll Number.
+          </div>
+
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => navigate('/students')}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={bulkMutation.isPending || students.length === 0}
+            >
+              {bulkMutation.isPending && <Loader2 size={16} className="animate-spin" />}
+              Register Students
+            </Button>
           </div>
         </div>
       )}
-    </Modal>
+    </div>
   );
 }

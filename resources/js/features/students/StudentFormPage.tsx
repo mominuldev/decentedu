@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { Loader2, X, Plus } from 'lucide-react';
-import { Modal } from '@/components/Modal';
-import { useAuth } from '@/features/auth/AuthProvider';
+import { Loader2, X, Plus, ArrowLeft } from 'lucide-react';
+import { Button, Card } from '@/components/ui';
 import { toApiError } from '@/lib/api';
 import { cn } from '@/lib/cn';
-import { createStudent, updateStudent, type Student, type CreateStudentRequest } from './api';
+import { createStudent, updateStudent, getStudent, type Student, type CreateStudentRequest } from './api';
 import {
   type StudentFormData,
   GENDER_OPTIONS,
@@ -15,15 +15,43 @@ import {
 } from './types';
 import { listSetup, listClassConfigs } from '@/features/academic/api';
 
-interface StudentFormProps {
-  student: Student | null;
-  onClose: () => void;
-  onSaved: () => void;
+export default function StudentFormPage() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const isEdit = Boolean(id);
+
+  const { data: student = null, isLoading: isLoadingStudent } = useQuery({
+    queryKey: ['student', id],
+    queryFn: () => getStudent(Number(id)),
+    enabled: isEdit,
+  });
+
+  if (isEdit && isLoadingStudent) {
+    return (
+      <div className="flex items-center justify-center py-24 text-faint">
+        <Loader2 size={24} className="animate-spin" />
+      </div>
+    );
+  }
+
+  return (
+    <StudentFormBody
+      student={student}
+      onCancel={() => navigate('/students')}
+      onSaved={() => navigate('/students')}
+    />
+  );
 }
 
-export function StudentForm({ student, onClose, onSaved }: StudentFormProps) {
-  const { session } = useAuth();
-
+function StudentFormBody({
+  student,
+  onCancel,
+  onSaved,
+}: {
+  student: Student | null;
+  onCancel: () => void;
+  onSaved: () => void;
+}) {
   // Fetch setup data for dropdowns
   const { data: academicYears = [] } = useQuery({
     queryKey: ['setup', 'academic-years'],
@@ -125,33 +153,44 @@ export function StudentForm({ student, onClose, onSaved }: StudentFormProps) {
   };
 
   return (
-    <Modal
-      open
-      onClose={onClose}
-      title={student ? 'Edit Student' : 'Add New Student'}
-      footer={
-        <>
-          <Button variant="outline" onClick={onClose} disabled={saveMutation.isPending}>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Button variant="outline" onClick={onCancel} disabled={saveMutation.isPending}>
+            <ArrowLeft size={16} />
+            Back
+          </Button>
+          <div>
+            <h1 className="text-[22px] font-bold tracking-tight text-fg">
+              {student ? 'Edit Student' : 'Add New Student'}
+            </h1>
+            <p className="mt-0.5 text-[13.5px] text-muted">
+              {student ? `Editing ${student.name}` : 'Fill in the details to register a new student'}
+            </p>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={onCancel} disabled={saveMutation.isPending}>
             Cancel
           </Button>
           <Button onClick={handleSubmit} disabled={saveMutation.isPending}>
             {saveMutation.isPending && <Loader2 size={16} className="animate-spin" />}
             {student ? 'Save Changes' : 'Create Student'}
           </Button>
-        </>
-      }
-    >
+        </div>
+      </div>
+
       {error && (
-        <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-2.5 text-[13px] text-rose-700">
+        <div className="rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-2.5 text-[13px] text-rose-700">
           {error}
         </div>
       )}
 
-      <div className="max-h-[70vh] space-y-6 overflow-y-auto px-1">
+      <div className="space-y-6">
         {/* Basic Information */}
-        <div>
+        <Card className="p-6">
           <h3 className="text-sm font-semibold text-fg mb-4">Basic Information</h3>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <FormField
               label="Student UID"
               value={form.student_uid}
@@ -172,7 +211,7 @@ export function StudentForm({ student, onClose, onSaved }: StudentFormProps) {
               onChange={(v) => setField('name_bn', v)}
             />
             <SelectField
-              label="Sex"
+              label="Gender"
               value={form.sex}
               onChange={(v) => setField('sex', v as any)}
               options={GENDER_OPTIONS}
@@ -200,12 +239,12 @@ export function StudentForm({ student, onClose, onSaved }: StudentFormProps) {
               placeholder="Select blood group"
             />
           </div>
-        </div>
+        </Card>
 
         {/* Parents Information */}
-        <div>
+        <Card className="p-6">
           <h3 className="text-sm font-semibold text-fg mb-4">Parents Information</h3>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <FormField
               label="Father's Name"
               value={form.fathers_name}
@@ -231,31 +270,33 @@ export function StudentForm({ student, onClose, onSaved }: StudentFormProps) {
               onChange={(v) => setField('mother_mobile', v)}
             />
           </div>
-        </div>
+        </Card>
 
         {/* Contact & Address */}
-        <div>
+        <Card className="p-6">
           <h3 className="text-sm font-semibold text-fg mb-4">Contact & Address</h3>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <FormField label="Student Mobile" value={form.mobile} onChange={(v) => setField('mobile', v)} />
             <FormField label="Photo URL" value={form.photo_path} onChange={(v) => setField('photo_path', v)} />
           </div>
-          <TextAreaField
-            label="Present Address"
-            value={form.present_address}
-            onChange={(v) => setField('present_address', v)}
-          />
-          <TextAreaField
-            label="Permanent Address"
-            value={form.permanent_address}
-            onChange={(v) => setField('permanent_address', v)}
-          />
-        </div>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <TextAreaField
+              label="Present Address"
+              value={form.present_address}
+              onChange={(v) => setField('present_address', v)}
+            />
+            <TextAreaField
+              label="Permanent Address"
+              value={form.permanent_address}
+              onChange={(v) => setField('permanent_address', v)}
+            />
+          </div>
+        </Card>
 
         {/* Enrollment Information */}
-        <div>
+        <Card className="p-6">
           <h3 className="text-sm font-semibold text-fg mb-4">Enrollment Information</h3>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <SelectField
               label="Academic Year"
               value={form.academic_year_id}
@@ -294,10 +335,10 @@ export function StudentForm({ student, onClose, onSaved }: StudentFormProps) {
               placeholder="Optional"
             />
           </div>
-        </div>
+        </Card>
 
         {/* Guardians */}
-        <div>
+        <Card className="p-6">
           <div className="mb-4 flex items-center justify-between">
             <h3 className="text-sm font-semibold text-fg">Guardians</h3>
             <Button size="sm" onClick={() => setShowGuardianForm(true)}>
@@ -395,9 +436,19 @@ export function StudentForm({ student, onClose, onSaved }: StudentFormProps) {
               </div>
             </Card>
           )}
-        </div>
+        </Card>
       </div>
-    </Modal>
+
+      <div className="flex justify-end gap-2">
+        <Button variant="outline" onClick={onCancel} disabled={saveMutation.isPending}>
+          Cancel
+        </Button>
+        <Button onClick={handleSubmit} disabled={saveMutation.isPending}>
+          {saveMutation.isPending && <Loader2 size={16} className="animate-spin" />}
+          {student ? 'Save Changes' : 'Create Student'}
+        </Button>
+      </div>
+    </div>
   );
 }
 
@@ -492,7 +543,7 @@ function SelectField({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className={cn(
-          'w-full rounded-xl border border-border-strong bg-surface px-3.5 py-2.5 text-[14px] text-fg outline-none placeholder:text-faint focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25',
+          'w-full rounded-xl border border-border-strong bg-surface px-3.5 py-2.5 text-[14px] text-fg outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25',
           error ? 'border-rose-400' : ''
         )}
       >
@@ -531,7 +582,3 @@ function TextAreaField({
     </div>
   );
 }
-
-// Add missing imports
-import { Button } from '@/components/ui';
-import { Card } from '@/components/ui';

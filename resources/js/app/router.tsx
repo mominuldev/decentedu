@@ -6,6 +6,8 @@ import LoginPage from '@/features/auth/LoginPage';
 import DashboardPage from '@/features/dashboard/DashboardPage';
 import AcademicPage from '@/features/academic/AcademicPage';
 import StudentsPage from '@/features/students/StudentsPage';
+import StudentFormPage from '@/features/students/StudentFormPage';
+import BulkRegisterPage from '@/features/students/BulkRegisterPage';
 import HrPage from '@/features/hr/HrPage';
 import RoutinesPage from '@/features/routines/RoutinesPage';
 import AttendancePage from '@/features/attendance/AttendancePage';
@@ -28,6 +30,9 @@ export const router = createBrowserRouter([
     { path: '/', element: page(<DashboardPage />) },
     { path: '/admissions', element: stub('Admissions', 'Phase 4') },
     { path: '/students', element: page(<StudentsPage />) },
+    { path: '/students/new', element: page(<StudentFormPage />) },
+    { path: '/students/bulk-register', element: page(<BulkRegisterPage />) },
+    { path: '/students/:id/edit', element: page(<StudentFormPage />) },
     { path: '/academic', element: page(<AcademicPage />) },
     { path: '/hr', element: page(<HrPage />) },
     { path: '/attendance', element: page(<AttendancePage />) },

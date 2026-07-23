@@ -87,7 +87,7 @@ class MarkConfigController extends Controller
         });
 
         return ApiResponse::success(
-            $saved->load(['subject', 'shortCode'])->map(fn (MarkConfig $m) => $this->transform($m)),
+            $saved->each->load(['subject', 'shortCode'])->map(fn (MarkConfig $m) => $this->transform($m)),
             'Mark configuration saved.',
         );
     }

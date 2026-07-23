@@ -149,7 +149,7 @@ export function EmployeeForm({ employee, onClose, onSaved }: EmployeeFormProps) 
               onChange={(v) => setField('name_bn', v)}
             />
             <SelectField
-              label="Sex"
+              label="Gender"
               value={form.sex}
               onChange={(v) => setField('sex', v as any)}
               options={GENDER_OPTIONS}

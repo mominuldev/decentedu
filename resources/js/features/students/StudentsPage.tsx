@@ -1,18 +1,17 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Plus, Search, Filter, Loader2, UserPlus, FileText, Mail } from 'lucide-react';
 import { Card, Button, Badge } from '@/components/ui';
-import { Modal } from '@/components/Modal';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { listStudents, getStudent, type Student, type StudentFilters } from './api';
 import { STATUS_OPTIONS } from './types';
-import { StudentForm } from './StudentForm';
 import { StudentListView } from './StudentListView';
-import { BulkRegisterModal } from './BulkRegisterModal';
 
 export default function StudentsPage() {
   const { session } = useAuth();
   const qc = useQueryClient();
+  const navigate = useNavigate();
 
   const [filters, setFilters] = useState<StudentFilters>({
     search: '',
@@ -24,8 +23,6 @@ export default function StudentsPage() {
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(25);
 
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showBulkModal, setShowBulkModal] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'details'>('list');
 
@@ -65,14 +62,8 @@ export default function StudentsPage() {
     }
   };
 
-  const handleEditStudent = async (student: Student) => {
-    try {
-      const fullStudent = await getStudent(student.id);
-      setSelectedStudent(fullStudent);
-      setShowAddModal(true);
-    } catch (error) {
-      console.error('Failed to load student for edit:', error);
-    }
+  const handleEditStudent = (student: Student) => {
+    navigate(`/students/${student.id}/edit`);
   };
 
   const refreshList = () => {
@@ -90,11 +81,11 @@ export default function StudentsPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setShowBulkModal(true)}>
+          <Button variant="outline" onClick={() => navigate('/students/bulk-register')}>
             <UserPlus size={16} />
             Bulk Register
           </Button>
-          <Button onClick={() => { setSelectedStudent(null); setShowAddModal(true); }}>
+          <Button onClick={() => navigate('/students/new')}>
             <Plus size={16} />
             Add Student
           </Button>
@@ -148,25 +139,8 @@ export default function StudentsPage() {
         <StudentDetailsView
           student={selectedStudent!}
           onBack={() => setViewMode('list')}
-          onEdit={() => { setShowAddModal(true); }}
+          onEdit={() => navigate(`/students/${selectedStudent!.id}/edit`)}
           refresh={refreshList}
-        />
-      )}
-
-      {/* Add/Edit Student Modal */}
-      {showAddModal && (
-        <StudentForm
-          student={selectedStudent}
-          onClose={() => { setShowAddModal(false); setSelectedStudent(null); }}
-          onSaved={() => { setShowAddModal(false); setSelectedStudent(null); refreshList(); }}
-        />
-      )}
-
-      {/* Bulk Registration Modal */}
-      {showBulkModal && (
-        <BulkRegisterModal
-          onClose={() => setShowBulkModal(false)}
-          onSaved={() => { setShowBulkModal(false); refreshList(); }}
         />
       )}
     </div>
@@ -225,7 +199,7 @@ function StudentDetailsView({
           </div>
 
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
-            <InfoItem label="Sex" value={student.sex} />
+            <InfoItem label="Gender" value={student.sex} />
             <InfoItem label="Date of Birth" value={student.dob || 'N/A'} />
             <InfoItem label="Religion" value={student.religion || 'N/A'} />
             <InfoItem label="Blood Group" value={student.blood_group || 'N/A'} />
