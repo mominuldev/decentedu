@@ -15,6 +15,9 @@ import ExaminationsPage from '@/features/examinations/ExaminationsPage';
 import ResultsPage from '@/features/examinations/ResultsPage';
 import FeesPage from '@/features/fees/FeesPage';
 import AccountingPage from '@/features/accounting/AccountingPage';
+import MessagingPage from '@/features/messaging/MessagingPage';
+import CredentialsPage from '@/features/credentials/CredentialsPage';
+import CmsPage from '@/features/cms/CmsPage';
 import Placeholder from '@/features/misc/Placeholder';
 
 // Protected page = auth gate + dashboard chrome.
@@ -43,9 +46,9 @@ export const router = createBrowserRouter([
     { path: '/results', element: page(<ResultsPage />) },
     { path: '/fees', element: page(<FeesPage />) },
     { path: '/accounting', element: page(<AccountingPage />) },
-    { path: '/messaging', element: stub('SMS & Notices', 'Phase 8') },
-    { path: '/credentials', element: stub('Credentials', 'Phase 8') },
-    { path: '/website', element: stub('Website', 'Phase 8') },
+    { path: '/messaging', element: page(<MessagingPage />) },
+    { path: '/credentials', element: page(<CredentialsPage />) },
+    { path: '/website', element: page(<CmsPage />) },
     { path: '/users', element: stub('Users & Roles', 'Phase 1–2') },
     { path: '/settings', element: stub('Settings', 'Phase 2') },
     { path: '*', element: stub('Page not found', 'Unknown route') },

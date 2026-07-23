@@ -49,6 +49,10 @@ class DemoDataSeeder extends Seeder
             $this->command->info('\n💰 Step 7: Finance (Fees & Accounting)');
             $this->call(FinanceSeeder::class);
 
+            // 8. Seed Communications, Credentials & CMS Data
+            $this->command->info('\n📣 Step 8: Communications, Credentials & CMS');
+            $this->call(CommsCredentialsCmsSeeder::class);
+
             $this->command->info('\n==========================================');
             $this->command->info('✅ Demo Data Seeding Completed Successfully!');
             $this->command->info('==========================================');
@@ -97,5 +101,9 @@ class DemoDataSeeder extends Seeder
         $this->command->info('💳 Fee Collections: ' . \App\Models\Fees\FeeCollection::count());
         $this->command->info('📒 Ledger Accounts: ' . \App\Models\Accounting\LedgerAccount::count());
         $this->command->info('🧮 Vouchers Posted: ' . \App\Models\Accounting\Voucher::count());
+        $this->command->info('💬 SMS Templates: ' . \App\Models\Messaging\SmsTemplate::count());
+        $this->command->info('📤 SMS Batches: ' . \App\Models\Messaging\SmsBatch::count());
+        $this->command->info('🎓 Transfer Certificates: ' . \App\Models\Students\TransferCertificate::count());
+        $this->command->info('📰 CMS Posts: ' . \App\Models\Cms\Post::count());
     }
 }

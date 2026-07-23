@@ -6,6 +6,8 @@ use App\Events\FeeCollected;
 use App\Listeners\PostFeeCollectionToLedger;
 use App\Models\Hr\Employee;
 use App\Models\Students\Student;
+use App\Services\Sms\LogSmsGateway;
+use App\Services\Sms\SmsGatewayInterface;
 use App\Support\BranchContext;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Event;
@@ -20,6 +22,9 @@ class AppServiceProvider extends ServiceProvider
     {
         // One active-branch context per request, shared across scope + middleware.
         $this->app->scoped(BranchContext::class);
+
+        // No real SMS gateway is configured for this project — see LogSmsGateway docblock.
+        $this->app->bind(SmsGatewayInterface::class, LogSmsGateway::class);
     }
 
     /**

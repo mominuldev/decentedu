@@ -115,3 +115,11 @@
 @media (prefers-reduced-motion: no-preference) {
     html { scroll-behavior: smooth; }
 }
+
+/* Printing a document (TC/testimonial/certificate/ID cards): hide the whole app, show only
+   the PrintableDocument's .print-area content. */
+@media print {
+    body * { visibility: hidden; }
+    .print-area, .print-area * { visibility: visible; }
+    .print-area { position: absolute; inset: 0; width: 100%; }
+}

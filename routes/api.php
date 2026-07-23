@@ -31,7 +31,19 @@ use App\Http\Controllers\Api\Fees\FeeConfigController;
 use App\Http\Controllers\Api\Fees\FeeReportController;
 use App\Http\Controllers\Api\Fees\FeeTimeConfigController;
 use App\Http\Controllers\Api\Fees\FeeWaiverConfigController;
+use App\Http\Controllers\Api\Cms\MenuController;
+use App\Http\Controllers\Api\Cms\MenuItemController;
+use App\Http\Controllers\Api\Cms\PostController;
+use App\Http\Controllers\Api\Cms\WebsiteSettingController;
+use App\Http\Controllers\Api\Credentials\CertificateController;
+use App\Http\Controllers\Api\Credentials\IdCardController;
+use App\Http\Controllers\Api\Credentials\IdCardTemplateController;
+use App\Http\Controllers\Api\Credentials\TestimonialController;
+use App\Http\Controllers\Api\Credentials\TransferCertificateController;
 use App\Http\Controllers\Api\Fees\SetupController as FeesSetupController;
+use App\Http\Controllers\Api\Messaging\ContactController;
+use App\Http\Controllers\Api\Messaging\SendController;
+use App\Http\Controllers\Api\Messaging\TemplateController;
 use App\Http\Controllers\Api\Routines\ClassRoutineController;
 use App\Http\Controllers\Api\Routines\PeriodController;
 use App\Http\Controllers\Api\Students\StudentController;
@@ -286,6 +298,73 @@ Route::prefix('v1')->group(function () use ($setupSlugs) {
             Route::get('vouchers/{id}', [VoucherController::class, 'show'])->whereNumber('id');
 
             Route::get('reports/{type}', [AccountingReportController::class, 'show'])->where('type', 'trial-balance|income-statement');
+        });
+
+        // ---- Messaging module ---------------------------------------------------
+        Route::prefix('messaging')->group(function () {
+            Route::get('templates', [TemplateController::class, 'index']);
+            Route::post('templates', [TemplateController::class, 'store']);
+            Route::match(['put', 'patch'], 'templates/{id}', [TemplateController::class, 'update'])->whereNumber('id');
+            Route::delete('templates/{id}', [TemplateController::class, 'destroy'])->whereNumber('id');
+
+            Route::get('contacts', [ContactController::class, 'index']);
+            Route::post('contacts', [ContactController::class, 'store']);
+            Route::match(['put', 'patch'], 'contacts/{id}', [ContactController::class, 'update'])->whereNumber('id');
+            Route::delete('contacts/{id}', [ContactController::class, 'destroy'])->whereNumber('id');
+
+            Route::post('send', [SendController::class, 'send']);
+            Route::get('batches', [SendController::class, 'batches']);
+            Route::get('batches/{id}', [SendController::class, 'show'])->whereNumber('id');
+            Route::get('balance', [SendController::class, 'balance']);
+            Route::post('balance/topup', [SendController::class, 'topup']);
+        });
+
+        // ---- Credentials module ---------------------------------------------------
+        Route::prefix('credentials')->group(function () {
+            Route::get('transfer-certificates', [TransferCertificateController::class, 'index']);
+            Route::post('transfer-certificates', [TransferCertificateController::class, 'store']);
+            Route::get('transfer-certificates/{id}', [TransferCertificateController::class, 'show'])->whereNumber('id');
+
+            Route::get('testimonials', [TestimonialController::class, 'index']);
+            Route::post('testimonials', [TestimonialController::class, 'store']);
+            Route::get('testimonials/{id}', [TestimonialController::class, 'show'])->whereNumber('id');
+            Route::match(['put', 'patch'], 'testimonials/{id}', [TestimonialController::class, 'update'])->whereNumber('id');
+            Route::delete('testimonials/{id}', [TestimonialController::class, 'destroy'])->whereNumber('id');
+
+            Route::get('certificates', [CertificateController::class, 'index']);
+            Route::post('certificates', [CertificateController::class, 'store']);
+            Route::get('certificates/{id}', [CertificateController::class, 'show'])->whereNumber('id');
+            Route::match(['put', 'patch'], 'certificates/{id}', [CertificateController::class, 'update'])->whereNumber('id');
+            Route::delete('certificates/{id}', [CertificateController::class, 'destroy'])->whereNumber('id');
+
+            Route::get('id-card-templates', [IdCardTemplateController::class, 'index']);
+            Route::post('id-card-templates', [IdCardTemplateController::class, 'store']);
+            Route::match(['put', 'patch'], 'id-card-templates/{id}', [IdCardTemplateController::class, 'update'])->whereNumber('id');
+            Route::delete('id-card-templates/{id}', [IdCardTemplateController::class, 'destroy'])->whereNumber('id');
+
+            Route::post('id-cards/generate', [IdCardController::class, 'generate']);
+        });
+
+        // ---- CMS module ---------------------------------------------------
+        Route::prefix('cms')->group(function () {
+            Route::get('posts', [PostController::class, 'index']);
+            Route::post('posts', [PostController::class, 'store']);
+            Route::get('posts/{id}', [PostController::class, 'show'])->whereNumber('id');
+            Route::match(['put', 'patch'], 'posts/{id}', [PostController::class, 'update'])->whereNumber('id');
+            Route::delete('posts/{id}', [PostController::class, 'destroy'])->whereNumber('id');
+
+            Route::get('menus', [MenuController::class, 'index']);
+            Route::post('menus', [MenuController::class, 'store']);
+            Route::match(['put', 'patch'], 'menus/{id}', [MenuController::class, 'update'])->whereNumber('id');
+            Route::delete('menus/{id}', [MenuController::class, 'destroy'])->whereNumber('id');
+
+            Route::get('menu-items', [MenuItemController::class, 'index']);
+            Route::post('menu-items', [MenuItemController::class, 'store']);
+            Route::match(['put', 'patch'], 'menu-items/{id}', [MenuItemController::class, 'update'])->whereNumber('id');
+            Route::delete('menu-items/{id}', [MenuItemController::class, 'destroy'])->whereNumber('id');
+
+            Route::get('website-settings', [WebsiteSettingController::class, 'show']);
+            Route::match(['put', 'patch'], 'website-settings', [WebsiteSettingController::class, 'update']);
         });
     });
 });

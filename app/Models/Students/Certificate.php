@@ -35,7 +35,7 @@ class Certificate extends Model
         return [
             'issue_date' => 'date',
         ];
-    ];
+    }
 
     public function student(): BelongsTo
     {

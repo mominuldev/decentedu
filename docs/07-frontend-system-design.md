@@ -1,6 +1,6 @@
 # 07 — Frontend System Design (Phase 9)
 
-React 18 + TypeScript + Vite + Tailwind CSS. Modern, clean, fast, responsive, accessible, consistent —
+React 19 + TypeScript + Vite + Tailwind CSS. Modern, clean, fast, responsive, accessible, consistent —
 purpose-built for dense school-admin workflows (bulk grids, filters, print). The existing business
 workflows are preserved; the UI is redesigned (not copied — brief Rule, Phase 9).
 
