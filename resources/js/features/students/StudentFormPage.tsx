@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Loader2, X, Plus, ArrowLeft } from 'lucide-react';
 import { Button, Card } from '@/components/ui';
+import { FileUpload } from '@/components/FileUpload';
 import { toApiError } from '@/lib/api';
 import { cn } from '@/lib/cn';
 import { createStudent, updateStudent, getStudent, type Student, type CreateStudentRequest } from './api';
@@ -277,7 +278,7 @@ function StudentFormBody({
           <h3 className="text-sm font-semibold text-fg mb-4">Contact & Address</h3>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <FormField label="Student Mobile" value={form.mobile} onChange={(v) => setField('mobile', v)} />
-            <FormField label="Photo URL" value={form.photo_path} onChange={(v) => setField('photo_path', v)} />
+            <FileUpload label="Photo" category="photo" value={form.photo_path || null} onChange={(v) => setField('photo_path', v ?? '')} />
           </div>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <TextAreaField

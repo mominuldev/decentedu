@@ -20,7 +20,6 @@ use App\Models\Organization;
 use App\Models\Reporting\ReportArtifact;
 use App\Models\Students\Enrollment;
 use App\Models\Students\Student;
-use App\Models\User;
 use App\Support\BranchContext;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
@@ -73,9 +72,7 @@ class ReportingTest extends TestCase
 
     private function actingAsBranchUser(): void
     {
-        $user = User::factory()->create();
-        $this->branch->users()->attach($user->id);
-        $this->actingAs($user);
+        $this->actingAsSuperAdmin($this->branch);
     }
 
     public function test_marksheet_pdf_renders_for_a_class_config_and_exam(): void

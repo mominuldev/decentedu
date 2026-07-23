@@ -46,9 +46,7 @@ class CredentialsTest extends TestCase
 
     private function actingAsBranchUser(): void
     {
-        $user = \App\Models\User::factory()->create();
-        $this->branch->users()->attach($user->id);
-        $this->actingAs($user);
+        $this->actingAsSuperAdmin($this->branch);
     }
 
     public function test_issuing_a_transfer_certificate_marks_the_student_transferred(): void

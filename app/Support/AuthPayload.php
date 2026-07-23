@@ -35,6 +35,7 @@ class AuthPayload
                 'avatar_path' => $user->avatar_path,
                 'role' => $roleName,
                 'is_super_admin' => $isSuper,
+                'must_reset_password' => $user->must_reset_password,
             ],
             'organization' => $user->organization
                 ? ['id' => $user->organization->id, 'name' => $user->organization->name]

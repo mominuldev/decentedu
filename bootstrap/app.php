@@ -24,7 +24,14 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->statefulApi();
 
         // Resolve + enforce the active branch on scoped routes.
-        $middleware->alias(['branch' => \App\Http\Middleware\EnsureBranchContext::class]);
+        $middleware->alias([
+            'branch' => \App\Http\Middleware\EnsureBranchContext::class,
+            // Not auto-registered by spatie/laravel-permission on Laravel 11+.
+            'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
+            'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
+        ]);
+
+        $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Render every API exception through the standard envelope.

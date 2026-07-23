@@ -3,6 +3,8 @@ import { createBrowserRouter } from 'react-router-dom';
 import { DashboardLayout } from '@/layouts/DashboardLayout';
 import { ProtectedRoute, GuestRoute } from '@/app/ProtectedRoute';
 import LoginPage from '@/features/auth/LoginPage';
+import ForgotPasswordPage from '@/features/auth/ForgotPasswordPage';
+import ResetPasswordPage from '@/features/auth/ResetPasswordPage';
 import DashboardPage from '@/features/dashboard/DashboardPage';
 import AcademicPage from '@/features/academic/AcademicPage';
 import StudentsPage from '@/features/students/StudentsPage';
@@ -18,6 +20,8 @@ import AccountingPage from '@/features/accounting/AccountingPage';
 import MessagingPage from '@/features/messaging/MessagingPage';
 import CredentialsPage from '@/features/credentials/CredentialsPage';
 import CmsPage from '@/features/cms/CmsPage';
+import UsersPage from '@/features/users/UsersPage';
+import AuditLogPage from '@/features/audit/AuditLogPage';
 import Placeholder from '@/features/misc/Placeholder';
 
 // Protected page = auth gate + dashboard chrome.
@@ -31,6 +35,8 @@ const stub = (title: string, phase: string) => page(<Placeholder title={title} p
 
 export const router = createBrowserRouter([
     { path: '/login', element: <GuestRoute><LoginPage /></GuestRoute> },
+    { path: '/forgot-password', element: <GuestRoute><ForgotPasswordPage /></GuestRoute> },
+    { path: '/reset-password', element: <GuestRoute><ResetPasswordPage /></GuestRoute> },
 
     { path: '/', element: page(<DashboardPage />) },
     { path: '/admissions', element: stub('Admissions', 'Phase 4') },
@@ -49,7 +55,8 @@ export const router = createBrowserRouter([
     { path: '/messaging', element: page(<MessagingPage />) },
     { path: '/credentials', element: page(<CredentialsPage />) },
     { path: '/website', element: page(<CmsPage />) },
-    { path: '/users', element: stub('Users & Roles', 'Phase 1–2') },
+    { path: '/users', element: page(<UsersPage />) },
+    { path: '/audit-log', element: page(<AuditLogPage />) },
     { path: '/settings', element: stub('Settings', 'Phase 2') },
     { path: '*', element: stub('Page not found', 'Unknown route') },
 ]);

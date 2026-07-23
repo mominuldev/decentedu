@@ -30,9 +30,7 @@ class FoundationSetupTest extends TestCase
 
     private function actingAsBranchUser(): void
     {
-        $user = \App\Models\User::factory()->create();
-        $this->branch->users()->attach($user->id, ['is_default' => true]);
-        $this->actingAs($user);
+        $this->actingAsSuperAdmin($this->branch);
     }
 
     public function test_can_create_academic_year(): void

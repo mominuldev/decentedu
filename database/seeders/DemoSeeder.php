@@ -15,7 +15,9 @@ use App\Models\Organization;
 use App\Models\User;
 use App\Support\BranchContext;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 
@@ -50,6 +52,8 @@ class DemoSeeder extends Seeder
         $roles = collect(['Super Admin', 'Admin', 'Accountant', 'Exam Controller', 'Teacher'])
             ->mapWithKeys(fn (string $r) => [$r => Role::firstOrCreate(['name' => $r, 'guard_name' => 'web'])]);
 
+        $this->seedPermissions($roles);
+
         $admin = User::firstOrCreate(
             ['email' => 'demo@decentedu.test'],
             [
@@ -76,6 +80,33 @@ class DemoSeeder extends Seeder
         $this->seedAcademic($branches->first());
 
         $this->command?->info('Seeded demo org, '.$branches->count().' branches, and demo@decentedu.test / password');
+    }
+
+    /**
+     * Module-level permissions (coarse: one per module, not per CRUD action — doc 10 open
+     * question #3 flags the fuller role/permission model as unconfirmed). Super Admin gets
+     * no explicit grants; it bypasses every check via Gate::before in AppServiceProvider.
+     */
+    private function seedPermissions(Collection $roles): void
+    {
+        $all = [
+            'academic.manage', 'students.manage', 'hr.manage', 'routines.manage',
+            'attendance.manage', 'examinations.manage', 'fees.manage', 'accounting.manage',
+            'messaging.manage', 'credentials.manage', 'cms.manage', 'reports.view',
+            'users.manage', 'audit.view',
+        ];
+        collect($all)->each(fn (string $p) => Permission::firstOrCreate(['name' => $p, 'guard_name' => 'web']));
+
+        $grants = [
+            'Admin' => $all,
+            'Accountant' => ['fees.manage', 'accounting.manage', 'reports.view'],
+            'Exam Controller' => ['examinations.manage', 'reports.view'],
+            'Teacher' => ['attendance.manage', 'routines.manage', 'examinations.manage'],
+        ];
+
+        foreach ($grants as $roleName => $permissions) {
+            $roles[$roleName]->syncPermissions($permissions);
+        }
     }
 
     private function seedAcademic(Branch $branch): void

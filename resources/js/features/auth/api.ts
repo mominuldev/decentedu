@@ -20,3 +20,13 @@ export async function switchBranch(branchId: number): Promise<Session> {
     const { data } = await api.post('/api/v1/branch/switch', { branch_id: branchId });
     return data.data as Session;
 }
+
+export async function forgotPassword(email: string): Promise<void> {
+    await csrf();
+    await api.post('/api/v1/auth/forgot-password', { email });
+}
+
+export async function resetPassword(payload: { token: string; email: string; password: string; password_confirmation: string }): Promise<void> {
+    await csrf();
+    await api.post('/api/v1/auth/reset-password', payload);
+}

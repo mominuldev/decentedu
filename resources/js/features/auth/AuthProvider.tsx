@@ -10,6 +10,7 @@ interface AuthCtx {
     login: (email: string, password: string, remember: boolean) => Promise<void>;
     logout: () => Promise<void>;
     switchBranch: (branchId: number) => Promise<void>;
+    refresh: () => Promise<void>;
     can: (permission: string) => boolean;
 }
 
@@ -41,6 +42,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(s);
     }, []);
 
+    const refresh = useCallback(async () => {
+        const s = await authApi.fetchMe();
+        setSession(s);
+    }, []);
+
     const can = useCallback(
         (permission: string) => {
             if (!session) return false;
@@ -50,7 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         [session],
     );
 
-    return <Ctx.Provider value={{ status, session, login, logout, switchBranch, can }}>{children}</Ctx.Provider>;
+    return <Ctx.Provider value={{ status, session, login, logout, switchBranch, refresh, can }}>{children}</Ctx.Provider>;
 }
 
 export function useAuth() {

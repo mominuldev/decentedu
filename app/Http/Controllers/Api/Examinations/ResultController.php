@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Examinations;
 
 use App\Http\Controllers\Controller;
 use App\Models\Academic\ClassConfig;
+use App\Models\AuditLog;
 use App\Models\Examinations\ExamConfig;
 use App\Models\Examinations\Grade;
 use App\Models\Examinations\Mark;
@@ -87,6 +88,8 @@ class ResultController extends Controller
             }
         });
 
+        $this->logResultAction($branchId, 'general_process', $data + ['subject_results_processed' => $processed]);
+
         return ApiResponse::success(['subject_results_processed' => $processed], 'General process completed.');
     }
 
@@ -135,6 +138,8 @@ class ResultController extends Controller
                 $processed++;
             }
         });
+
+        $this->logResultAction($branchId, 'final_process', $data + ['subject_results_processed' => $processed]);
 
         return ApiResponse::success(['subject_results_processed' => $processed], 'Final process completed.');
     }
@@ -197,8 +202,22 @@ class ResultController extends Controller
         });
 
         $this->assignPositions($summaries, $meritBasis, $sequential);
+        $this->logResultAction($branchId, 'merit_process', $data + ['students_processed' => $summaries->count()]);
 
         return ApiResponse::success(['students_processed' => $summaries->count()], 'Merit process completed.');
+    }
+
+    /** One summary row per batch action, not one per StudentExamResult (doc 08 K5: hundreds of rows/run). */
+    private function logResultAction(int $branchId, string $action, array $context): void
+    {
+        AuditLog::create([
+            'branch_id' => $branchId,
+            'user_id' => auth()->id(),
+            'auditable_type' => StudentExamResult::class,
+            'auditable_id' => 0,
+            'action' => $action,
+            'changes' => $context,
+        ]);
     }
 
     /** Rank within the whole class (class_position) and within each section/class_config (section_position). */

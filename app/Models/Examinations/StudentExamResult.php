@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+// Not Auditable per-row — see Mark.php docblock (result processing writes hundreds of rows per run).
 class StudentExamResult extends Model
 {
     use BelongsToBranch, HasFactory;

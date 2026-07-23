@@ -14,6 +14,7 @@ export interface AuthUser {
     avatar_path: string | null;
     role: string | null;
     is_super_admin: boolean;
+    must_reset_password: boolean;
 }
 
 export interface Session {

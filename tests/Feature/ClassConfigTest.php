@@ -29,9 +29,7 @@ class ClassConfigTest extends TestCase
 
     private function actingAsBranchUser(): void
     {
-        $user = \App\Models\User::factory()->create();
-        $this->branch->users()->attach($user->id);
-        $this->actingAs($user);
+        $this->actingAsSuperAdmin($this->branch);
     }
 
     private function createRequiredEntities(): array

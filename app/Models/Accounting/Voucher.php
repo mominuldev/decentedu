@@ -2,6 +2,7 @@
 
 namespace App\Models\Accounting;
 
+use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToBranch;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Voucher extends Model
 {
-    use BelongsToBranch, HasFactory;
+    use Auditable, BelongsToBranch, HasFactory;
 
     protected $fillable = ['type', 'voucher_no', 'date', 'note', 'total', 'created_by'];
 

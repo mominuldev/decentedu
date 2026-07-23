@@ -4,7 +4,7 @@ import {
     LayoutDashboard, UserPlus, GraduationCap, BookOpen, Users, CalendarCheck,
     CalendarClock, ClipboardList, Trophy, Wallet, Landmark, MessageSquare,
     IdCard, Globe, ShieldCheck, Settings, Search, Bell, Menu, X, Sun, Moon,
-    ChevronDown, LogOut,
+    ChevronDown, LogOut, History,
 } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { useTheme } from '@/app/theme';
@@ -58,6 +58,7 @@ const nav: Group[] = [
         heading: 'System',
         items: [
             { to: '/users', label: 'Users & Roles', icon: ShieldCheck },
+            { to: '/audit-log', label: 'Audit Log', icon: History },
             { to: '/settings', label: 'Settings', icon: Settings },
         ],
     },

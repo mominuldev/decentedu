@@ -25,9 +25,7 @@ class MessagingTest extends TestCase
 
     private function actingAsBranchUser(): void
     {
-        $user = \App\Models\User::factory()->create();
-        $this->branch->users()->attach($user->id);
-        $this->actingAs($user);
+        $this->actingAsSuperAdmin($this->branch);
     }
 
     public function test_send_debits_balance_and_marks_messages_sent(): void

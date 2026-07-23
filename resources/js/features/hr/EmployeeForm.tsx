@@ -4,6 +4,7 @@ import { Loader2, Plus, X, BookOpen } from 'lucide-react';
 import { Modal } from '@/components/Modal';
 import { Button } from '@/components/ui';
 import { Card } from '@/components/ui';
+import { FileUpload } from '@/components/FileUpload';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { toApiError } from '@/lib/api';
 import { cn } from '@/lib/cn';
@@ -225,7 +226,7 @@ export function EmployeeForm({ employee, onClose, onSaved }: EmployeeFormProps) 
             <FormField label="Mobile" value={form.mobile} onChange={(v) => setField('mobile', v)} />
             <FormField label="Email" value={form.email} onChange={(v) => setField('email', v)} />
             <FormField label="NID" value={form.nid} onChange={(v) => setField('nid', v)} />
-            <FormField label="Photo URL" value={form.photo_path} onChange={(v) => setField('photo_path', v)} />
+            <FileUpload label="Photo" category="photo" value={form.photo_path || null} onChange={(v) => setField('photo_path', v ?? '')} />
           </div>
           <TextAreaField
             label="Present Address"

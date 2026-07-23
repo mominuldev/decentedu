@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { GraduationCap } from 'lucide-react';
 import { useAuth } from '@/features/auth/AuthProvider';
 
@@ -18,9 +18,13 @@ function Splash() {
 
 /** Gate for authenticated screens. */
 export function ProtectedRoute({ children }: { children: ReactNode }) {
-    const { status } = useAuth();
+    const { status, session } = useAuth();
+    const location = useLocation();
     if (status === 'loading') return <Splash />;
     if (status === 'guest') return <Navigate to="/login" replace />;
+    if (session?.user.must_reset_password && location.pathname !== '/users') {
+        return <Navigate to="/users" replace />;
+    }
     return <>{children}</>;
 }
 

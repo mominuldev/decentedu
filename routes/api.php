@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\Attendance\HolidayController;
 use App\Http\Controllers\Api\Attendance\PunchController;
 use App\Http\Controllers\Api\Attendance\StudentAttendanceController;
 use App\Http\Controllers\Api\Attendance\TimeConfigController;
+use App\Http\Controllers\Api\Audit\AuditLogController;
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\BranchController;
 use App\Http\Controllers\Api\Examinations\AdmitController;
@@ -50,6 +51,9 @@ use App\Http\Controllers\Api\Students\StudentController;
 use App\Http\Controllers\Api\Hr\EmployeeController;
 use App\Http\Controllers\Api\Hr\SetupController as HrSetupController;
 use App\Http\Controllers\Api\Reporting\ReportController;
+use App\Http\Controllers\Api\UploadController;
+use App\Http\Controllers\Api\Users\RoleController;
+use App\Http\Controllers\Api\Users\UserController;
 use App\Support\ApiResponse;
 use App\Support\Reporting\ReportRegistry;
 use Illuminate\Support\Facades\Route;
@@ -60,12 +64,43 @@ $setupSlugs = 'academic-years|classes|shifts|sections|groups|categories|subjects
 Route::prefix('v1')->group(function () use ($setupSlugs) {
     // Public
     Route::post('auth/login', [AuthController::class, 'login']);
+    Route::post('auth/forgot-password', [AuthController::class, 'forgotPassword']);
+    Route::post('auth/reset-password', [AuthController::class, 'resetPassword']);
 
     // Authenticated (Sanctum SPA cookie session) + active-branch context.
     Route::middleware(['auth:sanctum', 'branch'])->group(function () use ($setupSlugs) {
         Route::get('auth/me', [AuthController::class, 'me']);
         Route::post('auth/logout', [AuthController::class, 'logout']);
+        Route::post('auth/change-password', [AuthController::class, 'changePassword']);
+        Route::get('auth/sessions', [AuthController::class, 'sessions']);
+        Route::delete('auth/sessions/{id}', [AuthController::class, 'revokeSession']);
         Route::post('branch/switch', [BranchController::class, 'switch']);
+
+        // ---- Users & Roles -----------------------------------------------------
+        // GET routes stay open to any authenticated user (the SPA needs role/permission
+        // names to render its own nav); only mutations require users.manage.
+        Route::prefix('users')->group(function () {
+            Route::get('/', [UserController::class, 'index']);
+            Route::get('{id}', [UserController::class, 'show'])->whereNumber('id');
+            Route::middleware('permission:users.manage')->group(function () {
+                Route::post('/', [UserController::class, 'store']);
+                Route::match(['put', 'patch'], '{id}', [UserController::class, 'update'])->whereNumber('id');
+                Route::post('{id}/deactivate', [UserController::class, 'deactivate'])->whereNumber('id');
+                Route::post('{id}/force-reset', [UserController::class, 'forceReset'])->whereNumber('id');
+            });
+        });
+
+        Route::prefix('roles')->group(function () {
+            Route::get('/', [RoleController::class, 'index']);
+            Route::get('permissions', [RoleController::class, 'permissions']);
+            Route::match(['put', 'patch'], '{id}/permissions', [RoleController::class, 'updatePermissions'])
+                ->whereNumber('id')->middleware('permission:users.manage');
+        });
+
+        Route::get('audit-logs', [AuditLogController::class, 'index'])->middleware('permission:audit.view');
+
+        Route::post('uploads', [UploadController::class, 'store']);
+        Route::get('uploads/{path}', [UploadController::class, 'show'])->where('path', '.*');
 
         Route::get('dashboard', function () {
             return ApiResponse::success([
@@ -77,7 +112,7 @@ Route::prefix('v1')->group(function () use ($setupSlugs) {
         });
 
         // ---- Academic module -------------------------------------------------
-        Route::prefix('academic')->group(function () use ($setupSlugs) {
+        Route::prefix('academic')->middleware('permission:academic.manage')->group(function () use ($setupSlugs) {
             // Class Config (Class × Shift × Section)
             Route::get('class-configs/options', [ClassConfigController::class, 'options']);
             Route::get('class-configs', [ClassConfigController::class, 'index']);
@@ -94,10 +129,10 @@ Route::prefix('v1')->group(function () use ($setupSlugs) {
         });
 
         // ---- Students module -------------------------------------------------
-        Route::prefix('students')->group(function () {
+        Route::prefix('students')->middleware('permission:students.manage')->group(function () {
             Route::get('/', [StudentController::class, 'index']);
             Route::post('/', [StudentController::class, 'store']);
-            Route::post('bulk-register', [StudentController::class, 'bulkRegister']);
+            Route::post('bulk-register', [StudentController::class, 'bulkRegister'])->middleware('throttle:bulk-import');
             Route::post('migrate', [StudentController::class, 'migrate']);
             Route::get('{id}', [StudentController::class, 'show'])->whereNumber('id');
             Route::match(['put', 'patch'], '{id}', [StudentController::class, 'update'])->whereNumber('id');
@@ -107,7 +142,7 @@ Route::prefix('v1')->group(function () use ($setupSlugs) {
         // ---- HR module -------------------------------------------------------
         $hrSetupSlugs = 'designations|hr-sections';
 
-        Route::prefix('hr')->group(function () use ($hrSetupSlugs) {
+        Route::prefix('hr')->middleware('permission:hr.manage')->group(function () use ($hrSetupSlugs) {
             // HR setup resources (designations, departments)
             Route::get('{resource}', [HrSetupController::class, 'index'])->where('resource', $hrSetupSlugs);
             Route::post('{resource}', [HrSetupController::class, 'store'])->where('resource', $hrSetupSlugs);
@@ -130,7 +165,7 @@ Route::prefix('v1')->group(function () use ($setupSlugs) {
         });
 
         // ---- Routines module --------------------------------------------------
-        Route::prefix('routines')->group(function () {
+        Route::prefix('routines')->middleware('permission:routines.manage')->group(function () {
             Route::get('periods', [PeriodController::class, 'index']);
             Route::post('periods', [PeriodController::class, 'store']);
             Route::match(['put', 'patch'], 'periods/{id}', [PeriodController::class, 'update'])->whereNumber('id');
@@ -145,7 +180,7 @@ Route::prefix('v1')->group(function () use ($setupSlugs) {
         });
 
         // ---- Attendance module --------------------------------------------------
-        Route::prefix('attendance')->group(function () {
+        Route::prefix('attendance')->middleware('permission:attendance.manage')->group(function () {
             Route::get('holidays', [HolidayController::class, 'index']);
             Route::post('holidays', [HolidayController::class, 'store']);
             Route::match(['put', 'patch'], 'holidays/{id}', [HolidayController::class, 'update'])->whereNumber('id');
@@ -186,7 +221,7 @@ Route::prefix('v1')->group(function () use ($setupSlugs) {
         // ---- Examinations module --------------------------------------------
         $examSetupSlugs = 'exams|short-codes';
 
-        Route::prefix('examinations')->group(function () use ($examSetupSlugs) {
+        Route::prefix('examinations')->middleware('permission:examinations.manage')->group(function () use ($examSetupSlugs) {
             // Setup: exams, short-codes (uniform), grades (per-class scale)
             Route::get('{resource}', [ExaminationsSetupController::class, 'index'])->where('resource', $examSetupSlugs);
             Route::post('{resource}', [ExaminationsSetupController::class, 'store'])->where('resource', $examSetupSlugs);
@@ -256,7 +291,7 @@ Route::prefix('v1')->group(function () use ($setupSlugs) {
         // ---- Fees module ------------------------------------------------------
         $feeSetupSlugs = 'heads|sub-heads|waivers';
 
-        Route::prefix('fees')->group(function () use ($feeSetupSlugs) {
+        Route::prefix('fees')->middleware('permission:fees.manage')->group(function () use ($feeSetupSlugs) {
             // Setup: heads, sub-heads, waivers (uniform)
             Route::get('{resource}', [FeesSetupController::class, 'index'])->where('resource', $feeSetupSlugs);
             Route::post('{resource}', [FeesSetupController::class, 'store'])->where('resource', $feeSetupSlugs);
@@ -289,7 +324,7 @@ Route::prefix('v1')->group(function () use ($setupSlugs) {
         });
 
         // ---- Accounting module -------------------------------------------------
-        Route::prefix('accounting')->group(function () {
+        Route::prefix('accounting')->middleware('permission:accounting.manage')->group(function () {
             Route::get('ledgers', [LedgerAccountController::class, 'index']);
             Route::post('ledgers', [LedgerAccountController::class, 'store']);
             Route::match(['put', 'patch'], 'ledgers/{id}', [LedgerAccountController::class, 'update'])->whereNumber('id');
@@ -303,7 +338,7 @@ Route::prefix('v1')->group(function () use ($setupSlugs) {
         });
 
         // ---- Messaging module ---------------------------------------------------
-        Route::prefix('messaging')->group(function () {
+        Route::prefix('messaging')->middleware('permission:messaging.manage')->group(function () {
             Route::get('templates', [TemplateController::class, 'index']);
             Route::post('templates', [TemplateController::class, 'store']);
             Route::match(['put', 'patch'], 'templates/{id}', [TemplateController::class, 'update'])->whereNumber('id');
@@ -314,7 +349,7 @@ Route::prefix('v1')->group(function () use ($setupSlugs) {
             Route::match(['put', 'patch'], 'contacts/{id}', [ContactController::class, 'update'])->whereNumber('id');
             Route::delete('contacts/{id}', [ContactController::class, 'destroy'])->whereNumber('id');
 
-            Route::post('send', [SendController::class, 'send']);
+            Route::post('send', [SendController::class, 'send'])->middleware('throttle:sms');
             Route::get('batches', [SendController::class, 'batches']);
             Route::get('batches/{id}', [SendController::class, 'show'])->whereNumber('id');
             Route::get('balance', [SendController::class, 'balance']);
@@ -322,7 +357,7 @@ Route::prefix('v1')->group(function () use ($setupSlugs) {
         });
 
         // ---- Credentials module ---------------------------------------------------
-        Route::prefix('credentials')->group(function () {
+        Route::prefix('credentials')->middleware('permission:credentials.manage')->group(function () {
             Route::get('transfer-certificates', [TransferCertificateController::class, 'index']);
             Route::post('transfer-certificates', [TransferCertificateController::class, 'store']);
             Route::get('transfer-certificates/{id}', [TransferCertificateController::class, 'show'])->whereNumber('id');
@@ -348,7 +383,7 @@ Route::prefix('v1')->group(function () use ($setupSlugs) {
         });
 
         // ---- CMS module ---------------------------------------------------
-        Route::prefix('cms')->group(function () {
+        Route::prefix('cms')->middleware('permission:cms.manage')->group(function () {
             Route::get('posts', [PostController::class, 'index']);
             Route::post('posts', [PostController::class, 'store']);
             Route::get('posts/{id}', [PostController::class, 'show'])->whereNumber('id');
@@ -372,7 +407,7 @@ Route::prefix('v1')->group(function () use ($setupSlugs) {
         // ---- Reporting subsystem ------------------------------------------------
         // Generic entry point behind a slug whitelist (ReportRegistry), same pattern as the
         // module SetupControllers — add a new report to the registry, not a new route/controller.
-        Route::prefix('reports')->group(function () {
+        Route::prefix('reports')->middleware(['permission:reports.view', 'throttle:reports'])->group(function () {
             Route::get('{report}/pdf', [ReportController::class, 'pdf'])->where('report', ReportRegistry::keys());
             Route::get('{report}/excel', [ReportController::class, 'excel'])->where('report', ReportRegistry::keys());
             Route::get('artifacts/{id}', [ReportController::class, 'artifactStatus'])->whereNumber('id');

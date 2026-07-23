@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Examinations;
 
 use App\Http\Controllers\Controller;
+use App\Models\AuditLog;
 use App\Models\Examinations\Mark;
 use App\Models\Examinations\MarkConfig;
 use App\Models\Students\Enrollment;
@@ -125,6 +126,16 @@ class MarksController extends Controller
                 );
             }
         }
+
+        // One summary row, not one per Mark — a grid save can touch hundreds of rows (doc 08 K5).
+        AuditLog::create([
+            'branch_id' => $branchId,
+            'user_id' => $userId,
+            'auditable_type' => Mark::class,
+            'auditable_id' => 0,
+            'action' => 'bulk_saved',
+            'changes' => ['exam_id' => $data['exam_id'], 'students_count' => count($data['entries'])],
+        ]);
 
         return ApiResponse::success(null, 'Marks saved.');
     }

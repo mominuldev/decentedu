@@ -9,6 +9,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+// Not Auditable per-row: marks are entered/reprocessed in bulk (doc 08 K5 risk — a class×subject
+// grid can be hundreds of rows per save), so row-level audit rows would swamp the log. MarksController
+// and ResultController write one summary AuditLog entry per batch action instead.
 class Mark extends Model
 {
     use BelongsToBranch, HasFactory;

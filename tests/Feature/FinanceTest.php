@@ -65,9 +65,7 @@ class FinanceTest extends TestCase
 
     private function actingAsBranchUser(): void
     {
-        $user = \App\Models\User::factory()->create();
-        $this->branch->users()->attach($user->id);
-        $this->actingAs($user);
+        $this->actingAsSuperAdmin($this->branch);
     }
 
     public function test_assess_generates_a_student_fee_from_the_config(): void

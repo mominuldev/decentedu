@@ -4,6 +4,7 @@ namespace App\Models\Fees;
 
 use App\Models\Academic\AcademicYear;
 use App\Models\Academic\ClassConfig;
+use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToBranch;
 use App\Models\Students\Enrollment;
 use App\Models\Students\Student;
@@ -14,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class StudentFee extends Model
 {
-    use BelongsToBranch, HasFactory;
+    use Auditable, BelongsToBranch, HasFactory;
 
     protected $fillable = [
         'student_id', 'enrollment_id', 'class_config_id', 'fee_sub_head_id', 'academic_year_id',

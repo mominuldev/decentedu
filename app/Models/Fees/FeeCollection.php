@@ -3,6 +3,7 @@
 namespace App\Models\Fees;
 
 use App\Models\Accounting\Voucher;
+use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToBranch;
 use App\Models\Students\Student;
 use App\Models\User;
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class FeeCollection extends Model
 {
-    use BelongsToBranch, HasFactory;
+    use Auditable, BelongsToBranch, HasFactory;
 
     protected $fillable = [
         'student_id', 'receipt_no', 'collected_at', 'total_amount', 'payment_method', 'note', 'voucher_id', 'collected_by',
