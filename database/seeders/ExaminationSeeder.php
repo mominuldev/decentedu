@@ -2,10 +2,12 @@
 
 namespace Database\Seeders;
 
+use App\Http\Controllers\Api\Examinations\ResultController;
 use App\Models\Academic\AcademicYear;
 use App\Models\Academic\ClassConfig;
 use App\Models\Academic\Subject;
 use App\Models\Branch;
+use App\Models\Examinations\AdmitInstruction;
 use App\Models\Examinations\ClassTeacherConfig;
 use App\Models\Examinations\Exam;
 use App\Models\Examinations\ExamConfig;
@@ -13,12 +15,15 @@ use App\Models\Examinations\ExamRoutine;
 use App\Models\Examinations\Grade;
 use App\Models\Examinations\Mark;
 use App\Models\Examinations\MarkConfig;
+use App\Models\Examinations\ShortCode;
 use App\Models\Examinations\Signature;
 use App\Models\Examinations\StudentFourthSubject;
 use App\Models\Hr\Employee;
 use App\Models\Students\Enrollment;
 use App\Support\BranchContext;
 use Illuminate\Database\Seeder;
+use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class ExaminationSeeder extends Seeder
 {
@@ -80,7 +85,7 @@ class ExaminationSeeder extends Seeder
         $names = ['Written', 'MCQ'];
         $codes = [];
         foreach ($names as $i => $name) {
-            $codes[$name] = \App\Models\Examinations\ShortCode::firstOrCreate(
+            $codes[$name] = ShortCode::firstOrCreate(
                 ['branch_id' => $branchId, 'name' => $name],
                 ['serial' => $i + 1, 'status' => true],
             );
@@ -143,7 +148,7 @@ class ExaminationSeeder extends Seeder
             ['designation' => 'Principal', 'serial' => 2, 'status' => true],
         );
 
-        \App\Models\Examinations\AdmitInstruction::firstOrCreate(['branch_id' => $branchId], [
+        AdmitInstruction::firstOrCreate(['branch_id' => $branchId], [
             'instruction1' => 'Bring this admit card to every exam session.',
             'instruction2' => 'Arrive at the exam hall at least 15 minutes before the start time.',
             'instruction3' => 'Mobile phones and electronic devices are not allowed in the exam hall.',
@@ -167,7 +172,7 @@ class ExaminationSeeder extends Seeder
     }
 
     /** Written (70) + MCQ (30) per subject, for every class_config, for both Half Yearly and Annual. */
-    private function createMarkConfigs(int $branchId, $classConfigs, $subjects, array $shortCodes, array $exams): \Illuminate\Support\Collection
+    private function createMarkConfigs(int $branchId, $classConfigs, $subjects, array $shortCodes, array $exams): Collection
     {
         $components = [
             $shortCodes['Written']->id => ['total' => 70, 'pass' => 23],
@@ -284,17 +289,17 @@ class ExaminationSeeder extends Seeder
         }
 
         $this->command->info('Running general + merit process for the seeded sample...');
-        $resultController = app(\App\Http\Controllers\Api\Examinations\ResultController::class);
+        $resultController = app(ResultController::class);
 
         foreach ($sample as $classConfig) {
-            $resultController->generalProcess(new \Illuminate\Http\Request([
+            $resultController->generalProcess(new Request([
                 'class_config_id' => $classConfig->id,
                 'exam_id' => $halfYearly->id,
             ]));
         }
 
         foreach ($sample->pluck('class_id')->unique() as $classId) {
-            $resultController->meritProcess(new \Illuminate\Http\Request([
+            $resultController->meritProcess(new Request([
                 'class_id' => $classId,
                 'exam_id' => $halfYearly->id,
             ]));

@@ -2,6 +2,4 @@
 
 namespace App\Models\Academic;
 
-class Category extends SetupModel
-{
-}
+class Category extends SetupModel {}

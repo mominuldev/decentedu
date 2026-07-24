@@ -9,6 +9,7 @@ use App\Models\Academic\Section;
 use App\Models\Academic\Shift;
 use App\Models\Branch;
 use App\Models\Organization;
+use App\Models\Students\Certificate;
 use App\Models\Students\Student;
 use App\Support\BranchContext;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -19,8 +20,11 @@ class CredentialsTest extends TestCase
     use RefreshDatabase;
 
     private Branch $branch;
+
     private ClassConfig $classConfig;
+
     private AcademicYear $year;
+
     private Student $student;
 
     protected function setUp(): void
@@ -109,12 +113,12 @@ class CredentialsTest extends TestCase
         ]);
 
         app(BranchContext::class)->set($otherBranch->id);
-        \App\Models\Students\Certificate::create([
+        Certificate::create([
             'branch_id' => $otherBranch->id, 'student_id' => $otherStudent->id, 'certificate_type' => 'academic',
             'certificate_number' => 'CERT-OTHER-1', 'issue_date' => now(),
         ]);
 
         app(BranchContext::class)->set($this->branch->id);
-        $this->assertSame(0, \App\Models\Students\Certificate::count(), 'Branch A must not see Branch B certificates.');
+        $this->assertSame(0, Certificate::count(), 'Branch A must not see Branch B certificates.');
     }
 }

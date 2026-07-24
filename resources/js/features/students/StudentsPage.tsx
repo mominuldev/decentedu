@@ -1,16 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Plus, Search, Filter, Loader2, UserPlus, FileText, Mail } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { Plus, Search, Filter, UserPlus, FileText, Mail } from 'lucide-react';
 import { Card, Button, Badge } from '@/components/ui';
-import { useAuth } from '@/features/auth/AuthProvider';
-import { listStudents, getStudent, type Student, type StudentFilters } from './api';
-import { STATUS_OPTIONS } from './types';
+import { listStudents, getStudent, type Student } from './api';
+import { STATUS_OPTIONS, type StudentFilters } from './types';
 import { StudentListView } from './StudentListView';
 
 export default function StudentsPage() {
-  const { session } = useAuth();
-  const qc = useQueryClient();
   const navigate = useNavigate();
 
   const [filters, setFilters] = useState<StudentFilters>({
@@ -64,10 +61,6 @@ export default function StudentsPage() {
 
   const handleEditStudent = (student: Student) => {
     navigate(`/students/${student.id}/edit`);
-  };
-
-  const refreshList = () => {
-    qc.invalidateQueries({ queryKey: ['students'] });
   };
 
   return (
@@ -140,7 +133,6 @@ export default function StudentsPage() {
           student={selectedStudent!}
           onBack={() => setViewMode('list')}
           onEdit={() => navigate(`/students/${selectedStudent!.id}/edit`)}
-          refresh={refreshList}
         />
       )}
     </div>
@@ -152,12 +144,10 @@ function StudentDetailsView({
   student,
   onBack,
   onEdit,
-  refresh
 }: {
   student: Student;
   onBack: () => void;
   onEdit: () => void;
-  refresh: () => void;
 }) {
   return (
     <div className="space-y-6">

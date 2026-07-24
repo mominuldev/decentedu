@@ -15,6 +15,7 @@ class BranchScopingTest extends TestCase
     use RefreshDatabase;
 
     private Branch $branchA;
+
     private Branch $branchB;
 
     protected function setUp(): void

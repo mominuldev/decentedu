@@ -482,6 +482,8 @@ function initializeForm(student: Student | null): StudentFormData {
 }
 
 // Helper Components
+const slugId = (prefix: string, label: string) => `${prefix}-${label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}`;
+
 function FormField({
   label,
   value,
@@ -497,13 +499,15 @@ function FormField({
   type?: 'text' | 'number' | 'date';
   required?: boolean;
 }) {
+  const id = slugId('field', label);
   return (
     <div>
-      <label className="mb-1.5 block text-[13px] font-medium text-fg">
+      <label htmlFor={id} className="mb-1.5 block text-[13px] font-medium text-fg">
         {label}
         {required && <span className="text-rose-500"> *</span>}
       </label>
       <input
+        id={id}
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -528,19 +532,21 @@ function SelectField({
 }: {
   label: string;
   value: string | number;
-  onChange: (value: string | number) => void;
-  options: Array<{ value: string | number; label: string }>;
+  onChange: (value: string) => void;
+  options: ReadonlyArray<{ value: string | number; label: string }>;
   error?: string;
   placeholder?: string;
   required?: boolean;
 }) {
+  const id = slugId('select', label);
   return (
     <div>
-      <label className="mb-1.5 block text-[13px] font-medium text-fg">
+      <label htmlFor={id} className="mb-1.5 block text-[13px] font-medium text-fg">
         {label}
         {required && <span className="text-rose-500"> *</span>}
       </label>
       <select
+        id={id}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className={cn(

@@ -3,8 +3,8 @@
 namespace App\Models\Students;
 
 use App\Models\Academic\AcademicYear;
-use App\Models\Academic\ClassConfig;
 use App\Models\Academic\Category;
+use App\Models\Academic\ClassConfig;
 use App\Models\Academic\Group;
 use App\Models\Concerns\BelongsToBranch;
 use App\Models\User;

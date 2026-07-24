@@ -278,7 +278,7 @@ export default function BulkRegisterPage() {
                 <tbody>
                   {students.map((student, index) => (
                     <tr key={index} className="border-t border-border">
-                      <td className="px-3 py-2">
+                      <td className="px-1 py-2">
                         <input
                           type="text"
                           value={student.student_uid}

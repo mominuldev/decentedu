@@ -2,15 +2,15 @@
 
 namespace Database\Seeders;
 
-use App\Models\Hr\Employee;
+use App\Models\Academic\ClassConfig;
+use App\Models\Academic\Subject;
+use App\Models\Branch;
 use App\Models\Hr\Designation;
+use App\Models\Hr\Employee;
 use App\Models\Hr\HrSection;
 use App\Models\Hr\SubjectTeacher;
-use App\Models\Branch;
-use App\Models\Academic\Subject;
-use App\Models\Academic\ClassConfig;
-use Illuminate\Database\Seeder;
 use Faker\Factory as Faker;
+use Illuminate\Database\Seeder;
 
 class HrSeeder extends Seeder
 {
@@ -28,6 +28,7 @@ class HrSeeder extends Seeder
         $branches = Branch::all();
         if ($branches->isEmpty()) {
             $this->command->warn('No branches found. Please seed organizations first.');
+
             return;
         }
 
@@ -94,7 +95,7 @@ class HrSeeder extends Seeder
             );
         }
 
-        $this->command->info("Created " . count($designations) . " designations");
+        $this->command->info('Created '.count($designations).' designations');
     }
 
     /**
@@ -132,7 +133,7 @@ class HrSeeder extends Seeder
             );
         }
 
-        $this->command->info("Created " . count($sections) . " HR sections");
+        $this->command->info('Created '.count($sections).' HR sections');
     }
 
     /**
@@ -140,9 +141,9 @@ class HrSeeder extends Seeder
      */
     private function createEmployees(Branch $branch, $designations, $hrSections, $faker): void
     {
-        $teachingDesignations = $designations->filter(fn($d) => in_array($d->serial, [3, 4, 5, 6])); // Professor to Lecturer
-        $adminDesignations = $designations->filter(fn($d) => in_array($d->serial, [1, 2, 7, 8, 9])); // Principal to Assistant
-        $supportDesignations = $designations->filter(fn($d) => in_array($d->serial, [10, 11, 12, 13])); // Support staff
+        $teachingDesignations = $designations->filter(fn ($d) => in_array($d->serial, [3, 4, 5, 6])); // Professor to Lecturer
+        $adminDesignations = $designations->filter(fn ($d) => in_array($d->serial, [1, 2, 7, 8, 9])); // Principal to Assistant
+        $supportDesignations = $designations->filter(fn ($d) => in_array($d->serial, [10, 11, 12, 13])); // Support staff
 
         $employeeCount = 30; // Total employees to create
 
@@ -152,13 +153,13 @@ class HrSeeder extends Seeder
 
             if ($isTeacher && $teachingDesignations->isNotEmpty()) {
                 $designation = $teachingDesignations->random();
-                $hrSection = $hrSections->filter(fn($s) => in_array($s->serial, [3, 4, 5]))->random() ?? null;
+                $hrSection = $hrSections->filter(fn ($s) => in_array($s->serial, [3, 4, 5]))->random() ?? null;
             } elseif ($adminDesignations->isNotEmpty()) {
                 $designation = $i < 2 ? $adminDesignations->first() : $adminDesignations->random();
-                $hrSection = $hrSections->filter(fn($s) => in_array($s->serial, [1, 2]))->random() ?? null;
+                $hrSection = $hrSections->filter(fn ($s) => in_array($s->serial, [1, 2]))->random() ?? null;
             } else {
                 $designation = $supportDesignations->random();
-                $hrSection = $hrSections->filter(fn($s) => !in_array($s->serial, [1, 2, 3, 4, 5]))->random() ?? null;
+                $hrSection = $hrSections->filter(fn ($s) => ! in_array($s->serial, [1, 2, 3, 4, 5]))->random() ?? null;
             }
 
             $gender = $faker->randomElement(['male', 'female']);
@@ -220,7 +221,7 @@ class HrSeeder extends Seeder
         // Get teachers (employees with teaching designations)
         $teacherIds = Employee::where('branch_id', $branch->id)
             ->where('status', 'active')
-            ->whereIn('designation_id', function($query) use ($branch) {
+            ->whereIn('designation_id', function ($query) use ($branch) {
                 $query->select('id')
                     ->from('designations')
                     ->where('branch_id', $branch->id)
@@ -230,6 +231,7 @@ class HrSeeder extends Seeder
 
         if ($teacherIds->isEmpty()) {
             $this->command->warn('No teachers found for subject assignments');
+
             return;
         }
 
@@ -241,7 +243,9 @@ class HrSeeder extends Seeder
             $subjectsToAssign = $faker->numberBetween(3, 5);
 
             for ($i = 0; $i < $subjectsToAssign; $i++) {
-                if ($subjects->isEmpty()) break;
+                if ($subjects->isEmpty()) {
+                    break;
+                }
 
                 $subject = $subjects->random();
                 $teacherId = $teacherIds->random();
@@ -252,7 +256,7 @@ class HrSeeder extends Seeder
                     ->where('class_config_id', $classConfig->id)
                     ->first();
 
-                if (!$existing) {
+                if (! $existing) {
                     SubjectTeacher::create([
                         'branch_id' => $branch->id,
                         'employee_id' => $teacherId,

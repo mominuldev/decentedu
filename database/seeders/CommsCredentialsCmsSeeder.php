@@ -18,6 +18,7 @@ use App\Models\Messaging\Contact;
 use App\Models\Messaging\SmsBalance;
 use App\Models\Messaging\SmsTemplate;
 use App\Models\Students\Enrollment;
+use App\Models\User;
 use App\Services\Sms\SmsGatewayInterface;
 use App\Services\Sms\SmsSender;
 use App\Support\BranchContext;
@@ -43,7 +44,7 @@ class CommsCredentialsCmsSeeder extends Seeder
             return;
         }
 
-        $adminUser = \App\Models\User::first();
+        $adminUser = User::first();
 
         foreach ($branches as $branch) {
             $this->command->info("Seeding Phase 8 data for branch: {$branch->name}");

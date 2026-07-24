@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api\Examinations;
 
 use App\Http\Controllers\Controller;
-use App\Models\Academic\ClassConfig;
 use App\Models\Academic\Subject;
 use App\Models\Examinations\MarkConfig;
 use App\Models\Examinations\ShortCode;

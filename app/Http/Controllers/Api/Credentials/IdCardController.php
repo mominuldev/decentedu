@@ -12,6 +12,7 @@ use App\Support\ApiResponse;
 use App\Support\BranchContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
 
 /**
@@ -49,7 +50,7 @@ class IdCardController extends Controller
 
     private const CLASS_CONFIG_CHAIN = ['currentEnrollment.classConfig.schoolClass', 'currentEnrollment.classConfig.section', 'currentEnrollment.classConfig.shift'];
 
-    private function students(array $ids, ?int $classConfigId): \Illuminate\Support\Collection
+    private function students(array $ids, ?int $classConfigId): Collection
     {
         $students = $classConfigId
             ? Enrollment::with(array_merge(['student'], array_map(fn ($p) => 'student.'.$p, self::CLASS_CONFIG_CHAIN)))
@@ -70,7 +71,7 @@ class IdCardController extends Controller
         ]);
     }
 
-    private function employees(array $ids): \Illuminate\Support\Collection
+    private function employees(array $ids): Collection
     {
         return Employee::whereIn('id', $ids)->get()->map(fn (Employee $e) => [
             'photo' => $e->photo_path,

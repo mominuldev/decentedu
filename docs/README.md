@@ -52,6 +52,7 @@ mixed with confirmed facts.
 | 07 | [Frontend System Design](./07-frontend-system-design.md) | Phase 9 |
 | 08 | [Security, Performance & Reporting](./08-security-performance-reporting.md) | Phases 10–12 |
 | 09 | [Testing & Deployment](./09-testing-and-deployment.md) | Phase 13 |
+| 11 | [Deployment Runbook](./11-deployment-runbook.md) | Phase 13 (ops) |
 | 10 | [Roadmap, Risks & Open Questions](./10-roadmap-risks-open-questions.md) | Phase 14 |
 
 The final consolidated architecture document (Phase 15, all 22 sections) is the union of these files;

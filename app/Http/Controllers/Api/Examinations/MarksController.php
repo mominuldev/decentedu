@@ -85,7 +85,9 @@ class MarksController extends Controller
             'entries' => ['required', 'array', 'min:1'],
             'entries.*.student_id' => ['required', 'integer', Rule::exists('students', 'id')->where('branch_id', $branchId)],
             'entries.*.is_absent' => ['sometimes', 'boolean'],
-            'entries.*.marks' => ['required', 'array'],
+            // Not `required`: a student marked absent with no components filled in yet still
+            // submits an empty marks array — that's a valid "no marks recorded" state, not an error.
+            'entries.*.marks' => ['present', 'array'],
             'entries.*.marks.*.mark_config_id' => ['required', 'integer', Rule::exists('mark_configs', 'id')->where('branch_id', $branchId)],
             'entries.*.marks.*.obtained' => ['nullable', 'numeric', 'min:0'],
         ]);

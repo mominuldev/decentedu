@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Card } from '@/components/ui';
 import { listDesignations, listHrSections, createDesignation, createHrSection } from './api';
 import { SetupResource } from './SetupResource';
 

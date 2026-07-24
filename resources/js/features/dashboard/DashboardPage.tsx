@@ -198,7 +198,7 @@ export default function DashboardPage() {
                                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
                                 <XAxis dataKey="m" tick={{ fontSize: 11, fill: 'var(--faint)' }} tickLine={false} axisLine={false} />
                                 <YAxis hide />
-                                <Tooltip {...chartTooltip} cursor={{ fill: 'var(--surface-2)' }} formatter={(v: number) => money(v)} />
+                                <Tooltip {...chartTooltip} cursor={{ fill: 'var(--surface-2)' }} formatter={(v) => money(typeof v === 'number' ? v : Number(v) || 0)} />
                                 <Bar dataKey="amount" name="Collected" fill="#10b981" radius={[5, 5, 0, 0]} maxBarSize={30} />
                             </BarChart>
                         </ResponsiveContainer>

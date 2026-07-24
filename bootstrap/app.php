@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Middleware\EnsureBranchContext;
+use App\Http\Middleware\SecurityHeaders;
 use App\Support\ApiResponse;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
@@ -9,6 +11,9 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Sentry\Laravel\Integration;
+use Spatie\Permission\Middleware\PermissionMiddleware;
+use Spatie\Permission\Middleware\RoleMiddleware;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -25,15 +30,23 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Resolve + enforce the active branch on scoped routes.
         $middleware->alias([
-            'branch' => \App\Http\Middleware\EnsureBranchContext::class,
+            'branch' => EnsureBranchContext::class,
             // Not auto-registered by spatie/laravel-permission on Laravel 11+.
-            'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
-            'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
+            'permission' => PermissionMiddleware::class,
+            'role' => RoleMiddleware::class,
         ]);
 
-        $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
+        $middleware->append(SecurityHeaders::class);
+
+        // This is an API-only backend with no named 'login' web route. Without this, the
+        // "auth" middleware's default un-authenticated redirect calls route('login') for any
+        // request that doesn't explicitly ask for JSON, which throws RouteNotFoundException
+        // and turns what should be a clean 401 into a 500.
+        $middleware->redirectGuestsTo(null);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        Integration::handles($exceptions);
+
         // Render every API exception through the standard envelope.
         $exceptions->shouldRenderJsonWhen(fn (Request $request) => $request->is('api/*'));
 

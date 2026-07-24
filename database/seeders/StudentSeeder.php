@@ -2,17 +2,16 @@
 
 namespace Database\Seeders;
 
-use App\Models\Students\Student;
-use App\Models\Students\Enrollment;
-use App\Models\Students\Guardian;
-use App\Models\Branch;
 use App\Models\Academic\AcademicYear;
+use App\Models\Academic\Category;
 use App\Models\Academic\ClassConfig;
 use App\Models\Academic\Group;
-use App\Models\Academic\Category;
-use Illuminate\Database\Seeder;
+use App\Models\Branch;
+use App\Models\Students\Enrollment;
+use App\Models\Students\Guardian;
+use App\Models\Students\Student;
 use Faker\Factory as Faker;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Seeder;
 
 class StudentSeeder extends Seeder
 {
@@ -30,6 +29,7 @@ class StudentSeeder extends Seeder
         $branches = Branch::all();
         if ($branches->isEmpty()) {
             $this->command->warn('No branches found. Please seed organizations first.');
+
             return;
         }
 
@@ -41,8 +41,9 @@ class StudentSeeder extends Seeder
                 ->where('is_current', true)
                 ->first() ?? AcademicYear::where('branch_id', $branch->id)->first();
 
-            if (!$academicYear) {
+            if (! $academicYear) {
                 $this->command->warn("No academic year found for branch {$branch->name}");
+
                 continue;
             }
 
@@ -52,6 +53,7 @@ class StudentSeeder extends Seeder
 
             if ($classConfigs->isEmpty()) {
                 $this->command->warn("No class configurations found for branch {$branch->name}");
+
                 continue;
             }
 
@@ -204,7 +206,7 @@ class StudentSeeder extends Seeder
 
                 $student = Student::create([
                     'branch_id' => $branch->id,
-                    'student_uid' => 'SP-' . strtoupper($status) . '-' . str_pad($i + 1, 3, '0', STR_PAD_LEFT),
+                    'student_uid' => 'SP-'.strtoupper($status).'-'.str_pad($i + 1, 3, '0', STR_PAD_LEFT),
                     'name' => $faker->name($gender === 'male' ? 'male' : 'female'),
                     'name_bn' => $this->generateBanglaName($gender, $faker),
                     'sex' => $gender,

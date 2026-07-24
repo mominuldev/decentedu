@@ -2,7 +2,6 @@
 
 namespace App\Models\Hr;
 
-use App\Models\Academic\ClassConfig;
 use App\Models\Academic\Subject;
 use App\Models\Concerns\BelongsToBranch;
 use App\Models\User;

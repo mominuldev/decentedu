@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api\Attendance;
 
 use App\Http\Controllers\Controller;
-use App\Models\Attendance\AttendanceDevice;
 use App\Models\Attendance\AttendanceDeviceMap;
 use App\Models\Hr\Employee;
 use App\Models\Students\Student;

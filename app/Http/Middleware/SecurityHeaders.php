@@ -14,6 +14,7 @@ use Symfony\Component\HttpFoundation\Response;
  * literals like http://[::1]:5173 as an "invalid source", and the dev server's actual bound
  * address varies by machine) — chasing that is fighting the tool for no real security benefit
  * on a single-developer localhost. Vite::useCspNonce() stamps the same nonce onto every tag
+ *
  * @vite()/@viteReactRefresh render, so in non-local environments (where assets are pre-built
  * and served same-origin) the CSP stays strict with no 'unsafe-inline' needed for scripts.
  */

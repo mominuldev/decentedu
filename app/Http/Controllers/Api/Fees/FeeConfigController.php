@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Api\Fees;
 use App\Http\Controllers\Controller;
 use App\Models\Fees\FeeConfig;
 use App\Models\Fees\FeeSubHead;
+use App\Models\Fees\FeeTimeConfig;
 use App\Models\Fees\FeeWaiverConfig;
 use App\Models\Fees\StudentFee;
+use App\Models\Students\Enrollment;
 use App\Support\ApiResponse;
 use App\Support\BranchContext;
 use Illuminate\Http\JsonResponse;
@@ -91,13 +93,13 @@ class FeeConfigController extends Controller
             ->get();
         abort_if($configs->isEmpty(), 422, 'No fee configuration found for this class — configure fee amounts first.');
 
-        $enrollments = \App\Models\Students\Enrollment::where('class_config_id', $data['class_config_id'])
+        $enrollments = Enrollment::where('class_config_id', $data['class_config_id'])
             ->where('academic_year_id', $data['academic_year_id'])
             ->current()
             ->get();
         abort_if($enrollments->isEmpty(), 422, 'No current enrollments found for this class.');
 
-        $timeConfigs = \App\Models\Fees\FeeTimeConfig::whereIn('fee_sub_head_id', $configs->pluck('fee_sub_head_id'))
+        $timeConfigs = FeeTimeConfig::whereIn('fee_sub_head_id', $configs->pluck('fee_sub_head_id'))
             ->where('academic_year_id', $data['academic_year_id'])
             ->get()
             ->keyBy('fee_sub_head_id');

@@ -2,12 +2,12 @@
 
 namespace Database\Seeders;
 
-use App\Models\Organization;
 use App\Models\Branch;
+use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class OrganizationBranchSeeder extends Seeder
 {
@@ -87,7 +87,7 @@ class OrganizationBranchSeeder extends Seeder
                 [
                     'name' => "Admin {$branch->name}",
                     'password' => Hash::make('password'), // Default password for demo
-                    'mobile' => '+880 1' . str_pad(rand(100000000, 999999999), 9, '0', STR_PAD_LEFT),
+                    'mobile' => '+880 1'.str_pad(rand(100000000, 999999999), 9, '0', STR_PAD_LEFT),
                     'status' => true,
                 ]
             );
@@ -98,7 +98,7 @@ class OrganizationBranchSeeder extends Seeder
                 ->where('user_id', $adminUser->id)
                 ->first();
 
-            if (!$existingPivot) {
+            if (! $existingPivot) {
                 DB::table('branch_user')->insert([
                     'branch_id' => $branch->id,
                     'user_id' => $adminUser->id,
@@ -127,7 +127,7 @@ class OrganizationBranchSeeder extends Seeder
         );
 
         // Assign super admin role
-        if (!$superAdmin->hasRole('super_admin')) {
+        if (! $superAdmin->hasRole('super_admin')) {
             $superAdmin->assignRole('super_admin');
         }
 
@@ -140,7 +140,7 @@ class OrganizationBranchSeeder extends Seeder
                     ->where('user_id', $superAdmin->id)
                     ->first();
 
-                if (!$existingPivot) {
+                if (! $existingPivot) {
                     DB::table('branch_user')->insert([
                         'branch_id' => $branch->id,
                         'user_id' => $superAdmin->id,
@@ -153,7 +153,7 @@ class OrganizationBranchSeeder extends Seeder
             }
         }
 
-        $this->command->info("Created super admin: superadmin@safeeduman.com (password: superpassword)");
+        $this->command->info('Created super admin: superadmin@safeeduman.com (password: superpassword)');
 
         $this->command->info('Organizations and Branches seeded successfully.');
         $this->command->info('');

@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Plus, Search, Filter, Loader2, UserPlus, Briefcase, Users } from 'lucide-react';
-import { Card, Button, Badge } from '@/components/ui';
-import { Modal } from '@/components/Modal';
-import { listEmployees, getEmployee, type Employee, type EmployeeFilters } from './api';
+import { Plus, Search, Filter, Briefcase, Users } from 'lucide-react';
+import { Card, Button } from '@/components/ui';
+import { listEmployees, getEmployee, type Employee } from './api';
+import { type EmployeeFilters } from './types';
 import { EmployeeListView } from './EmployeeListView';
 import { EmployeeForm } from './EmployeeForm';
 import { SetupResourcesPanel } from './SetupResourcesPanel';

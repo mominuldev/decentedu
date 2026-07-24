@@ -4,15 +4,13 @@ namespace App\Http\Controllers\Api\Students;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\StudentResource;
-use App\Models\Students\Student;
 use App\Models\Students\Enrollment;
+use App\Models\Students\Student;
 use App\Support\ApiResponse;
 use App\Support\BranchContext;
 use App\Support\Query\Includes;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Validation\Rule;
 
 class StudentController extends Controller
 {
@@ -52,7 +50,7 @@ class StudentController extends Controller
         $sort = $request->query('sort', 'name');
         $dir = str_starts_with($sort, '-') ? 'desc' : 'asc';
         $col = ltrim($sort, '-');
-        if (!in_array($col, ['name', 'student_uid', 'created_at'], true)) {
+        if (! in_array($col, ['name', 'student_uid', 'created_at'], true)) {
             $col = 'name';
         }
         $query->orderBy($col, $dir);
@@ -70,7 +68,7 @@ class StudentController extends Controller
                     'per_page' => $students->perPage(),
                     'current_page' => $students->currentPage(),
                     'last_page' => $students->lastPage(),
-                ]
+                ],
             ]
         );
     }
@@ -152,7 +150,7 @@ class StudentController extends Controller
         ]);
 
         // Create guardians if provided
-        if (!empty($data['guardians'])) {
+        if (! empty($data['guardians'])) {
             foreach ($data['guardians'] as $guardianData) {
                 $student->guardians()->create([
                     'branch_id' => $branchId,
@@ -288,7 +286,7 @@ class StudentController extends Controller
                 'total' => count($data['students']),
                 'created_count' => count($created),
                 'failed_count' => count($failed),
-            ]
+            ],
         ], 'Bulk registration completed.');
     }
 

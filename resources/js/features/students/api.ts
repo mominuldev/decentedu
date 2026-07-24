@@ -121,14 +121,12 @@ export interface BulkRegisterRequest {
 }
 
 export interface BulkRegisterResponse {
-  data: {
-    created: Array<{ index: number; student_uid: string; id: number }>;
-    failed: Array<{ index: number; student_uid: string; error: string }>;
-    summary: {
-      total: number;
-      created_count: number;
-      failed_count: number;
-    };
+  created: Array<{ index: number; student_uid: string; id: number }>;
+  failed: Array<{ index: number; student_uid: string; error: string }>;
+  summary: {
+    total: number;
+    created_count: number;
+    failed_count: number;
   };
 }
 
@@ -168,7 +166,7 @@ export async function deleteStudent(id: number): Promise<void> {
 
 export async function bulkRegister(payload: BulkRegisterRequest): Promise<BulkRegisterResponse> {
   const { data } = await api.post(`${base}/bulk-register`, payload);
-  return data as BulkRegisterResponse;
+  return data.data as BulkRegisterResponse;
 }
 
 export async function migrateStudents(payload: {

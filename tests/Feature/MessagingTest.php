@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Branch;
 use App\Models\Messaging\SmsBalance;
+use App\Models\Messaging\SmsTemplate;
 use App\Models\Organization;
 use App\Support\BranchContext;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -73,9 +74,9 @@ class MessagingTest extends TestCase
         $otherBranch = Branch::create(['organization_id' => $org->id, 'name' => 'Other Branch', 'code' => 'OTHER']);
 
         app(BranchContext::class)->set($otherBranch->id);
-        \App\Models\Messaging\SmsTemplate::create(['branch_id' => $otherBranch->id, 'name' => 'Other Template', 'type' => 'general', 'message' => 'Hi']);
+        SmsTemplate::create(['branch_id' => $otherBranch->id, 'name' => 'Other Template', 'type' => 'general', 'message' => 'Hi']);
 
         app(BranchContext::class)->set($this->branch->id);
-        $this->assertSame(0, \App\Models\Messaging\SmsTemplate::count(), 'Branch A must not see Branch B templates.');
+        $this->assertSame(0, SmsTemplate::count(), 'Branch A must not see Branch B templates.');
     }
 }

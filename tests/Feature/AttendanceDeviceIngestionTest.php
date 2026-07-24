@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Jobs\ProcessAttendancePunches;
 use App\Models\Attendance\AttendanceDevice;
 use App\Models\Attendance\AttendanceDeviceMap;
+use App\Models\Attendance\AttendancePunch;
 use App\Models\Attendance\AttendanceTimeConfig;
 use App\Models\Attendance\EmployeeAttendance;
 use App\Models\Branch;
@@ -20,7 +21,9 @@ class AttendanceDeviceIngestionTest extends TestCase
     use RefreshDatabase;
 
     private Branch $branch;
+
     private Employee $employee;
+
     private AttendanceDevice $device;
 
     protected function setUp(): void
@@ -61,13 +64,13 @@ class AttendanceDeviceIngestionTest extends TestCase
 
     public function test_resolves_punches_into_present_when_on_time(): void
     {
-        \App\Models\Attendance\AttendancePunch::create([
+        AttendancePunch::create([
             'branch_id' => $this->branch->id,
             'attendance_device_id' => $this->device->id,
             'external_user_id' => 'E001',
             'punched_at' => '2026-07-20 08:55:00',
         ]);
-        \App\Models\Attendance\AttendancePunch::create([
+        AttendancePunch::create([
             'branch_id' => $this->branch->id,
             'attendance_device_id' => $this->device->id,
             'external_user_id' => 'E001',
@@ -87,12 +90,12 @@ class AttendanceDeviceIngestionTest extends TestCase
         $this->assertSame('08:55:00', $attendance->in_time);
         $this->assertSame('17:05:00', $attendance->out_time);
 
-        $this->assertSame(0, \App\Models\Attendance\AttendancePunch::where('processed', false)->count());
+        $this->assertSame(0, AttendancePunch::where('processed', false)->count());
     }
 
     public function test_resolves_punches_into_late_when_after_grace(): void
     {
-        \App\Models\Attendance\AttendancePunch::create([
+        AttendancePunch::create([
             'branch_id' => $this->branch->id,
             'attendance_device_id' => $this->device->id,
             'external_user_id' => 'E001',
@@ -110,7 +113,7 @@ class AttendanceDeviceIngestionTest extends TestCase
 
     public function test_unmapped_device_user_is_left_unprocessed(): void
     {
-        \App\Models\Attendance\AttendancePunch::create([
+        AttendancePunch::create([
             'branch_id' => $this->branch->id,
             'attendance_device_id' => $this->device->id,
             'external_user_id' => 'UNKNOWN',
@@ -120,6 +123,6 @@ class AttendanceDeviceIngestionTest extends TestCase
         (new ProcessAttendancePunches($this->branch->id))->handle();
 
         $this->assertSame(0, EmployeeAttendance::count());
-        $this->assertSame(1, \App\Models\Attendance\AttendancePunch::where('processed', false)->count());
+        $this->assertSame(1, AttendancePunch::where('processed', false)->count());
     }
 }

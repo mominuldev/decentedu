@@ -23,9 +23,7 @@ class SendAbsenteeAttendanceNotice implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public function __construct(private readonly int $studentAttendanceId)
-    {
-    }
+    public function __construct(private readonly int $studentAttendanceId) {}
 
     public function handle(SmsSender $sender): void
     {

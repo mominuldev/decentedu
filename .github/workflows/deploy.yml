@@ -1,0 +1,132 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Environment to deploy
+        required: true
+        type: choice
+        options: [staging, production]
+        default: staging
+
+concurrency:
+  group: deploy-${{ github.event.inputs.environment || 'staging' }}
+  cancel-in-progress: false
+
+jobs:
+  build-and-push:
+    name: Build & push image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ${{ steps.image.outputs.image }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set image tag
+        id: image
+        run: echo "image=ghcr.io/${{ github.repository }}:${{ github.sha }}" >> "$GITHUB_OUTPUT"
+
+      - name: Build & push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ steps.image.outputs.image }}
+            ghcr.io/${{ github.repository }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # Auto-deploys every push to main. Requires repo variable STAGING_HOST — the job is a
+  # deliberate no-op (not a failure) when that isn't configured yet, so CI stays green for
+  # repos that haven't picked a staging host.
+  deploy-staging:
+    name: Deploy to staging
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    if: github.event_name == 'push' || github.event.inputs.environment == 'staging'
+    environment:
+      name: staging
+      url: https://staging.decentedu.example
+    steps:
+      - name: Check staging is configured
+        id: check
+        run: echo "configured=${{ vars.STAGING_HOST != '' }}" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy over SSH (release-symlink, zero-downtime)
+        if: steps.check.outputs.configured == 'true'
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ vars.STAGING_HOST }}
+          username: ${{ vars.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          envs: IMAGE
+          script: |
+            set -euo pipefail
+            cd /srv/decentedu
+            export IMAGE=${{ needs.build-and-push.outputs.image }}
+            sed -i "s#^image:.*#image: ${IMAGE}#" docker-compose.override.yml || true
+            docker compose pull app horizon scheduler
+            docker compose up -d --no-deps app horizon scheduler nginx
+            docker compose exec -T app php artisan migrate --force
+            docker compose exec -T app php artisan config:cache
+            docker compose exec -T app php artisan route:cache
+            docker compose exec -T app php artisan view:cache
+            docker compose exec -T horizon php artisan horizon:terminate
+
+      - name: Skipped — no staging host configured
+        if: steps.check.outputs.configured != 'true'
+        run: echo "Set the STAGING_HOST repo variable + DEPLOY_USER/DEPLOY_SSH_KEY secrets to enable this step."
+
+  # Production requires a manual dispatch AND the 'production' GitHub Environment's required
+  # reviewers to approve — this job simply won't start until that approval is granted.
+  deploy-production:
+    name: Deploy to production
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    if: github.event.inputs.environment == 'production'
+    environment:
+      name: production
+      url: https://app.decentedu.example
+    steps:
+      - name: Check production is configured
+        id: check
+        run: echo "configured=${{ vars.PRODUCTION_HOST != '' }}" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy over SSH (release-symlink, zero-downtime)
+        if: steps.check.outputs.configured == 'true'
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ vars.PRODUCTION_HOST }}
+          username: ${{ vars.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          envs: IMAGE
+          script: |
+            set -euo pipefail
+            cd /srv/decentedu
+            export IMAGE=${{ needs.build-and-push.outputs.image }}
+            sed -i "s#^image:.*#image: ${IMAGE}#" docker-compose.override.yml || true
+            docker compose pull app horizon scheduler
+            docker compose up -d --no-deps app horizon scheduler nginx
+            docker compose exec -T app php artisan migrate --force
+            docker compose exec -T app php artisan config:cache
+            docker compose exec -T app php artisan route:cache
+            docker compose exec -T app php artisan view:cache
+            docker compose exec -T horizon php artisan horizon:terminate
+
+      - name: Skipped — no production host configured
+        if: steps.check.outputs.configured != 'true'
+        run: echo "Set the PRODUCTION_HOST repo variable + DEPLOY_USER/DEPLOY_SSH_KEY secrets, and add required reviewers to the 'production' environment, to enable this step."

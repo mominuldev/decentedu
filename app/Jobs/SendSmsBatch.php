@@ -16,9 +16,7 @@ class SendSmsBatch implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public function __construct(private readonly int $batchId, private readonly int $branchId)
-    {
-    }
+    public function __construct(private readonly int $batchId, private readonly int $branchId) {}
 
     public function handle(SmsGatewayInterface $gateway): void
     {

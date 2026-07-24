@@ -1,11 +1,10 @@
 import { useState } from 'react';
-import { Pencil, Eye, Trash2, Loader2, Inbox, User, Briefcase, Mail } from 'lucide-react';
+import { Pencil, Eye, Trash2, Loader2, Inbox, User, Mail } from 'lucide-react';
 import { Card, Button, Badge } from '@/components/ui';
 import { ConfirmDialog } from '@/components/Modal';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { type Employee } from './api';
 import { deleteEmployee } from './api';
-import { cn } from '@/lib/cn';
 
 interface EmployeeListViewProps {
   employees: Employee[];
@@ -27,7 +26,6 @@ export function EmployeeListView({
   onView,
   pagination,
   onPageChange,
-  onPerPageChange,
 }: EmployeeListViewProps) {
   const qc = useQueryClient();
   const [deleting, setDeleting] = useState<Employee | null>(null);
@@ -124,7 +122,7 @@ export function EmployeeListView({
                       )}
                     </td>
                     <td className="px-5 py-3">
-                      <Badge variant="outline" className="text-xs">
+                      <Badge tone="neutral" className="text-xs">
                         {employee.employment_type}
                       </Badge>
                     </td>

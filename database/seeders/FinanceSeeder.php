@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Http\Controllers\Api\Fees\FeeConfigController;
 use App\Http\Controllers\Api\Fees\FeeCollectionController;
+use App\Http\Controllers\Api\Fees\FeeConfigController;
 use App\Models\Academic\AcademicYear;
 use App\Models\Academic\ClassConfig;
 use App\Models\Branch;
@@ -15,6 +15,7 @@ use App\Models\Fees\FeeWaiver;
 use App\Models\Fees\FeeWaiverConfig;
 use App\Models\Fees\StudentFee;
 use App\Models\Students\Enrollment;
+use App\Models\User;
 use App\Support\BranchContext;
 use Illuminate\Database\Seeder;
 use Illuminate\Http\Request;
@@ -38,7 +39,7 @@ class FinanceSeeder extends Seeder
             return;
         }
 
-        $adminUser = \App\Models\User::first();
+        $adminUser = User::first();
 
         foreach ($branches as $branch) {
             $this->command->info("Seeding finance for branch: {$branch->name}");

@@ -167,6 +167,7 @@ function BranchSwitcher() {
             <button
                 onClick={() => setOpen((o) => !o)}
                 disabled={busy}
+                data-testid="branch-switcher"
                 className="flex items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2 text-[13px] font-semibold text-fg hover:bg-surface-2 disabled:opacity-60"
             >
                 <span className="grid h-5 w-5 place-items-center rounded-md bg-brand-100 text-[10px] font-bold text-brand-700 dark:bg-brand-500/15 dark:text-brand-300">

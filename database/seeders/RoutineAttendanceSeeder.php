@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Academic\ClassConfig;
+use App\Models\Academic\Shift;
 use App\Models\Academic\Subject;
 use App\Models\Attendance\AttendanceDevice;
 use App\Models\Attendance\AttendanceDeviceMap;
@@ -16,6 +17,7 @@ use App\Models\Routines\ClassRoutine;
 use App\Models\Routines\Period;
 use App\Models\Students\Enrollment;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Collection;
 
 class RoutineAttendanceSeeder extends Seeder
 {
@@ -50,7 +52,7 @@ class RoutineAttendanceSeeder extends Seeder
         $this->command->info('Routines & Attendance data seeded successfully.');
     }
 
-    private function createPeriods(Branch $branch): \Illuminate\Support\Collection
+    private function createPeriods(Branch $branch): Collection
     {
         $slots = [
             ['name' => 'Period 1', 'start' => '09:00', 'end' => '09:45'],
@@ -61,7 +63,7 @@ class RoutineAttendanceSeeder extends Seeder
             ['name' => 'Period 6', 'start' => '13:30', 'end' => '14:15'],
         ];
 
-        $shifts = \App\Models\Academic\Shift::where('branch_id', $branch->id)->get();
+        $shifts = Shift::where('branch_id', $branch->id)->get();
         $created = collect();
 
         foreach ($shifts as $shift) {
@@ -79,7 +81,7 @@ class RoutineAttendanceSeeder extends Seeder
         return $created;
     }
 
-    private function createClassRoutines(Branch $branch, \Illuminate\Support\Collection $periods): void
+    private function createClassRoutines(Branch $branch, Collection $periods): void
     {
         $classConfigs = ClassConfig::where('branch_id', $branch->id)->get();
         $subjects = Subject::where('branch_id', $branch->id)->get();
@@ -155,7 +157,7 @@ class RoutineAttendanceSeeder extends Seeder
         $this->command->info('Created '.count($holidays).' holidays');
     }
 
-    private function createDevices(Branch $branch): \Illuminate\Support\Collection
+    private function createDevices(Branch $branch): Collection
     {
         $devices = [
             ['name' => 'Main Gate — Student Scanner', 'device_uid' => 'DEV-'.$branch->id.'-STU'],
@@ -183,7 +185,7 @@ class RoutineAttendanceSeeder extends Seeder
         $this->command->info('Created default student + employee time configs');
     }
 
-    private function createDeviceMaps(Branch $branch, \Illuminate\Support\Collection $devices): void
+    private function createDeviceMaps(Branch $branch, Collection $devices): void
     {
         $studentDevice = $devices->firstWhere('device_uid', 'DEV-'.$branch->id.'-STU');
         $employeeDevice = $devices->firstWhere('device_uid', 'DEV-'.$branch->id.'-EMP');

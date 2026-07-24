@@ -8,6 +8,7 @@ use App\Models\Academic\SchoolClass;
 use App\Models\Academic\Section;
 use App\Models\Academic\Shift;
 use App\Models\Accounting\LedgerAccount;
+use App\Models\Accounting\VoucherEntry;
 use App\Models\Branch;
 use App\Models\Fees\FeeConfig;
 use App\Models\Fees\FeeHead;
@@ -26,9 +27,13 @@ class FinanceTest extends TestCase
     use RefreshDatabase;
 
     private Branch $branch;
+
     private ClassConfig $classConfig;
+
     private AcademicYear $year;
+
     private Student $student;
+
     private FeeSubHead $tuitionSubHead;
 
     protected function setUp(): void
@@ -129,7 +134,7 @@ class FinanceTest extends TestCase
 
         $this->assertDatabaseHas('vouchers', ['id' => $voucherId, 'type' => 'receive', 'total' => 1000]);
 
-        $entries = \App\Models\Accounting\VoucherEntry::where('voucher_id', $voucherId)->get();
+        $entries = VoucherEntry::where('voucher_id', $voucherId)->get();
         $this->assertEquals(1000, $entries->sum('debit'));
         $this->assertEquals(1000, $entries->sum('credit'));
 

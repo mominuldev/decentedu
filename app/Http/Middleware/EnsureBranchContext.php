@@ -25,7 +25,7 @@ class EnsureBranchContext
                 $branchId = null;
 
                 try {
-                    $session = $request->getSession();
+                    $session = $request->hasSession() ? $request->session() : null;
                 } catch (\Exception $e) {
                     $session = null;
                 }
@@ -68,7 +68,7 @@ class EnsureBranchContext
         } catch (\Exception $e) {
             // Log but don't block the request
             if (config('app.debug')) {
-                logger()->error('EnsureBranchContext error: ' . $e->getMessage());
+                logger()->error('EnsureBranchContext error: '.$e->getMessage());
             }
         }
 

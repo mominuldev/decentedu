@@ -21,9 +21,13 @@ class RoutineConflictTest extends TestCase
     use RefreshDatabase;
 
     private Branch $branch;
+
     private Shift $shift;
+
     private Period $period;
+
     private Subject $subject;
+
     private Employee $teacher;
 
     protected function setUp(): void

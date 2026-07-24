@@ -38,11 +38,12 @@ const toneMap: Record<Tone, string> = {
     neutral: 'text-muted bg-surface-2 ring-border',
 };
 
-export function Badge({ tone = 'neutral', children, className }: { tone?: Tone; children: ReactNode; className?: string }) {
+export function Badge({ tone = 'neutral', size = 'md', children, className }: { tone?: Tone; size?: 'sm' | 'md'; children: ReactNode; className?: string }) {
     return (
         <span
             className={cn(
-                'inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset',
+                'inline-flex items-center gap-1 rounded-full font-medium ring-1 ring-inset',
+                size === 'sm' ? 'px-2 py-0 text-[11px]' : 'px-2.5 py-0.5 text-xs',
                 toneMap[tone],
                 className,
             )}
@@ -55,17 +56,22 @@ export function Badge({ tone = 'neutral', children, className }: { tone?: Tone; 
 /* ---- Button -------------------------------------------------------------- */
 interface BtnProps extends ButtonHTMLAttributes<HTMLButtonElement> {
     variant?: 'primary' | 'ghost' | 'outline';
+    size?: 'sm' | 'md';
     children: ReactNode;
 }
-export function Button({ variant = 'primary', className, children, ...rest }: BtnProps) {
-    const base = 'inline-flex items-center justify-center gap-2 rounded-xl px-3.5 py-2 text-sm font-semibold transition-colors disabled:opacity-50';
+export function Button({ variant = 'primary', size = 'md', className, children, ...rest }: BtnProps) {
+    const base = 'inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition-colors disabled:opacity-50';
+    const sizes = {
+        sm: 'px-2.5 py-1.5 text-xs',
+        md: 'px-3.5 py-2 text-sm',
+    } as const;
     const variants = {
         primary: 'bg-brand-600 text-white hover:bg-brand-700 shadow-[var(--shadow-soft)]',
         outline: 'border border-border-strong text-fg hover:bg-surface-2',
         ghost: 'text-muted hover:bg-surface-2 hover:text-fg',
     } as const;
     return (
-        <button className={cn(base, variants[variant], className)} {...rest}>
+        <button className={cn(base, sizes[size], variants[variant], className)} {...rest}>
             {children}
         </button>
     );

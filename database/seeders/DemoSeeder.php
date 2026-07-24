@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Academic\AcademicYear;
 use App\Models\Academic\Category;
 use App\Models\Academic\ClassConfig;
 use App\Models\Academic\Group;
@@ -9,7 +10,6 @@ use App\Models\Academic\SchoolClass;
 use App\Models\Academic\Section;
 use App\Models\Academic\Shift;
 use App\Models\Academic\Subject;
-use App\Models\Academic\AcademicYear;
 use App\Models\Branch;
 use App\Models\Organization;
 use App\Models\User;

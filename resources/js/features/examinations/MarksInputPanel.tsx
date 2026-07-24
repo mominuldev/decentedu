@@ -53,13 +53,18 @@ export function MarksInputPanel() {
     const save = useMutation({
         mutationFn: () => saveMarks({
             exam_id: examId,
-            entries: Object.entries(entries).map(([studentId, e]) => ({
-                student_id: Number(studentId),
-                is_absent: e.is_absent,
-                marks: Object.entries(e.marks)
-                    .filter(([, v]) => v !== '')
-                    .map(([markConfigId, v]) => ({ mark_config_id: Number(markConfigId), obtained: Number(v) })),
-            })),
+            entries: Object.entries(entries)
+                .map(([studentId, e]) => ({
+                    student_id: Number(studentId),
+                    is_absent: e.is_absent,
+                    marks: Object.entries(e.marks)
+                        .filter(([, v]) => v !== '')
+                        .map(([markConfigId, v]) => ({ mark_config_id: Number(markConfigId), obtained: Number(v) })),
+                }))
+                // The backend requires a non-empty marks array per entry — a student nobody has
+                // touched yet (no marks, not marked absent) has nothing to save, so drop them
+                // rather than failing the whole batch (docs/09's "absent xor mark" input model).
+                .filter((e) => e.is_absent || e.marks.length > 0),
         }),
         onSuccess: () => qc.invalidateQueries({ queryKey: gridKey }),
     });

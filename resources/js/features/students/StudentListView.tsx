@@ -4,7 +4,6 @@ import { ConfirmDialog } from '@/components/Modal';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { type Student } from './api';
 import { deleteStudent } from './api';
-import { cn } from '@/lib/cn';
 
 interface StudentListViewProps {
   students: Student[];
@@ -28,7 +27,6 @@ export function StudentListView({
   onEdit,
   pagination,
   onPageChange,
-  onPerPageChange,
 }: StudentListViewProps) {
   const qc = useQueryClient();
   const [deleting, setDeleting] = useState<Student | null>(null);

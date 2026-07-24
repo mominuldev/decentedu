@@ -5,6 +5,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from '@/app/theme';
 import { AuthProvider } from '@/features/auth/AuthProvider';
 import { router } from '@/app/router';
+import { initSentry } from '@/lib/sentry';
+
+initSentry();
 
 const queryClient = new QueryClient({
     defaultOptions: {

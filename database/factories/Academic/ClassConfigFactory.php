@@ -4,8 +4,9 @@ namespace Database\Factories\Academic;
 
 use App\Models\Academic\ClassConfig;
 use App\Models\Academic\SchoolClass;
-use App\Models\Academic\Shift;
 use App\Models\Academic\Section;
+use App\Models\Academic\Shift;
+use App\Models\Branch;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class ClassConfigFactory extends Factory
@@ -16,7 +17,7 @@ class ClassConfigFactory extends Factory
     {
         return [
             'branch_id' => function () {
-                return \App\Models\Branch::factory()->create()->id;
+                return Branch::factory()->create()->id;
             },
             'class_id' => function () {
                 return SchoolClass::factory()->create()->id;

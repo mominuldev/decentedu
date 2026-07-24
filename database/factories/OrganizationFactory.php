@@ -12,6 +12,7 @@ class OrganizationFactory extends Factory
     public function definition(): array
     {
         $name = fake()->company();
+
         return [
             'name' => $name,
             'slug' => strtolower(str_replace(' ', '-', $name)),

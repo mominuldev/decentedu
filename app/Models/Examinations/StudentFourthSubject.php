@@ -2,8 +2,8 @@
 
 namespace App\Models\Examinations;
 
-use App\Models\Academic\ClassConfig;
 use App\Models\Academic\AcademicYear;
+use App\Models\Academic\ClassConfig;
 use App\Models\Academic\Subject;
 use App\Models\Concerns\BelongsToBranch;
 use App\Models\Students\Student;

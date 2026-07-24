@@ -3,14 +3,15 @@
 namespace Database\Seeders;
 
 use App\Models\Academic\AcademicYear;
+use App\Models\Academic\Category;
+use App\Models\Academic\ClassConfig;
 use App\Models\Academic\Group;
+use App\Models\Academic\GroupConfig;
 use App\Models\Academic\SchoolClass;
 use App\Models\Academic\Section;
 use App\Models\Academic\Shift;
 use App\Models\Academic\Subject;
-use App\Models\Academic\Category;
-use App\Models\Academic\ClassConfig;
-use App\Models\Academic\GroupConfig;
+use App\Models\Branch;
 use Illuminate\Database\Seeder;
 
 class AcademicSeeder extends Seeder
@@ -24,9 +25,10 @@ class AcademicSeeder extends Seeder
         $this->command->info('Seeding Academic Foundation data...');
 
         // Get branches from the database or use a default one
-        $branches = \App\Models\Branch::all();
+        $branches = Branch::all();
         if ($branches->isEmpty()) {
             $this->command->warn('No branches found. Please seed organizations and branches first.');
+
             return;
         }
 
@@ -218,7 +220,7 @@ class AcademicSeeder extends Seeder
             }
 
             // Create Group Configurations (Class × Group combinations for higher classes)
-            $higherClasses = $classes->filter(fn($c) => $c->serial >= 9); // Nine and Ten
+            $higherClasses = $classes->filter(fn ($c) => $c->serial >= 9); // Nine and Ten
             $groups = Group::where('branch_id', $branch->id)->get();
 
             foreach ($higherClasses as $class) {

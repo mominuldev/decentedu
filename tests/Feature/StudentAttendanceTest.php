@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Jobs\SendAbsenteeAttendanceNotice;
 use App\Models\Academic\AcademicYear;
 use App\Models\Academic\ClassConfig;
 use App\Models\Academic\SchoolClass;
@@ -15,7 +16,6 @@ use App\Models\Students\Student;
 use App\Support\BranchContext;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Bus;
-use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 class StudentAttendanceTest extends TestCase
@@ -23,8 +23,11 @@ class StudentAttendanceTest extends TestCase
     use RefreshDatabase;
 
     private Branch $branch;
+
     private ClassConfig $classConfig;
+
     private Student $studentA;
+
     private Student $studentB;
 
     protected function setUp(): void
@@ -123,7 +126,7 @@ class StudentAttendanceTest extends TestCase
             ],
         ])->assertStatus(200);
 
-        Bus::assertDispatched(\App\Jobs\SendAbsenteeAttendanceNotice::class);
+        Bus::assertDispatched(SendAbsenteeAttendanceNotice::class);
     }
 
     public function test_marking_present_does_not_dispatch_the_absentee_notice_job(): void
@@ -139,7 +142,7 @@ class StudentAttendanceTest extends TestCase
             ],
         ])->assertStatus(200);
 
-        Bus::assertNotDispatched(\App\Jobs\SendAbsenteeAttendanceNotice::class);
+        Bus::assertNotDispatched(SendAbsenteeAttendanceNotice::class);
     }
 
     public function test_retaking_attendance_updates_the_existing_record_instead_of_duplicating(): void

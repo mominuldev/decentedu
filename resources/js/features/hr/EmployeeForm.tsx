@@ -1,11 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Loader2, Plus, X, BookOpen } from 'lucide-react';
 import { Modal } from '@/components/Modal';
 import { Button } from '@/components/ui';
 import { Card } from '@/components/ui';
 import { FileUpload } from '@/components/FileUpload';
-import { useAuth } from '@/features/auth/AuthProvider';
 import { toApiError } from '@/lib/api';
 import { cn } from '@/lib/cn';
 import { createEmployee, updateEmployee, type Employee, type CreateEmployeeRequest } from './api';
@@ -20,8 +19,6 @@ interface EmployeeFormProps {
 }
 
 export function EmployeeForm({ employee, onClose, onSaved }: EmployeeFormProps) {
-  const { session } = useAuth();
-
   // Fetch setup data for dropdowns
   const { data: designations = [] } = useQuery({
     queryKey: ['hr-setup', 'designations'],
@@ -117,7 +114,7 @@ export function EmployeeForm({ employee, onClose, onSaved }: EmployeeFormProps) 
           </Button>
         </>
       }
-      size="large"
+      width="max-w-3xl"
     >
       {error && (
         <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-2.5 text-[13px] text-rose-700">
@@ -393,8 +390,8 @@ function SelectField({
 }: {
   label: string;
   value: string | number;
-  onChange: (value: string | number) => void;
-  options: Array<{ value: string | number; label: string }>;
+  onChange: (value: string) => void;
+  options: ReadonlyArray<{ value: string | number; label: string }>;
   error?: string;
   placeholder?: string;
   required?: boolean;
@@ -429,11 +426,13 @@ function TextAreaField({
   label,
   value,
   onChange,
+  placeholder,
   className = '',
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
+  placeholder?: string;
   className?: string;
 }) {
   return (
@@ -442,6 +441,7 @@ function TextAreaField({
       <textarea
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
         rows={3}
         className="w-full rounded-xl border border-border-strong bg-surface px-3.5 py-2.5 text-[14px] text-fg outline-none placeholder:text-faint focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25"
       />

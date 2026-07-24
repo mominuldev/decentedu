@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Plus, Pencil, Trash2, Loader2, Inbox } from 'lucide-react';
 import { Card, Button, Badge } from '@/components/ui';
@@ -121,13 +121,7 @@ export function SetupResource({
           fields={fields}
           row={editing}
           onClose={() => { setCreating(false); setEditing(null); }}
-          onSaved={(payload) => {
-            const mutation = useMutation({
-              mutationFn: () => createFn(payload),
-              onSuccess: () => { invalidate(); setCreating(false); setEditing(null); },
-            });
-            mutation.mutate();
-          }}
+          onSaved={() => { invalidate(); setCreating(false); setEditing(null); }}
           createFn={createFn}
         />
       )}

@@ -11,8 +11,6 @@ use App\Support\ApiResponse;
 use App\Support\BranchContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Validation\Rule;
 
 class EmployeeController extends Controller
 {
@@ -54,7 +52,7 @@ class EmployeeController extends Controller
         $sort = $request->query('sort', 'name');
         $dir = str_starts_with($sort, '-') ? 'desc' : 'asc';
         $col = ltrim($sort, '-');
-        if (!in_array($col, ['name', 'employee_uid', 'joining_date', 'created_at'], true)) {
+        if (! in_array($col, ['name', 'employee_uid', 'joining_date', 'created_at'], true)) {
             $col = 'name';
         }
         $query->orderBy($col, $dir);
@@ -72,7 +70,7 @@ class EmployeeController extends Controller
                     'per_page' => $employees->perPage(),
                     'current_page' => $employees->currentPage(),
                     'last_page' => $employees->lastPage(),
-                ]
+                ],
             ]
         );
     }
@@ -130,7 +128,7 @@ class EmployeeController extends Controller
         ]);
 
         // Create subject assignments if provided
-        if (!empty($data['subject_assignments'])) {
+        if (! empty($data['subject_assignments'])) {
             foreach ($data['subject_assignments'] as $assignment) {
                 SubjectTeacher::create([
                     'branch_id' => $branchId,

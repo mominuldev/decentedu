@@ -2,8 +2,6 @@
 
 namespace App\Models\Students;
 
-use App\Models\Academic\ClassConfig;
-use App\Models\Academic\Group;
 use App\Models\Concerns\BelongsToBranch;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;

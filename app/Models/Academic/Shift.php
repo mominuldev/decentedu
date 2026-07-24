@@ -2,6 +2,4 @@
 
 namespace App\Models\Academic;
 
-class Shift extends SetupModel
-{
-}
+class Shift extends SetupModel {}

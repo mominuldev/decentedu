@@ -100,8 +100,9 @@ export default function LoginPage() {
                     )}
 
                     <form onSubmit={onSubmit} className="mt-6 space-y-4">
-                        <Field label="Email" error={fieldErr.email?.[0]}>
+                        <Field label="Email" htmlFor="email" error={fieldErr.email?.[0]}>
                             <input
+                                id="email"
                                 type="email" value={email} onChange={(e) => setEmail(e.target.value)}
                                 autoComplete="email" required autoFocus
                                 className={inputCls(!!fieldErr.email)}
@@ -109,9 +110,10 @@ export default function LoginPage() {
                             />
                         </Field>
 
-                        <Field label="Password" error={fieldErr.password?.[0]}>
+                        <Field label="Password" htmlFor="password" error={fieldErr.password?.[0]}>
                             <div className="relative">
                                 <input
+                                    id="password"
                                     type={show ? 'text' : 'password'} value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     autoComplete="current-password" required
@@ -159,10 +161,10 @@ export default function LoginPage() {
     );
 }
 
-function Field({ label, error, children }: { label: string; error?: string; children: ReactNode }) {
+function Field({ label, htmlFor, error, children }: { label: string; htmlFor: string; error?: string; children: ReactNode }) {
     return (
         <div>
-            <label className="mb-1.5 block text-[13px] font-medium text-fg">{label}</label>
+            <label htmlFor={htmlFor} className="mb-1.5 block text-[13px] font-medium text-fg">{label}</label>
             {children}
             {error && <p className="mt-1.5 text-[12px] text-rose-500">{error}</p>}
         </div>
