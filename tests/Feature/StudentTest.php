@@ -166,6 +166,62 @@ class StudentTest extends TestCase
         $response->assertJsonValidationErrors('students');
     }
 
+    public function test_can_filter_students_by_academic_year_class_section_and_roll(): void
+    {
+        $this->actingAsSuperAdmin($this->branch);
+
+        // Same class, different section — proves section_id narrows independently of class_id.
+        $otherSection = Section::create(['branch_id' => $this->branch->id, 'name' => 'B']);
+        $otherClassConfig = ClassConfig::create([
+            'branch_id' => $this->branch->id,
+            'class_id' => $this->classConfig->class_id,
+            'shift_id' => $this->classConfig->shift_id,
+            'section_id' => $otherSection->id,
+            'serial' => 2,
+            'status' => true,
+        ]);
+
+        $this->postJson('/api/v1/students', $this->studentPayload(['student_uid' => 'STU-A', 'roll' => '1']))->assertStatus(201);
+        $this->postJson('/api/v1/students', $this->studentPayload([
+            'student_uid' => 'STU-B',
+            'roll' => '2',
+            'class_config_id' => $otherClassConfig->id,
+        ]))->assertStatus(201);
+
+        // Filter by academic_year_id alone matches both.
+        $this->getJson("/api/v1/students?academic_year_id={$this->year->id}")
+            ->assertOk()
+            ->assertJsonCount(2, 'data');
+
+        // Filter by class_id (shared by both class_configs) still matches both.
+        $this->getJson("/api/v1/students?class_id={$this->classConfig->class_id}")
+            ->assertOk()
+            ->assertJsonCount(2, 'data');
+
+        // Filter by section_id narrows to the student in that section only.
+        $response = $this->getJson("/api/v1/students?section_id={$otherSection->id}");
+        $response->assertOk();
+        $response->assertJsonCount(1, 'data');
+        $response->assertJsonPath('data.0.student_uid', 'STU-B');
+
+        // Filter by roll narrows to the exact match.
+        $response = $this->getJson('/api/v1/students?roll=1');
+        $response->assertOk();
+        $response->assertJsonCount(1, 'data');
+        $response->assertJsonPath('data.0.student_uid', 'STU-A');
+    }
+
+    public function test_student_list_shows_the_class_config_label_not_null(): void
+    {
+        $this->actingAsSuperAdmin($this->branch);
+        $this->postJson('/api/v1/students', $this->studentPayload())->assertStatus(201);
+
+        $response = $this->getJson('/api/v1/students');
+
+        $response->assertOk();
+        $response->assertJsonPath('data.0.current_enrollment.class_config.name', 'Six · A · Morning');
+    }
+
     public function test_branch_isolation_for_students(): void
     {
         $org = Organization::where('slug', 'test-org')->first();

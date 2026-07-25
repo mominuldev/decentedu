@@ -137,6 +137,9 @@ export async function listStudents(params?: {
   status?: string;
   class_config_id?: number;
   academic_year_id?: number;
+  class_id?: number;
+  section_id?: number;
+  roll?: string;
   page?: number;
   per_page?: number;
   sort?: string;

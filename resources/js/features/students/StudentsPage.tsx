@@ -1,11 +1,17 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { Plus, Search, Filter, UserPlus, FileText, Mail } from 'lucide-react';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { Plus, Search, Filter, UserPlus, FileText, Mail, Download, FileSpreadsheet, Printer, Loader2 } from 'lucide-react';
 import { Card, Button, Badge } from '@/components/ui';
 import { listStudents, getStudent, type Student } from './api';
 import { STATUS_OPTIONS, type StudentFilters } from './types';
 import { StudentListView } from './StudentListView';
+import { listSetup } from '@/features/academic/api';
+import { downloadReport } from '@/features/reporting/api';
+import { toApiError } from '@/lib/api';
+import { formatDate } from '@/lib/format';
+
+const selectClass = 'rounded-xl border border-border-strong bg-surface px-3.5 py-2.5 text-[14px] text-fg outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25';
 
 export default function StudentsPage() {
   const navigate = useNavigate();
@@ -15,6 +21,9 @@ export default function StudentsPage() {
     status: '',
     class_config_id: 0,
     academic_year_id: 0,
+    class_id: 0,
+    section_id: 0,
+    roll: '',
   });
 
   const [page, setPage] = useState(1);
@@ -23,21 +32,49 @@ export default function StudentsPage() {
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'details'>('list');
 
+  const { data: academicYears } = useQuery({
+    queryKey: ['academic-years'],
+    queryFn: () => listSetup('academic-years'),
+  });
+
+  const { data: classes } = useQuery({
+    queryKey: ['classes'],
+    queryFn: () => listSetup('classes'),
+  });
+
+  const { data: sections } = useQuery({
+    queryKey: ['sections'],
+    queryFn: () => listSetup('sections'),
+  });
+
+  const reportParams = {
+    search: filters.search || undefined,
+    status: filters.status || undefined,
+    class_config_id: filters.class_config_id || undefined,
+    academic_year_id: filters.academic_year_id || undefined,
+    class_id: filters.class_id || undefined,
+    section_id: filters.section_id || undefined,
+    roll: filters.roll || undefined,
+  };
+
   const { data: response, isLoading } = useQuery({
     queryKey: ['students', filters, page, perPage],
-    queryFn: () => listStudents({
-      ...filters,
-      search: filters.search || undefined,
-      status: filters.status || undefined,
-      class_config_id: filters.class_config_id || undefined,
-      academic_year_id: filters.academic_year_id || undefined,
-      page,
-      per_page: perPage,
-    }),
+    queryFn: () => listStudents({ ...reportParams, page, per_page: perPage }),
   });
 
   const students = response?.data || [];
   const pagination = response?.meta?.pagination;
+
+  const downloadPdf = useMutation({ mutationFn: () => downloadReport('student-list', 'pdf', reportParams) });
+  const downloadExcel = useMutation({ mutationFn: () => downloadReport('student-list', 'excel', reportParams) });
+
+  const handlePrint = () => {
+    const params = new URLSearchParams();
+    Object.entries(reportParams).forEach(([key, value]) => {
+      if (value !== undefined && value !== '') params.set(key, String(value));
+    });
+    window.open(`/print/students?${params.toString()}`, '_blank');
+  };
 
   const handleSearch = (value: string) => {
     setFilters(prev => ({ ...prev, search: value }));
@@ -74,6 +111,18 @@ export default function StudentsPage() {
           </p>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" onClick={handlePrint}>
+            <Printer size={16} />
+            Print
+          </Button>
+          <Button variant="outline" onClick={() => downloadPdf.mutate()} disabled={downloadPdf.isPending}>
+            {downloadPdf.isPending ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
+            PDF
+          </Button>
+          <Button variant="outline" onClick={() => downloadExcel.mutate()} disabled={downloadExcel.isPending}>
+            {downloadExcel.isPending ? <Loader2 size={16} className="animate-spin" /> : <FileSpreadsheet size={16} />}
+            Excel
+          </Button>
           <Button variant="outline" onClick={() => navigate('/students/bulk-register')}>
             <UserPlus size={16} />
             Bulk Register
@@ -84,6 +133,10 @@ export default function StudentsPage() {
           </Button>
         </div>
       </div>
+
+      {(downloadPdf.isError || downloadExcel.isError) && (
+        <p className="text-[13.5px] text-rose-500">{toApiError(downloadPdf.error ?? downloadExcel.error).message}</p>
+      )}
 
       {/* Search and Filters */}
       <Card className="p-4">
@@ -102,13 +155,54 @@ export default function StudentsPage() {
           <select
             value={filters.status}
             onChange={(e) => handleFilterChange('status', e.target.value)}
-            className="rounded-xl border border-border-strong bg-surface px-3.5 py-2.5 text-[14px] text-fg outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25"
+            className={selectClass}
           >
             <option value="">All Statuses</option>
             {STATUS_OPTIONS.map(opt => (
               <option key={opt.value} value={opt.value}>{opt.label}</option>
             ))}
           </select>
+
+          <select
+            value={filters.academic_year_id || ''}
+            onChange={(e) => handleFilterChange('academic_year_id', Number(e.target.value))}
+            className={selectClass}
+          >
+            <option value="">All Academic Years</option>
+            {academicYears?.map(year => (
+              <option key={year.id} value={year.id}>{year.name}</option>
+            ))}
+          </select>
+
+          <select
+            value={filters.class_id || ''}
+            onChange={(e) => handleFilterChange('class_id', Number(e.target.value))}
+            className={selectClass}
+          >
+            <option value="">All Classes</option>
+            {classes?.map(cls => (
+              <option key={cls.id} value={cls.id}>{cls.name}</option>
+            ))}
+          </select>
+
+          <select
+            value={filters.section_id || ''}
+            onChange={(e) => handleFilterChange('section_id', Number(e.target.value))}
+            className={selectClass}
+          >
+            <option value="">All Sections</option>
+            {sections?.map(section => (
+              <option key={section.id} value={section.id}>{section.name}</option>
+            ))}
+          </select>
+
+          <input
+            type="text"
+            placeholder="Roll"
+            value={filters.roll}
+            onChange={(e) => handleFilterChange('roll', e.target.value)}
+            className={`w-24 ${selectClass}`}
+          />
 
           <div className="flex items-center gap-2 text-faint">
             <Filter size={18} />
@@ -190,7 +284,7 @@ function StudentDetailsView({
 
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
             <InfoItem label="Gender" value={student.sex} />
-            <InfoItem label="Date of Birth" value={student.dob || 'N/A'} />
+            <InfoItem label="Date of Birth" value={formatDate(student.dob) || 'N/A'} />
             <InfoItem label="Religion" value={student.religion || 'N/A'} />
             <InfoItem label="Blood Group" value={student.blood_group || 'N/A'} />
             <InfoItem label="Mobile" value={student.mobile || 'N/A'} />

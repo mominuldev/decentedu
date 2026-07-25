@@ -41,6 +41,9 @@ export interface StudentFilters {
   status: string;
   class_config_id: number;
   academic_year_id: number;
+  class_id: number;
+  section_id: number;
+  roll: string;
 }
 
 export const GENDER_OPTIONS = [
@@ -61,6 +64,14 @@ export const RELATIONSHIP_OPTIONS = [
   { value: 'mother', label: 'Mother' },
   { value: 'guardian', label: 'Guardian' },
   { value: 'other', label: 'Other' },
+] as const;
+
+export const RELIGION_OPTIONS = [
+  { value: 'islam', label: 'Islam' },
+  { value: 'hindu', label: 'Hindu' },
+  { value: 'christian', label: 'Christian' },
+  { value: 'buddhist', label: 'Buddhist' },
+  { value: 'others', label: 'Others' },
 ] as const;
 
 export const BLOOD_GROUP_OPTIONS = [

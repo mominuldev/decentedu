@@ -187,6 +187,28 @@ class ReportingTest extends TestCase
         $this->get("/api/v1/reports/artifacts/{$artifactId}/download")->assertStatus(200);
     }
 
+    public function test_student_list_pdf_renders(): void
+    {
+        $this->actingAsBranchUser();
+
+        $response = $this->get('/api/v1/reports/student-list/pdf');
+
+        $response->assertStatus(200);
+        $this->assertStringContainsString('application/pdf', $response->headers->get('content-type'));
+    }
+
+    public function test_student_list_excel_export_downloads_and_can_be_filtered_by_class(): void
+    {
+        $this->actingAsBranchUser();
+
+        $response = $this->get('/api/v1/reports/student-list/excel?'.http_build_query([
+            'class_id' => $this->classConfig->class_id,
+        ]));
+
+        $response->assertStatus(200);
+        $this->assertStringContainsString('spreadsheet', $response->headers->get('content-type'));
+    }
+
     public function test_download_before_ready_is_rejected(): void
     {
         $this->actingAsBranchUser();

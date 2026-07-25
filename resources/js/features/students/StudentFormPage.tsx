@@ -13,6 +13,7 @@ import {
   STATUS_OPTIONS,
   RELATIONSHIP_OPTIONS,
   BLOOD_GROUP_OPTIONS,
+  RELIGION_OPTIONS,
 } from './types';
 import { listSetup, listClassConfigs } from '@/features/academic/api';
 
@@ -231,7 +232,14 @@ function StudentFormBody({
               value={form.dob}
               onChange={(v) => setField('dob', v)}
             />
-            <FormField label="Religion" value={form.religion} onChange={(v) => setField('religion', v)} />
+            <SelectField
+              label="Religion"
+              value={form.religion}
+              onChange={(v) => setField('religion', v)}
+              options={RELIGION_OPTIONS}
+              placeholder="Select religion"
+              error={errors.religion?.[0]}
+            />
             <SelectField
               label="Blood Group"
               value={form.blood_group}

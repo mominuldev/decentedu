@@ -47,7 +47,9 @@ class StudentSeeder extends Seeder
                 continue;
             }
 
-            $classConfigs = ClassConfig::where('branch_id', $branch->id)->get();
+            $classConfigs = ClassConfig::with(['schoolClass', 'section', 'shift'])
+                ->where('branch_id', $branch->id)
+                ->get();
             $groups = Group::where('branch_id', $branch->id)->get();
             $categories = Category::where('branch_id', $branch->id)->get();
 
@@ -61,7 +63,7 @@ class StudentSeeder extends Seeder
             $studentsPerClass = 15; // Create 15 students per class section
 
             foreach ($classConfigs as $classConfig) {
-                $this->command->info("Creating students for {$classConfig->name}...");
+                $this->command->info("Creating students for {$classConfig->label()}...");
 
                 $rollNumber = 1;
 
@@ -77,7 +79,7 @@ class StudentSeeder extends Seeder
                         'name' => $faker->name($gender === 'male' ? 'male' : 'female'),
                         'name_bn' => $banglaName,
                         'sex' => $gender,
-                        'religion' => $faker->randomElement(['Islam', 'Hinduism', 'Christianity', 'Buddhism']),
+                        'religion' => $faker->randomElement(['islam', 'hindu', 'christian', 'buddhist']),
                         'blood_group' => $faker->randomElement(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']),
                         'dob' => $faker->dateTimeBetween('2006-01-01', '2010-12-31')->format('Y-m-d'),
                         'fathers_name' => $faker->name('male'),
@@ -118,7 +120,7 @@ class StudentSeeder extends Seeder
                     $rollNumber++;
                 }
 
-                $this->command->info("Created {$studentsPerClass} students for {$classConfig->name}");
+                $this->command->info("Created {$studentsPerClass} students for {$classConfig->label()}");
             }
 
             // Create some students with special statuses
@@ -210,7 +212,7 @@ class StudentSeeder extends Seeder
                     'name' => $faker->name($gender === 'male' ? 'male' : 'female'),
                     'name_bn' => $this->generateBanglaName($gender, $faker),
                     'sex' => $gender,
-                    'religion' => $faker->randomElement(['Islam', 'Hinduism', 'Christianity']),
+                    'religion' => $faker->randomElement(['islam', 'hindu', 'christian']),
                     'blood_group' => $faker->randomElement(['A+', 'B+', 'O+']),
                     'dob' => $faker->dateTimeBetween('2000-01-01', '2008-12-31')->format('Y-m-d'),
                     'fathers_name' => $faker->name('male'),

@@ -210,9 +210,19 @@ class ExaminationSeeder extends Seeder
     /** Assign an optional 4th subject to a sample of students in the higher classes (Nine/Ten). */
     private function createFourthSubjectAssignments(int $branchId, int $academicYearId, $classConfigs, $subjects): void
     {
+        // Get the class IDs for Nine and Ten
+        $higherClassIds = \App\Models\Academic\SchoolClass::where('branch_id', $branchId)
+            ->whereIn('name', ['Nine', 'Ten'])
+            ->pluck('id');
+
+        if ($higherClassIds->isEmpty()) {
+            return;
+        }
+
         $higherConfigs = $classConfigs->filter(
-            fn (ClassConfig $c) => in_array($c->schoolClass?->name, ['Nine', 'Ten'], true)
+            fn (ClassConfig $c) => in_array($c->class_id, $higherClassIds->toArray(), true)
         );
+
         $fourthSubject = $subjects->firstWhere('name', 'ICT') ?? $subjects->last();
         if (! $fourthSubject) {
             return;

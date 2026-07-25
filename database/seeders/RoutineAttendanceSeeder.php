@@ -83,7 +83,7 @@ class RoutineAttendanceSeeder extends Seeder
 
     private function createClassRoutines(Branch $branch, Collection $periods): void
     {
-        $classConfigs = ClassConfig::where('branch_id', $branch->id)->get();
+        $classConfigs = ClassConfig::with(['schoolClass', 'section'])->where('branch_id', $branch->id)->get();
         $subjects = Subject::where('branch_id', $branch->id)->get();
         $teacherIds = Employee::where('branch_id', $branch->id)->where('status', 'active')->whereHas('subjectTeachers')->pluck('id');
         if ($teacherIds->isEmpty()) {
@@ -118,6 +118,9 @@ class RoutineAttendanceSeeder extends Seeder
                         continue;
                     }
 
+                    $className = $classConfig->schoolClass?->name ?? 'Class';
+                    $sectionName = $classConfig->section?->name ?? 'Section';
+
                     ClassRoutine::create([
                         'branch_id' => $branch->id,
                         'class_config_id' => $classConfig->id,
@@ -125,7 +128,7 @@ class RoutineAttendanceSeeder extends Seeder
                         'day_of_week' => $day,
                         'subject_id' => $subjects[$i % $subjects->count()]->id,
                         'employee_id' => $teacherIds[$i % $teacherIds->count()],
-                        'room' => $classConfig->schoolClass?->name.'-'.$classConfig->section?->name,
+                        'room' => $className.'-'.$sectionName,
                         'created_by' => 1,
                         'updated_by' => 1,
                     ]);

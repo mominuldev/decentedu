@@ -11,6 +11,7 @@ use App\Support\Reporting\Definitions\IncomeStatementReport;
 use App\Support\Reporting\Definitions\MarksheetReport;
 use App\Support\Reporting\Definitions\MeritListReport;
 use App\Support\Reporting\Definitions\SeatPlanReport;
+use App\Support\Reporting\Definitions\StudentListReport;
 use App\Support\Reporting\Definitions\TabulationSheetReport;
 use App\Support\Reporting\Definitions\TrialBalanceReport;
 
@@ -33,6 +34,7 @@ class ReportRegistry
         'fee-dues-summary' => FeeDuesSummaryReport::class,
         'trial-balance' => TrialBalanceReport::class,
         'income-statement' => IncomeStatementReport::class,
+        'student-list' => StudentListReport::class,
     ];
 
     /** Pipe-delimited slugs for a route ->where() constraint. */

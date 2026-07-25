@@ -54,7 +54,7 @@ class StudentResource extends JsonResource
                         $this->currentEnrollment->relationLoaded('classConfig') && $this->currentEnrollment->classConfig,
                         fn () => [
                             'id' => $this->currentEnrollment->classConfig->id,
-                            'name' => $this->currentEnrollment->classConfig->name,
+                            'name' => $this->currentEnrollment->classConfig->label(),
                         ],
                     ),
                 ],

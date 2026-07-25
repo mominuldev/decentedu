@@ -19,7 +19,12 @@ class StudentController extends Controller
         // currentEnrollment.classConfig + guardians are needed by the existing list view (guardian
         // column); documents is genuinely optional — StudentResource already guards it with
         // relationLoaded(), it just was never made opt-in at the query level until now.
-        $with = array_merge(['currentEnrollment.classConfig', 'guardians'], Includes::resolve($request, ['documents']));
+        $with = array_merge([
+            'currentEnrollment.classConfig.schoolClass',
+            'currentEnrollment.classConfig.section',
+            'currentEnrollment.classConfig.shift',
+            'guardians',
+        ], Includes::resolve($request, ['documents']));
         $query = Student::query()->with($with);
 
         // Search
@@ -32,17 +37,38 @@ class StudentController extends Controller
             $query->where('status', $request->query('status'));
         }
 
-        // Filter by current class
-        if ($request->has('class_config_id')) {
-            $query->whereHas('currentEnrollment', function ($q) use ($request) {
-                $q->where('class_config_id', $request->query('class_config_id'));
-            });
-        }
+        // Filter by enrollment fields (class, section, class config, roll). When an academic year
+        // is given, all of these are matched against that specific year's enrollment row (a
+        // student may have a different class/section per year); otherwise they're matched
+        // against the student's current enrollment.
+        $hasYear = $request->filled('academic_year_id');
+        $enrollmentRelation = $hasYear ? 'enrollments' : 'currentEnrollment';
 
-        // Filter by academic year
-        if ($request->has('academic_year_id')) {
-            $query->whereHas('enrollments', function ($q) use ($request) {
-                $q->where('academic_year_id', $request->query('academic_year_id'));
+        if ($hasYear || $request->filled('class_config_id') || $request->filled('class_id') || $request->filled('section_id') || $request->filled('roll')) {
+            $query->whereHas($enrollmentRelation, function ($q) use ($request, $hasYear) {
+                if ($hasYear) {
+                    $q->where('academic_year_id', $request->query('academic_year_id'));
+                }
+
+                if ($request->filled('class_config_id')) {
+                    $q->where('class_config_id', $request->query('class_config_id'));
+                }
+
+                if ($request->filled('roll')) {
+                    $q->where('roll', $request->query('roll'));
+                }
+
+                if ($request->filled('class_id') || $request->filled('section_id')) {
+                    $q->whereHas('classConfig', function ($cq) use ($request) {
+                        if ($request->filled('class_id')) {
+                            $cq->where('class_id', $request->query('class_id'));
+                        }
+
+                        if ($request->filled('section_id')) {
+                            $cq->where('section_id', $request->query('section_id'));
+                        }
+                    });
+                }
             });
         }
 
@@ -82,7 +108,7 @@ class StudentController extends Controller
             'name' => 'required|string|max:255',
             'name_bn' => 'nullable|string|max:255',
             'sex' => 'required|in:male,female,other',
-            'religion' => 'nullable|string|max:100',
+            'religion' => 'nullable|in:islam,hindu,christian,buddhist,others',
             'blood_group' => 'nullable|string|max:10',
             'dob' => 'nullable|date',
             'fathers_name' => 'required|string|max:255',
@@ -176,8 +202,14 @@ class StudentController extends Controller
 
     public function show(int $id): JsonResponse
     {
-        $student = Student::with(['enrollments', 'currentEnrollment.classConfig', 'guardians', 'documents'])
-            ->findOrFail($id);
+        $student = Student::with([
+            'enrollments',
+            'currentEnrollment.classConfig.schoolClass',
+            'currentEnrollment.classConfig.section',
+            'currentEnrollment.classConfig.shift',
+            'guardians',
+            'documents',
+        ])->findOrFail($id);
 
         return ApiResponse::success(
             new StudentResource($student),
@@ -195,7 +227,7 @@ class StudentController extends Controller
             'name' => 'sometimes|required|string|max:255',
             'name_bn' => 'nullable|string|max:255',
             'sex' => 'sometimes|required|in:male,female,other',
-            'religion' => 'nullable|string|max:100',
+            'religion' => 'nullable|in:islam,hindu,christian,buddhist,others',
             'blood_group' => 'nullable|string|max:10',
             'dob' => 'nullable|date',
             'fathers_name' => 'sometimes|required|string|max:255',

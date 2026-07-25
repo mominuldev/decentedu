@@ -145,11 +145,22 @@ class HrSeeder extends Seeder
         $adminDesignations = $designations->filter(fn ($d) => in_array($d->serial, [1, 2, 7, 8, 9])); // Principal to Assistant
         $supportDesignations = $designations->filter(fn ($d) => in_array($d->serial, [10, 11, 12, 13])); // Support staff
 
+        // Check if we have any designations at all
+        if ($designations->isEmpty()) {
+            $this->command->warn('No designations found. Skipping employee creation.');
+
+            return;
+        }
+
         $employeeCount = 30; // Total employees to create
 
         for ($i = 0; $i < $employeeCount; $i++) {
             // Determine if this is a teaching or non-teaching staff
             $isTeacher = $i < 20; // First 20 are teachers
+
+            // Select designation with proper fallback logic
+            $designation = null;
+            $hrSection = null;
 
             if ($isTeacher && $teachingDesignations->isNotEmpty()) {
                 $designation = $teachingDesignations->random();
@@ -157,9 +168,24 @@ class HrSeeder extends Seeder
             } elseif ($adminDesignations->isNotEmpty()) {
                 $designation = $i < 2 ? $adminDesignations->first() : $adminDesignations->random();
                 $hrSection = $hrSections->filter(fn ($s) => in_array($s->serial, [1, 2]))->random() ?? null;
-            } else {
+            }
+
+            // Fallback to support designations if no designation assigned yet
+            if ($designation === null && $supportDesignations->isNotEmpty()) {
                 $designation = $supportDesignations->random();
                 $hrSection = $hrSections->filter(fn ($s) => ! in_array($s->serial, [1, 2, 3, 4, 5]))->random() ?? null;
+            }
+
+            // Ultimate fallback: use any available designation
+            if ($designation === null && $designations->isNotEmpty()) {
+                $designation = $designations->first();
+                $hrSection = $hrSections->first() ?? null;
+            }
+
+            // Skip if we still don't have a designation
+            if ($designation === null) {
+                $this->command->warn("Could not assign designation for employee #{$i}. Skipping.");
+                continue;
             }
 
             $gender = $faker->randomElement(['male', 'female']);

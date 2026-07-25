@@ -34,11 +34,9 @@ class DemoSeeder extends Seeder
         );
 
         $branchNames = [
-            'Demo IT School',
-            'Demo College',
-            'Demo School',
-            'Horipur Girls High School',
-            'Masud-UL Haque Institute',
+            'IT School',
+            'College',
+            'NSBATI High School',
         ];
 
         $branches = collect($branchNames)->map(function (string $name, int $i) use ($org) {
@@ -58,7 +56,7 @@ class DemoSeeder extends Seeder
             ['email' => 'demo@decentedu.test'],
             [
                 'organization_id' => $org->id,
-                'name' => 'Demo Admin',
+                'name' => 'Admin',
                 'password' => Hash::make('password'),
                 'status' => true,
             ],
@@ -78,6 +76,24 @@ class DemoSeeder extends Seeder
 
         // Academic reference data for the first branch so the UI has content.
         $this->seedAcademic($branches->first());
+
+        // Sample students (with enrollments and guardians) for the first branch.
+        $this->call(StudentSeeder::class);
+
+        // Sample HR/staff data (designations, sections, employees, subject-teacher assignments).
+        $this->call(HrSeeder::class);
+
+        // Sample routines & attendance data (periods, class routines, holidays, devices, attendance history).
+        $this->call(RoutineAttendanceSeeder::class);
+
+        // Sample examinations data (exams, mark configs, marks, results processing).
+        $this->call(ExaminationSeeder::class);
+
+        // Sample finance data (fees, accounting, vouchers, collections).
+        $this->call(FinanceSeeder::class);
+
+        // Sample communications, credentials & CMS data (SMS, templates, certificates, website).
+        $this->call(CommsCredentialsCmsSeeder::class);
 
         $this->command?->info('Seeded demo org, '.$branches->count().' branches, and demo@decentedu.test / password');
     }
