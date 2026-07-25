@@ -15,11 +15,12 @@ export function TakeStudentAttendance() {
     const [date, setDate] = useState(todayIso());
     const qc = useQueryClient();
 
-    const { data: roster = [], isLoading } = useQuery({
+    const { data, isLoading } = useQuery({
         queryKey: ['student-roster', classConfigId, date],
         queryFn: () => studentRoster(classConfigId, date),
         enabled: !!classConfigId && !!date,
     });
+    const roster = useMemo(() => data ?? [], [data]);
 
     const [entries, setEntries] = useState<Record<number, { status: AttendanceStatus; remarks: string }>>({});
     const [saved, setSaved] = useState(false);

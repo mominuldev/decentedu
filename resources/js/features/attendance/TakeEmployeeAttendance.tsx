@@ -12,10 +12,11 @@ export function TakeEmployeeAttendance() {
     const [date, setDate] = useState(todayIso());
     const qc = useQueryClient();
 
-    const { data: roster = [], isLoading } = useQuery({
+    const { data, isLoading } = useQuery({
         queryKey: ['employee-roster', date],
         queryFn: () => employeeRoster(date),
     });
+    const roster = useMemo(() => data ?? [], [data]);
 
     const [entries, setEntries] = useState<Record<number, { status: AttendanceStatus; remarks: string }>>({});
     const [saved, setSaved] = useState(false);

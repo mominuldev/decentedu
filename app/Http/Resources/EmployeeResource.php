@@ -48,7 +48,10 @@ class EmployeeResource extends JsonResource
                 'name' => $this->hrSection->name,
             ]),
 
-            'subject_teachers' => SubjectTeacherResource::collection($this->when($this->relationLoaded('subjectTeachers'), $this->subjectTeachers)),
+            'subject_teachers' => $this->when(
+                $this->relationLoaded('subjectTeachers'),
+                fn () => SubjectTeacherResource::collection($this->subjectTeachers),
+            ),
         ];
     }
 }
