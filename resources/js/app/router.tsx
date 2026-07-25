@@ -7,6 +7,8 @@ import ForgotPasswordPage from '@/features/auth/ForgotPasswordPage';
 import ResetPasswordPage from '@/features/auth/ResetPasswordPage';
 import DashboardPage from '@/features/dashboard/DashboardPage';
 import AcademicPage from '@/features/academic/AcademicPage';
+import AdmissionsPage from '@/features/admissions/AdmissionsPage';
+import ApplicationFormPage from '@/features/admissions/ApplicationFormPage';
 import StudentsPage from '@/features/students/StudentsPage';
 import StudentFormPage from '@/features/students/StudentFormPage';
 import BulkRegisterPage from '@/features/students/BulkRegisterPage';
@@ -41,7 +43,9 @@ export const router = createBrowserRouter([
     { path: '/reset-password', element: <GuestRoute><ResetPasswordPage /></GuestRoute> },
 
     { path: '/', element: page(<DashboardPage />) },
-    { path: '/admissions', element: stub('Admissions', 'Phase 4') },
+    { path: '/admissions', element: page(<AdmissionsPage />) },
+    { path: '/admissions/applications/new', element: page(<ApplicationFormPage />) },
+    { path: '/admissions/applications/:id/edit', element: page(<ApplicationFormPage />) },
     { path: '/students', element: page(<StudentsPage />) },
     { path: '/students/new', element: page(<StudentFormPage />) },
     { path: '/students/bulk-register', element: page(<BulkRegisterPage />) },

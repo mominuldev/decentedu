@@ -5,6 +5,9 @@ use App\Http\Controllers\Api\Academic\SetupController;
 use App\Http\Controllers\Api\Accounting\AccountingReportController;
 use App\Http\Controllers\Api\Accounting\LedgerAccountController;
 use App\Http\Controllers\Api\Accounting\VoucherController;
+use App\Http\Controllers\Api\Admissions\AdmissionYearController;
+use App\Http\Controllers\Api\Admissions\ApplicationController;
+use App\Http\Controllers\Api\Admissions\QuotaController;
 use App\Http\Controllers\Api\Attendance\DeviceController;
 use App\Http\Controllers\Api\Attendance\DeviceMapController;
 use App\Http\Controllers\Api\Attendance\EmployeeAttendanceController;
@@ -130,6 +133,32 @@ Route::prefix('v1')->group(function () use ($setupSlugs) {
             Route::get('{id}', [StudentController::class, 'show'])->whereNumber('id');
             Route::match(['put', 'patch'], '{id}', [StudentController::class, 'update'])->whereNumber('id');
             Route::delete('{id}', [StudentController::class, 'destroy'])->whereNumber('id');
+        });
+
+        // ---- Admissions module -----------------------------------------------
+        // Online admission pipeline: drives (years) + seat quotas + applications, ending in
+        // applicant → student conversion (docs/02 §Admission).
+        Route::prefix('admissions')->middleware('permission:admissions.manage')->group(function () {
+            // Setup: admission years (drives) and seat quotas.
+            Route::get('years', [AdmissionYearController::class, 'index']);
+            Route::post('years', [AdmissionYearController::class, 'store']);
+            Route::match(['put', 'patch'], 'years/{id}', [AdmissionYearController::class, 'update'])->whereNumber('id');
+            Route::delete('years/{id}', [AdmissionYearController::class, 'destroy'])->whereNumber('id');
+
+            Route::get('quotas', [QuotaController::class, 'index']);
+            Route::post('quotas', [QuotaController::class, 'store']);
+            Route::match(['put', 'patch'], 'quotas/{id}', [QuotaController::class, 'update'])->whereNumber('id');
+            Route::delete('quotas/{id}', [QuotaController::class, 'destroy'])->whereNumber('id');
+
+            // Applications + pipeline actions.
+            Route::get('applications/stats', [ApplicationController::class, 'stats']);
+            Route::get('applications', [ApplicationController::class, 'index']);
+            Route::post('applications', [ApplicationController::class, 'store']);
+            Route::get('applications/{id}', [ApplicationController::class, 'show'])->whereNumber('id');
+            Route::match(['put', 'patch'], 'applications/{id}', [ApplicationController::class, 'update'])->whereNumber('id');
+            Route::post('applications/{id}/status', [ApplicationController::class, 'updateStatus'])->whereNumber('id');
+            Route::post('applications/{id}/convert', [ApplicationController::class, 'convert'])->whereNumber('id');
+            Route::delete('applications/{id}', [ApplicationController::class, 'destroy'])->whereNumber('id');
         });
 
         // ---- HR module -------------------------------------------------------

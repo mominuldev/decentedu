@@ -80,6 +80,9 @@ class DemoSeeder extends Seeder
         // Sample students (with enrollments and guardians) for the first branch.
         $this->call(StudentSeeder::class);
 
+        // Sample admission drive, quotas & applications (pending → selected/waiting/rejected).
+        $this->call(AdmissionsSeeder::class);
+
         // Sample HR/staff data (designations, sections, employees, subject-teacher assignments).
         $this->call(HrSeeder::class);
 
@@ -106,7 +109,7 @@ class DemoSeeder extends Seeder
     private function seedPermissions(Collection $roles): void
     {
         $all = [
-            'academic.manage', 'students.manage', 'hr.manage', 'routines.manage',
+            'academic.manage', 'admissions.manage', 'students.manage', 'hr.manage', 'routines.manage',
             'attendance.manage', 'examinations.manage', 'fees.manage', 'accounting.manage',
             'messaging.manage', 'credentials.manage', 'cms.manage', 'reports.view',
             'users.manage', 'audit.view',

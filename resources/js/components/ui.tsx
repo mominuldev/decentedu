@@ -28,7 +28,7 @@ export function CardHeader({ title, subtitle, action }: { title: string; subtitl
 }
 
 /* ---- Badge --------------------------------------------------------------- */
-type Tone = 'brand' | 'success' | 'warning' | 'danger' | 'neutral' | 'sky';
+export type Tone = 'brand' | 'success' | 'warning' | 'danger' | 'neutral' | 'sky';
 const toneMap: Record<Tone, string> = {
     brand: 'text-brand-700 bg-brand-50 ring-brand-200 dark:text-brand-300 dark:bg-brand-500/10 dark:ring-brand-500/25',
     success: 'text-emerald-700 bg-emerald-50 ring-emerald-200 dark:text-emerald-300 dark:bg-emerald-500/10 dark:ring-emerald-500/25',
