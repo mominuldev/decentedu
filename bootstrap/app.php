@@ -29,6 +29,11 @@ return Application::configure(basePath: dirname(__DIR__))
         // Enable Sanctum cookie-based SPA authentication on the /api routes.
         $middleware->statefulApi();
 
+        // Add session support to API routes for Sanctum cookie authentication
+        $middleware->api(prepend: [
+            \Illuminate\Session\Middleware\StartSession::class,
+        ]);
+
         // Resolve + enforce the active branch on scoped routes.
         $middleware->alias([
             'branch' => EnsureBranchContext::class,

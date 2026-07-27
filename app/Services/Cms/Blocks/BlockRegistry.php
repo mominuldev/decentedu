@@ -20,6 +20,7 @@ use App\Services\Cms\Blocks\Types\PostsListBlock;
 use App\Services\Cms\Blocks\Types\QuoteBlock;
 use App\Services\Cms\Blocks\Types\RichTextBlock;
 use App\Services\Cms\Blocks\Types\SectionBlock;
+use App\Services\Cms\Blocks\Types\TeachersBlock;
 use App\Services\Cms\Blocks\Types\VideoEmbedBlock;
 use InvalidArgumentException;
 
@@ -104,6 +105,7 @@ class BlockRegistry
             new DividerBlock,
             new SectionBlock,
             new PageHeaderBlock,
+            new TeachersBlock,
         ];
     }
 }

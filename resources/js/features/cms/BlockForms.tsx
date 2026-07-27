@@ -93,6 +93,8 @@ export function BlockFields({ type, payload, onChange, blockTypes, depth = 0 }: 
             return <NoticeBoardFields payload={payload} onChange={onChange} />;
         case 'quote':
             return <QuoteFields payload={payload} onChange={onChange} />;
+        case 'teachers':
+            return <TeachersFields payload={payload} onChange={onChange} />;
         case 'page_header':
             return (
                 <div className="space-y-3">
@@ -568,6 +570,61 @@ function QuoteFields({ payload, onChange }: Props) {
                         options={['left', 'center', 'right']}
                         onChange={(v) => set({ text_align: v })}
                     />
+                </div>
+            )}
+        </div>
+    );
+}
+
+function TeachersFields({ payload, onChange }: Props) {
+    const [tab, setTab] = useState<'content' | 'style'>('content');
+    const set = (patch: Payload) => onChange({ ...payload, ...patch });
+
+    return (
+        <div className="space-y-4">
+            <Tabs tabs={[{ key: 'content', label: 'Content' }, { key: 'style', label: 'Style' }]} active={tab} onChange={(k) => setTab(k as 'content' | 'style')} />
+            {tab === 'content' ? (
+                <div className="space-y-3">
+                    <Text label="Subtitle" value={payload.subtitle} onChange={(v) => set({ subtitle: v })} />
+                    <Text label="Title" value={payload.title} onChange={(v) => set({ title: v })} />
+                    <Area label="Description" value={payload.description} onChange={(v) => set({ description: v })} />
+                    <div className="grid grid-cols-2 gap-3">
+                        <Text label="CTA Label" value={payload.cta_label} onChange={(v) => set({ cta_label: v })} />
+                        <Text label="CTA URL" value={payload.cta_url} onChange={(v) => set({ cta_url: v })} />
+                    </div>
+
+                    <div className="rounded-xl border border-border p-3 space-y-3">
+                        <h4 className="text-sm font-medium">Teachers</h4>
+                        <Select
+                            label="Source"
+                            value={payload.teachers_mode ?? 'active'}
+                            options={['active', 'latest', 'selected']}
+                            onChange={(v) => set({ teachers_mode: v })}
+                        />
+                        {payload.teachers_mode !== 'selected' && (
+                            <Text label="Limit" value={payload.teachers_limit ?? 12} onChange={(v) => set({ teachers_limit: Number(v) || 12 })} type="number" min="1" max="50" />
+                        )}
+                        {payload.teachers_mode === 'selected' && (
+                            <div>
+                                <label className={labelCls}>Teacher IDs</label>
+                                <Text
+                                    label=""
+                                    value={Array.isArray(payload.teacher_ids) ? payload.teacher_ids.join(',') : ''}
+                                    onChange={(v) => set({ teacher_ids: v.split(',').map(id => id.trim()).filter(id => id).map(id => Number(id)) })}
+                                    placeholder="e.g., 1, 5, 12, 18"
+                                />
+                                <p className="text-[13px] text-muted mt-1">Enter comma-separated Teacher IDs from the HR module</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            ) : (
+                <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                        <Select label="Heading align" value={payload.heading_align ?? 'left'} options={['left', 'center', 'right']} onChange={(v) => set({ heading_align: v })} />
+                        <Select label="CTA target" value={payload.cta_target ?? 'self'} options={['self', 'blank']} onChange={(v) => set({ cta_target: v })} />
+                    </div>
+                    <Select label="Layout" value={payload.layout ?? 'grid'} options={['grid', 'list']} onChange={(v) => set({ layout: v })} />
                 </div>
             )}
         </div>

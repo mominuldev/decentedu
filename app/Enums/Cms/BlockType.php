@@ -22,6 +22,7 @@ enum BlockType: string
     case CardList = 'card_list';
     case NoticeBoard = 'notice_board';
     case Quote = 'quote';
+    case Teachers = 'teachers';
 
     public function label(): string
     {
@@ -42,6 +43,7 @@ enum BlockType: string
             self::CardList => 'Card List',
             self::NoticeBoard => 'Notice Board',
             self::Quote => 'Quote',
+            self::Teachers => 'Teachers',
         };
     }
 }

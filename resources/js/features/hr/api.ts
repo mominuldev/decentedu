@@ -141,6 +141,30 @@ export async function deleteEmployee(id: number): Promise<void> {
   await api.delete(`${base}/employees/${id}`);
 }
 
+// Teachers (employees with subject assignments)
+export async function listTeachers(params?: {
+  search?: string;
+  status?: string;
+  designation_id?: number;
+  hr_section_id?: number;
+  employment_type?: string;
+  subject_id?: number;
+  class_config_id?: number;
+  per_page?: number;
+  sort?: string;
+}): Promise<EmployeeListResponse> {
+  const { data } = await api.get(`${base}/teachers`, { params: { per_page: 50, ...params } });
+  return data as EmployeeListResponse;
+}
+
+export async function getAvailableTeachers(params?: {
+  subject_id?: number;
+  class_config_id?: number;
+}): Promise<Employee[]> {
+  const { data } = await api.get(`${base}/teachers/available`, { params });
+  return data.data as Employee[];
+}
+
 export async function assignSubjectToTeacher(
   employeeId: number,
   payload: { subject_id: number; class_config_id: number }
