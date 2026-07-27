@@ -7,6 +7,8 @@ namespace App\Enums\Cms;
 enum BlockType: string
 {
     case Hero = 'hero';
+    case Heading = 'heading';
+    case PageHeader = 'page_header';
     case RichText = 'rich_text';
     case Image = 'image';
     case Gallery = 'gallery';
@@ -17,12 +19,16 @@ enum BlockType: string
     case Html = 'html';
     case Divider = 'divider';
     case Section = 'section';
-    case PageHeader = 'page_header';
+    case CardList = 'card_list';
+    case NoticeBoard = 'notice_board';
+    case Quote = 'quote';
 
     public function label(): string
     {
         return match ($this) {
             self::Hero => 'Hero',
+            self::Heading => 'Heading',
+            self::PageHeader => 'Page Header',
             self::RichText => 'Rich Text',
             self::Image => 'Image',
             self::Gallery => 'Gallery',
@@ -33,7 +39,9 @@ enum BlockType: string
             self::Html => 'Custom HTML',
             self::Divider => 'Divider',
             self::Section => 'Section',
-            self::PageHeader => 'Page Header',
+            self::CardList => 'Card List',
+            self::NoticeBoard => 'Notice Board',
+            self::Quote => 'Quote',
         };
     }
 }

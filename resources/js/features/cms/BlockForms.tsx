@@ -85,6 +85,14 @@ export function BlockFields({ type, payload, onChange, blockTypes, depth = 0 }: 
                     <CountersField payload={payload} onChange={onChange} />
                 </div>
             );
+        case 'heading':
+            return <HeadingFields payload={payload} onChange={onChange} />;
+        case 'card_list':
+            return <CardListFields payload={payload} onChange={onChange} />;
+        case 'notice_board':
+            return <NoticeBoardFields payload={payload} onChange={onChange} />;
+        case 'quote':
+            return <QuoteFields payload={payload} onChange={onChange} />;
         case 'page_header':
             return (
                 <div className="space-y-3">
@@ -169,6 +177,53 @@ export function BlockFields({ type, payload, onChange, blockTypes, depth = 0 }: 
     }
 }
 
+/** Simple two-tab strip used inside block forms. */
+function Tabs({ tabs, active, onChange }: { tabs: { key: string; label: string }[]; active: string; onChange: (key: string) => void }) {
+    return (
+        <div className="flex gap-1 rounded-xl bg-surface-2 p-1">
+            {tabs.map((t) => (
+                <button key={t.key} type="button" onClick={() => onChange(t.key)}
+                    className={cn(
+                        'flex-1 rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors',
+                        active === t.key ? 'bg-surface text-fg shadow-[var(--shadow-soft)]' : 'text-muted hover:text-fg',
+                    )}>
+                    {t.label}
+                </button>
+            ))}
+        </div>
+    );
+}
+
+function HeadingFields({ payload, onChange }: Props) {
+    const [tab, setTab] = useState<'content' | 'style'>('content');
+    const set = (patch: Payload) => onChange({ ...payload, ...patch });
+    return (
+        <div className="space-y-4">
+            <Tabs tabs={[{ key: 'content', label: 'Content' }, { key: 'style', label: 'Style' }]} active={tab} onChange={(k) => setTab(k as 'content' | 'style')} />
+            {tab === 'content' ? (
+                <div className="space-y-3">
+                    <Text label="Subtitle" value={payload.subtitle} onChange={(v) => set({ subtitle: v })} />
+                    <Text label="Title" value={payload.title} onChange={(v) => set({ title: v })} />
+                    <Area label="Description" value={payload.description} onChange={(v) => set({ description: v })} />
+                    <div className="grid grid-cols-2 gap-3">
+                        <Text label="CTA label" value={payload.cta_label} onChange={(v) => set({ cta_label: v })} />
+                        <Text label="CTA URL" value={payload.cta_url} onChange={(v) => set({ cta_url: v })} />
+                    </div>
+                </div>
+            ) : (
+                <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                        <Select label="Text align" value={payload.text_align ?? 'left'} options={['left', 'center', 'right']} onChange={(v) => set({ text_align: v })} />
+                        <Select label="Layout" value={payload.layout ?? 'stacked'} options={['stacked', 'split']} onChange={(v) => set({ layout: v })} />
+                        <Select label="CTA variant" value={payload.cta_variant ?? 'primary'} options={['primary', 'secondary', 'outline', 'ghost']} onChange={(v) => set({ cta_variant: v })} />
+                        <Select label="CTA target" value={payload.cta_target ?? 'self'} options={['self', 'blank']} onChange={(v) => set({ cta_target: v })} />
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
+
 function GalleryField({ payload, onChange }: Props) {
     const [open, setOpen] = useState(false);
     const previews = (payload.asset_previews as AssetPayload[]) ?? [];
@@ -238,6 +293,283 @@ function CountersField({ payload, onChange }: Props) {
                 </div>
             ))}
             <Button variant="outline" size="sm" type="button" onClick={() => setCounters([...counters, { title: '', subtitle: '' }])}><Plus size={15} /> Add counter</Button>
+        </div>
+    );
+}
+
+/** Icon asset picker for card list items */
+function IconAssetField({
+    label,
+    item,
+    index,
+    items,
+    onChange,
+}: {
+    label: string;
+    item: {
+        icon_asset_id?: number | null;
+        icon_asset_id_preview?: AssetPayload;
+    };
+    index: number;
+    items: Array<{
+        icon_asset_id?: number | null;
+        icon_asset_id_preview?: AssetPayload;
+        title?: string;
+        description?: string;
+        cta_label?: string;
+        cta_url?: string;
+        cta_target?: string;
+        count?: string;
+    }>;
+    onChange: (next: Array<{
+        icon_asset_id?: number | null;
+        icon_asset_id_preview?: AssetPayload;
+        title?: string;
+        description?: string;
+        cta_label?: string;
+        cta_url?: string;
+        cta_target?: string;
+        count?: string;
+    }>) => void;
+}) {
+    const [open, setOpen] = useState(false);
+    const preview = item.icon_asset_id_preview;
+
+    return (
+        <div>
+            <label className={labelCls}>{label}</label>
+            {preview ? (
+                <div className="flex items-center gap-3 rounded-xl border border-border p-2">
+                    <img src={preview.thumb_url ?? preview.url ?? ''} alt="" className="h-12 w-12 rounded-lg object-cover" />
+                    <span className="flex-1 truncate text-[13px] text-fg">{preview.name}</span>
+                    <button
+                        type="button"
+                        onClick={() => onChange(items.map((x, xi) => xi === index ? { ...x, icon_asset_id: null, icon_asset_id_preview: undefined } : x))}
+                        className="rounded-lg p-1.5 text-faint hover:bg-surface-2 hover:text-rose-500"
+                    >
+                        <X size={16} />
+                    </button>
+                </div>
+            ) : (
+                <Button variant="outline" size="sm" type="button" onClick={() => setOpen(true)}>
+                    <ImageIcon size={15} /> Choose icon
+                </Button>
+            )}
+            <MediaPicker
+                open={open}
+                onClose={() => setOpen(false)}
+                onPick={(assets) => {
+                    if (assets[0]) {
+                        onChange(items.map((x, xi) => xi === index ? { ...x, icon_asset_id: assets[0].id, icon_asset_id_preview: assets[0] } : x));
+                    }
+                }}
+            />
+        </div>
+    );
+}
+
+function CardListFields({ payload, onChange }: Props) {
+    const [tab, setTab] = useState<'content' | 'style'>('content');
+    const set = (patch: Payload) => onChange({ ...payload, ...patch });
+
+    const items = (payload.items as {
+        icon_asset_id?: number | null;
+        icon_asset_id_preview?: AssetPayload;
+        title?: string;
+        description?: string;
+        cta_label?: string;
+        cta_url?: string;
+        cta_target?: string;
+        count?: string;
+    }[]) ?? [];
+
+    const setItems = (next: typeof items) => set({ items: next });
+
+    return (
+        <div className="space-y-4">
+            <Tabs tabs={[{ key: 'content', label: 'Content' }, { key: 'style', label: 'Style' }]} active={tab} onChange={(k) => setTab(k as 'content' | 'style')} />
+            {tab === 'content' ? (
+                <div className="space-y-3">
+                    <Text label="Subtitle" value={payload.subtitle} onChange={(v) => set({ subtitle: v })} />
+                    <Text label="Title" value={payload.title} onChange={(v) => set({ title: v })} />
+                    <Area label="Description" value={payload.description} onChange={(v) => set({ description: v })} />
+                    <div className="space-y-2">
+                        <label className={labelCls}>Card Items</label>
+                        {items.map((it, i) => (
+                            <div key={i} className="space-y-2 rounded-xl border border-border p-3">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-[12px] font-medium text-muted">Card {i + 1}</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => setItems(items.filter((_, x) => x !== i))}
+                                        className="text-faint hover:text-rose-500"
+                                    >
+                                        <Trash2 size={14} />
+                                    </button>
+                                </div>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <IconAssetField
+                                        label="Icon"
+                                        item={it}
+                                        index={i}
+                                        items={items}
+                                        onChange={setItems}
+                                    />
+                                    <Text label="Count" value={it.count} onChange={(v) => setItems(items.map((x, xi) => xi === i ? { ...x, count: v } : x))} placeholder="e.g., 50+" />
+                                </div>
+                                <Text label="Title" value={it.title} onChange={(v) => setItems(items.map((x, xi) => xi === i ? { ...x, title: v } : x))} />
+                                <Area label="Description" value={it.description} onChange={(v) => setItems(items.map((x, xi) => xi === i ? { ...x, description: v } : x))} row={2} />
+                                <div className="grid grid-cols-2 gap-3">
+                                    <Text label="CTA Label" value={it.cta_label} onChange={(v) => setItems(items.map((x, xi) => xi === i ? { ...x, cta_label: v } : x))} />
+                                    <Text label="CTA URL" value={it.cta_url} onChange={(v) => setItems(items.map((x, xi) => xi === i ? { ...x, cta_url: v } : x))} />
+                                </div>
+                                <Select
+                                    label="CTA Target"
+                                    value={it.cta_target ?? 'self'}
+                                    options={['self', 'blank']}
+                                    onChange={(v) => setItems(items.map((x, xi) => xi === i ? { ...x, cta_target: v } : x))}
+                                />
+                            </div>
+                        ))}
+                        <Button variant="outline" size="sm" type="button" onClick={() => setItems([...items, { icon_asset_id: null, icon_asset_id_preview: undefined, title: '', description: '', cta_label: '', cta_url: '', cta_target: 'self', count: '' }])}>
+                            <Plus size={15} /> Add card
+                        </Button>
+                    </div>
+                </div>
+            ) : (
+                <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                        <Select
+                            label="Heading align"
+                            value={payload.heading_align ?? 'left'}
+                            options={['left', 'center', 'right']}
+                            onChange={(v) => set({ heading_align: v })}
+                        />
+                        <Select
+                            label="Content text align"
+                            value={payload.content_text_align ?? 'left'}
+                            options={['left', 'center', 'right']}
+                            onChange={(v) => set({ content_text_align: v })}
+                        />
+                    </div>
+                    <Select
+                        label="Layout"
+                        value={payload.layout ?? 'layout_one'}
+                        options={['layout_one', 'layout_two', 'layout_three']}
+                        onChange={(v) => set({ layout: v })}
+                    />
+                </div>
+            )}
+        </div>
+    );
+}
+
+function NoticeBoardFields({ payload, onChange }: Props) {
+    const [tab, setTab] = useState<'content' | 'style'>('content');
+    const set = (patch: Payload) => onChange({ ...payload, ...patch });
+
+    return (
+        <div className="space-y-4">
+            <Tabs tabs={[{ key: 'content', label: 'Content' }, { key: 'style', label: 'Style' }]} active={tab} onChange={(k) => setTab(k as 'content' | 'style')} />
+            {tab === 'content' ? (
+                <div className="space-y-3">
+                    <Text label="Subtitle" value={payload.subtitle} onChange={(v) => set({ subtitle: v })} />
+                    <Text label="Heading" value={payload.heading} onChange={(v) => set({ heading: v })} />
+                    <Area label="Description" value={payload.description} onChange={(v) => set({ description: v })} />
+                    <div className="grid grid-cols-2 gap-3">
+                        <Text label="CTA Label" value={payload.cta_label} onChange={(v) => set({ cta_label: v })} />
+                        <Text label="CTA URL" value={payload.cta_url} onChange={(v) => set({ cta_url: v })} />
+                    </div>
+                    <Text label="Event Box Title" value={payload.event_box_title} onChange={(v) => set({ event_box_title: v })} placeholder="e.g., Upcoming Events" />
+
+                    <div className="rounded-xl border border-border p-3 space-y-3">
+                        <h4 className="text-sm font-medium">Notices</h4>
+                        <Select
+                            label="Source"
+                            value={payload.notices_mode ?? 'latest'}
+                            options={['latest', 'important', 'selected']}
+                            onChange={(v) => set({ notices_mode: v })}
+                        />
+                        {payload.notices_mode !== 'selected' && (
+                            <Text label="Limit" value={payload.notices_limit ?? 5} onChange={(v) => set({ notices_limit: Number(v) || 5 })} type="number" min="1" max="20" />
+                        )}
+                        {payload.notices_mode === 'selected' && (
+                            <p className="text-[13px] text-muted">Enter comma-separated Notice IDs from the CMS module</p>
+                        )}
+                    </div>
+
+                    <div className="rounded-xl border border-border p-3 space-y-3">
+                        <h4 className="text-sm font-medium">Events</h4>
+                        <Select
+                            label="Source"
+                            value={payload.events_mode ?? 'upcoming'}
+                            options={['upcoming', 'latest', 'selected']}
+                            onChange={(v) => set({ events_mode: v })}
+                        />
+                        {payload.events_mode !== 'selected' && (
+                            <Text label="Limit" value={payload.events_limit ?? 5} onChange={(v) => set({ events_limit: Number(v) || 5 })} type="number" min="1" max="20" />
+                        )}
+                        {payload.events_mode === 'selected' && (
+                            <p className="text-[13px] text-muted">Enter comma-separated Event IDs from the CMS module</p>
+                        )}
+                    </div>
+                </div>
+            ) : (
+                <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                        <Select label="CTA variant" value={payload.cta_variant ?? 'primary'} options={['primary', 'secondary', 'outline', 'ghost']} onChange={(v) => set({ cta_variant: v })} />
+                        <Select label="CTA target" value={payload.cta_target ?? 'self'} options={['self', 'blank']} onChange={(v) => set({ cta_target: v })} />
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
+
+function QuoteFields({ payload, onChange }: Props) {
+    const [tab, setTab] = useState<'content' | 'style'>('content');
+    const set = (patch: Payload) => onChange({ ...payload, ...patch });
+
+    const variant = (payload.variant as string) ?? 'default';
+    const showOrganization = variant === 'full_details';
+
+    return (
+        <div className="space-y-4">
+            <Tabs tabs={[{ key: 'content', label: 'Content' }, { key: 'style', label: 'Style' }]} active={tab} onChange={(k) => setTab(k as 'content' | 'style')} />
+            {tab === 'content' ? (
+                <div className="space-y-3">
+                    <AssetField label="Image" payload={payload} idKey="image_asset_id" previewKey="image_asset_id_preview" onChange={onChange} />
+                    <Text label="Image caption" value={payload.image_caption} onChange={(v) => set({ image_caption: v })} />
+                    <Area label="Quote message" value={payload.quote_message} onChange={(v) => set({ quote_message: v })} row={3} />
+                    <Area label="Description" value={payload.description} onChange={(v) => set({ description: v })} row={3} />
+                    <div className="grid grid-cols-2 gap-3">
+                        <Text label="Name" value={payload.name} onChange={(v) => set({ name: v })} />
+                        <Text label="Designation" value={payload.designation} onChange={(v) => set({ designation: v })} />
+                    </div>
+                    {showOrganization && <Text label="Organization" value={payload.organization} onChange={(v) => set({ organization: v })} />}
+                </div>
+            ) : (
+                <div className="space-y-3">
+                    <Select
+                        label="Variant"
+                        value={variant}
+                        options={['default', 'full_details']}
+                        onChange={(v) => {
+                            set({ variant: v });
+                            // Clear organization when switching away from full_details
+                            if (v !== 'full_details') {
+                                set({ organization: null });
+                            }
+                        }}
+                    />
+                    <Select
+                        label="Text align"
+                        value={payload.text_align ?? 'center'}
+                        options={['left', 'center', 'right']}
+                        onChange={(v) => set({ text_align: v })}
+                    />
+                </div>
+            )}
         </div>
     );
 }

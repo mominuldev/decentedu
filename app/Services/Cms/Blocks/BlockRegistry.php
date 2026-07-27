@@ -5,15 +5,19 @@ declare(strict_types=1);
 namespace App\Services\Cms\Blocks;
 
 use App\Enums\Cms\BlockType;
+use App\Services\Cms\Blocks\Types\CardListBlock;
 use App\Services\Cms\Blocks\Types\CtaBlock;
 use App\Services\Cms\Blocks\Types\DividerBlock;
 use App\Services\Cms\Blocks\Types\FaqBlock;
 use App\Services\Cms\Blocks\Types\GalleryBlock;
+use App\Services\Cms\Blocks\Types\HeadingBlock;
 use App\Services\Cms\Blocks\Types\HeroBlock;
 use App\Services\Cms\Blocks\Types\HtmlBlock;
 use App\Services\Cms\Blocks\Types\ImageBlock;
+use App\Services\Cms\Blocks\Types\NoticeBoardBlock;
 use App\Services\Cms\Blocks\Types\PageHeaderBlock;
 use App\Services\Cms\Blocks\Types\PostsListBlock;
+use App\Services\Cms\Blocks\Types\QuoteBlock;
 use App\Services\Cms\Blocks\Types\RichTextBlock;
 use App\Services\Cms\Blocks\Types\SectionBlock;
 use App\Services\Cms\Blocks\Types\VideoEmbedBlock;
@@ -85,6 +89,10 @@ class BlockRegistry
     {
         return [
             new HeroBlock,
+            new HeadingBlock,
+            new CardListBlock,
+            new NoticeBoardBlock,
+            new QuoteBlock,
             new RichTextBlock,
             new ImageBlock,
             new GalleryBlock,

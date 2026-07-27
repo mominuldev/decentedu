@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Loader2, XCircle } from 'lucide-react';
 import { Card, Button } from '@/components/ui';
 import { toApiError } from '@/lib/api';
 import {
@@ -16,10 +16,12 @@ const EMPTY: PagePayload = { title: '', template: 'default', status: 'draft', bl
 
 export default function PageFormPage() {
     const { id: idParam } = useParams<{ id: string }>();
-    const id = idParam ? Number(idParam) : null;
     const navigate = useNavigate();
     const qc = useQueryClient();
 
+    // Track the id locally so a freshly-created page switches into edit mode
+    // (subsequent saves become updates) without a route remount that would reset the tab.
+    const [id, setId] = useState<number | null>(idParam ? Number(idParam) : null);
     const [tab, setTab] = useState<'content' | 'blocks' | 'seo'>('content');
     const [form, setForm] = useState<PagePayload>(EMPTY);
     const [seo, setSeo] = useState<SeoData>({});
@@ -27,6 +29,13 @@ export default function PageFormPage() {
     const [blocks, setBlocks] = useState<EditorBlock[]>([]);
     const [errors, setErrors] = useState<Record<string, string[]>>({});
     const [error, setError] = useState<string | null>(null);
+    const [toast, setToast] = useState<{ tone: 'success' | 'error'; message: string } | null>(null);
+
+    useEffect(() => {
+        if (!toast) return;
+        const t = setTimeout(() => setToast(null), 4000);
+        return () => clearTimeout(t);
+    }, [toast]);
 
     const back = () => navigate('/cms?tab=pages');
 
@@ -56,8 +65,27 @@ export default function PageFormPage() {
             const payload: PagePayload = { ...form, seo, blocks };
             return id ? updatePage(id, payload) : createPage(payload);
         },
-        onSuccess: () => { qc.invalidateQueries({ queryKey: ['cms-pages'] }); back(); },
-        onError: (e) => { const err = toApiError(e); setError(err.message); setErrors(err.errors ?? {}); },
+        onSuccess: (page) => {
+            setError(null);
+            setErrors({});
+            qc.invalidateQueries({ queryKey: ['cms-pages'] });
+            if (id === null) {
+                // Newly created: move into edit mode and sync the URL without remounting,
+                // so the user stays on the tab they were editing.
+                setId(page.id);
+                hydrate(page);
+                window.history.replaceState(null, '', `/cms/${page.id}/edit`);
+            } else {
+                qc.invalidateQueries({ queryKey: ['cms-page', id] });
+            }
+            setToast({ tone: 'success', message: 'Page saved' });
+        },
+        onError: (e) => {
+            const err = toApiError(e);
+            setError(err.message);
+            setErrors(err.errors ?? {});
+            setToast({ tone: 'error', message: err.message || 'Could not save page' });
+        },
     });
 
     const set = (patch: Partial<PagePayload>) => setForm((f) => ({ ...f, ...patch }));
@@ -65,6 +93,19 @@ export default function PageFormPage() {
 
     return (
         <div className="space-y-6">
+            {toast && (
+                <div
+                    role="status"
+                    className={`fixed right-5 top-5 z-50 flex items-center gap-2 rounded-lg px-4 py-2.5 text-[13.5px] font-medium shadow-lg ${
+                        toast.tone === 'success'
+                            ? 'bg-emerald-600 text-white'
+                            : 'bg-rose-600 text-white'
+                    }`}
+                >
+                    {toast.tone === 'success' ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
+                    {toast.message}
+                </div>
+            )}
             <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                     <Button variant="outline" onClick={back} disabled={save.isPending}><ArrowLeft size={16} /> Back</Button>
