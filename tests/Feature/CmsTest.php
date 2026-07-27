@@ -462,4 +462,61 @@ class CmsTest extends TestCase
         $this->assertSame('Founded', $aboutData['items'][0]['label']);
         $this->assertSame('1995', $aboutData['items'][0]['value']);
     }
+
+    public function test_milestones_timeline_block_with_all_fields(): void
+    {
+        $this->actingAsBranchUser();
+
+        $response = $this->postJson('/api/v1/cms/pages', [
+            'title' => 'Our Journey',
+            'template' => 'default',
+            'status' => 'published',
+            'blocks' => [
+                [
+                    'type' => 'milestones_timeline',
+                    'is_visible' => true,
+                    'payload' => [
+                        'subtitle' => 'Our Growth & Achievements',
+                        'title' => 'Key Milestones Over The Years',
+                        'description' => 'A timeline of how our institution grew since establishment.',
+                        'content_align' => 'center',
+                        'items' => [
+                            ['year' => '1995', 'title' => 'Founding Year', 'description' => 'Established with 50 students.'],
+                            ['year' => '2010', 'title' => 'Campus Expansion', 'description' => 'Opened secondary school wing.'],
+                            ['year' => '2022', 'title' => 'Digital Campus Launch', 'description' => 'Integrated smart classrooms and ERP.'],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $response->assertStatus(201);
+
+        $publicResponse = $this->getJson('/api/v1/cms/public/pages/our-journey');
+        $publicResponse->assertOk();
+
+        $timelineData = $publicResponse->json('data.blocks.0.data');
+        $this->assertSame('milestones_timeline', $publicResponse->json('data.blocks.0.type'));
+        $this->assertSame('Our Growth & Achievements', $timelineData['subtitle']);
+        $this->assertSame('Key Milestones Over The Years', $timelineData['title']);
+        $this->assertSame('A timeline of how our institution grew since establishment.', $timelineData['description']);
+        $this->assertSame('center', $timelineData['content_align']);
+        $this->assertCount(3, $timelineData['items']);
+        $this->assertSame('1995', $timelineData['items'][0]['year']);
+        $this->assertSame('Founding Year', $timelineData['items'][0]['title']);
+        $this->assertSame('Established with 50 students.', $timelineData['items'][0]['description']);
+
+        // Default content_align should be center when omitted
+        $defaultResp = $this->postJson('/api/v1/cms/pages', [
+            'title' => 'Default Journey',
+            'template' => 'default',
+            'status' => 'published',
+            'blocks' => [
+                ['type' => 'milestones_timeline', 'is_visible' => true, 'payload' => []],
+            ],
+        ]);
+        $defaultResp->assertStatus(201);
+        $publicDefault = $this->getJson('/api/v1/cms/public/pages/default-journey')->assertOk();
+        $this->assertSame('center', $publicDefault->json('data.blocks.0.data.content_align'));
+    }
 }

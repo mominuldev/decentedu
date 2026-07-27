@@ -199,6 +199,8 @@ export function BlockFields({ type, payload, onChange, blockTypes, depth = 0 }: 
             );
         case 'about':
             return <AboutFields payload={payload} onChange={onChange} />;
+        case 'milestones_timeline':
+            return <MilestonesTimelineFields payload={payload} onChange={onChange} />;
         case 'faq':
             return <FaqField payload={payload} onChange={onChange} />;
         case 'posts_list':
@@ -734,6 +736,93 @@ function AboutFields({ payload, onChange }: Props) {
                     <Button variant="outline" size="sm" type="button" onClick={() => setItems([...items, { label: '', value: '' }])}><Plus size={15} /> Add item</Button>
                 </div>
             </div>
+        </div>
+    );
+}
+
+function MilestonesTimelineFields({ payload, onChange }: Props) {
+    const [tab, setTab] = useState<'content' | 'style'>('content');
+    const set = (patch: Payload) => onChange({ ...payload, ...patch });
+    const items = (payload.items as { year: string; title: string; description?: string }[]) ?? [];
+    const setItems = (next: typeof items) => set({ items: next });
+
+    return (
+        <div className="space-y-4">
+            <Tabs
+                tabs={[{ key: 'content', label: 'Content' }, { key: 'style', label: 'Style' }]}
+                active={tab}
+                onChange={(k) => setTab(k as 'content' | 'style')}
+            />
+            {tab === 'content' ? (
+                <div className="space-y-3">
+                    <Text label="Subtitle" value={payload.subtitle} onChange={(v) => set({ subtitle: v })} />
+                    <Text
+                        label="Title"
+                        value={payload.title ?? payload.heading}
+                        onChange={(v) => set({ title: v, heading: v })}
+                    />
+                    <Area label="Description" value={payload.description} onChange={(v) => set({ description: v })} />
+                    <div className="space-y-2">
+                        <label className={labelCls}>Milestones</label>
+                        {items.map((it, i) => (
+                            <div key={i} className="space-y-2 rounded-xl border border-border bg-surface-2/30 p-3">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-[12px] font-medium text-muted">Milestone {i + 1}</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => setItems(items.filter((_, x) => x !== i))}
+                                        className="text-faint hover:text-rose-500"
+                                    >
+                                        <Trash2 size={14} />
+                                    </button>
+                                </div>
+                                <div className="grid grid-cols-3 gap-2">
+                                    <div className="col-span-1">
+                                        <input
+                                            className={inputCls}
+                                            placeholder="Year (e.g. 2020)"
+                                            value={it.year ?? ''}
+                                            onChange={(e) => setItems(items.map((x, xi) => xi === i ? { ...x, year: e.target.value } : x))}
+                                        />
+                                    </div>
+                                    <div className="col-span-2">
+                                        <input
+                                            className={inputCls}
+                                            placeholder="Milestone Title"
+                                            value={it.title ?? ''}
+                                            onChange={(e) => setItems(items.map((x, xi) => xi === i ? { ...x, title: e.target.value } : x))}
+                                        />
+                                    </div>
+                                </div>
+                                <textarea
+                                    rows={2}
+                                    className={inputCls}
+                                    placeholder="Milestone Description"
+                                    value={it.description ?? ''}
+                                    onChange={(e) => setItems(items.map((x, xi) => xi === i ? { ...x, description: e.target.value } : x))}
+                                />
+                            </div>
+                        ))}
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            type="button"
+                            onClick={() => setItems([...items, { year: '', title: '', description: '' }])}
+                        >
+                            <Plus size={15} /> Add milestone
+                        </Button>
+                    </div>
+                </div>
+            ) : (
+                <div className="space-y-3">
+                    <Select
+                        label="Content Align"
+                        value={payload.content_align ?? 'center'}
+                        options={['left', 'center', 'right']}
+                        onChange={(v) => set({ content_align: v })}
+                    />
+                </div>
+            )}
         </div>
     );
 }

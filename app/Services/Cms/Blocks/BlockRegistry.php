@@ -15,6 +15,7 @@ use App\Services\Cms\Blocks\Types\HeadingBlock;
 use App\Services\Cms\Blocks\Types\HeroBlock;
 use App\Services\Cms\Blocks\Types\HtmlBlock;
 use App\Services\Cms\Blocks\Types\ImageBlock;
+use App\Services\Cms\Blocks\Types\MilestonesTimelineBlock;
 use App\Services\Cms\Blocks\Types\NoticeBoardBlock;
 use App\Services\Cms\Blocks\Types\PageHeaderBlock;
 use App\Services\Cms\Blocks\Types\PostsListBlock;
@@ -108,6 +109,7 @@ class BlockRegistry
             new PageHeaderBlock,
             new TeachersBlock,
             new AboutBlock,
+            new MilestonesTimelineBlock,
         ];
     }
 }
