@@ -11,6 +11,7 @@ import {
 import { RichTextEditor } from './RichTextEditor';
 import { MediaPicker } from './MediaPicker';
 import { Field, Loading } from './PagesPanel';
+import { useToast } from '@/components/Toast';
 
 const today = () => new Date().toISOString().slice(0, 10);
 const EMPTY: NoticePayload = { title: '', status: 'draft', body: '', notice_date: today(), is_important: false, terms: [] };
@@ -20,6 +21,7 @@ export default function NoticeFormPage() {
     const id = idParam ? Number(idParam) : null;
     const navigate = useNavigate();
     const qc = useQueryClient();
+    const toast = useToast();
 
     const [form, setForm] = useState<NoticePayload>(EMPTY);
     const [attachment, setAttachment] = useState<AssetPayload | null>(null);
@@ -43,8 +45,17 @@ export default function NoticeFormPage() {
 
     const save = useMutation({
         mutationFn: () => { const payload: NoticePayload = { ...form, attachment_asset_id: attachment?.id ?? null }; return id ? updateNotice(id, payload) : createNotice(payload); },
-        onSuccess: () => { qc.invalidateQueries({ queryKey: ['cms-notices'] }); back(); },
-        onError: (e) => { const err = toApiError(e); setError(err.message); setErrors(err.errors ?? {}); },
+        onSuccess: () => { 
+            qc.invalidateQueries({ queryKey: ['cms-notices'] }); 
+            toast.success('Notice saved successfully');
+            back(); 
+        },
+        onError: (e) => { 
+            const err = toApiError(e); 
+            setError(err.message); 
+            setErrors(err.errors ?? {}); 
+            toast.error(err.message || 'Could not save notice');
+        },
     });
 
     const set = (patch: Partial<NoticePayload>) => setForm((f) => ({ ...f, ...patch }));

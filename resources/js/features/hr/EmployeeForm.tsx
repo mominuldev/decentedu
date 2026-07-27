@@ -18,7 +18,10 @@ interface EmployeeFormProps {
   onSaved: () => void;
 }
 
+import { useToast } from '@/components/Toast';
+
 export function EmployeeForm({ employee, onClose, onSaved }: EmployeeFormProps) {
+  const toast = useToast();
   // Fetch setup data for dropdowns
   const { data: designations = [] } = useQuery({
     queryKey: ['hr-setup', 'designations'],
@@ -59,11 +62,15 @@ export function EmployeeForm({ employee, onClose, onSaved }: EmployeeFormProps) 
   const saveMutation = useMutation({
     mutationFn: (payload: CreateEmployeeRequest) =>
       employee ? updateEmployee(employee.id, payload) : createEmployee(payload),
-    onSuccess: onSaved,
+    onSuccess: () => {
+      toast.success(employee ? 'Employee updated successfully' : 'Employee created successfully');
+      onSaved();
+    },
     onError: (e) => {
       const apiError = toApiError(e);
       setError(apiError.errors ? null : apiError.message);
       setErrors(apiError.errors ?? {});
+      toast.error(apiError.message || 'Could not save employee');
     },
   });
 

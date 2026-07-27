@@ -68,8 +68,12 @@ class AdmissionTest extends TestCase
             'class_config_id' => $this->classConfig->id,
             'name' => 'Rifat Hasan',
             'sex' => 'male',
+            'birth_certificate_no' => '19981234567890123',
             'fathers_name' => 'Kamal Hasan',
             'mothers_name' => 'Rina Begum',
+            'father_nid' => '1234567890',
+            'father_mobile' => '01712345678',
+            'mother_nid' => '0987654321',
             'score' => 88.5,
         ], $overrides);
     }
@@ -188,8 +192,11 @@ class AdmissionTest extends TestCase
             'application_no' => 'APP-9999',
             'name' => 'Leaky Applicant',
             'sex' => 'male',
+            'birth_certificate_no' => '19981234567890123',
             'fathers_name' => 'X',
             'mothers_name' => 'Y',
+            'father_nid' => '1234567890',
+            'mother_nid' => '0987654321',
         ]);
         app(BranchContext::class)->set($this->branch->id);
 

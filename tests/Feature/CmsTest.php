@@ -413,6 +413,47 @@ class CmsTest extends TestCase
         $this->assertSame('/contact', $ctaData['cta_secondary_url']);
         $this->assertSame('self', $ctaData['cta_secondary_target']);
         $this->assertSame('outline', $ctaData['cta_secondary_variant']);
+        $this->assertSame('variation_one', $ctaData['variation']);
+    }
+
+    public function test_cta_block_variation_two_with_repeater(): void
+    {
+        $this->actingAsBranchUser();
+
+        $response = $this->postJson('/api/v1/cms/pages', [
+            'title' => 'CTA Variation Two Page',
+            'template' => 'default',
+            'status' => 'published',
+            'blocks' => [
+                [
+                    'type' => 'cta',
+                    'is_visible' => true,
+                    'payload' => [
+                        'variation' => 'variation_two',
+                        'subtitle' => 'Our Timeline',
+                        'title' => 'Important Highlights',
+                        'description' => 'A glance at major milestones.',
+                        'items' => [
+                            ['year' => '2005', 'title' => 'Milestone One'],
+                            ['year' => '2015', 'title' => 'Milestone Two'],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $response->assertStatus(201);
+
+        $publicResponse = $this->getJson('/api/v1/cms/public/pages/cta-variation-two-page');
+        $publicResponse->assertOk();
+
+        $ctaData = $publicResponse->json('data.blocks.0.data');
+        $this->assertSame('variation_two', $ctaData['variation']);
+        $this->assertSame('Our Timeline', $ctaData['subtitle']);
+        $this->assertSame('Important Highlights', $ctaData['title']);
+        $this->assertCount(2, $ctaData['items']);
+        $this->assertSame('2005', $ctaData['items'][0]['year']);
+        $this->assertSame('Milestone One', $ctaData['items'][0]['title']);
     }
 
     public function test_about_block_with_all_fields(): void
@@ -432,6 +473,7 @@ class CmsTest extends TestCase
                     'payload' => [
                         'subtitle' => 'Our History & Mission',
                         'title' => 'About Our School',
+                        'variation' => 'variation_two',
                         'content' => '<p>Established in 1995, delivering quality education for decades.</p>',
                         'image_asset_id' => $asset->id,
                         'image_caption' => 'Main Campus Building',
@@ -440,6 +482,10 @@ class CmsTest extends TestCase
                             ['label' => 'Founded', 'value' => '1995'],
                             ['label' => 'Total Students', 'value' => '2,500+'],
                         ],
+                        'cta_label' => 'Read Full Story',
+                        'cta_url' => '/about/story',
+                        'cta_target' => 'blank',
+                        'cta_variant' => 'secondary',
                     ],
                 ],
             ],
@@ -452,6 +498,7 @@ class CmsTest extends TestCase
 
         $aboutData = $publicResponse->json('data.blocks.0.data');
         $this->assertSame('about', $publicResponse->json('data.blocks.0.type'));
+        $this->assertSame('variation_two', $aboutData['variation']);
         $this->assertSame('Our History & Mission', $aboutData['subtitle']);
         $this->assertSame('About Our School', $aboutData['title']);
         $this->assertSame('<p>Established in 1995, delivering quality education for decades.</p>', $aboutData['content']);
@@ -461,6 +508,10 @@ class CmsTest extends TestCase
         $this->assertCount(2, $aboutData['items']);
         $this->assertSame('Founded', $aboutData['items'][0]['label']);
         $this->assertSame('1995', $aboutData['items'][0]['value']);
+        $this->assertSame('Read Full Story', $aboutData['cta_label']);
+        $this->assertSame('/about/story', $aboutData['cta_url']);
+        $this->assertSame('blank', $aboutData['cta_target']);
+        $this->assertSame('secondary', $aboutData['cta_variant']);
     }
 
     public function test_milestones_timeline_block_with_all_fields(): void
@@ -518,5 +569,157 @@ class CmsTest extends TestCase
         $defaultResp->assertStatus(201);
         $publicDefault = $this->getJson('/api/v1/cms/public/pages/default-journey')->assertOk();
         $this->assertSame('center', $publicDefault->json('data.blocks.0.data.content_align'));
+    }
+
+    public function test_card_list_block_variation_four_with_year(): void
+    {
+        $this->actingAsBranchUser();
+
+        $response = $this->postJson('/api/v1/cms/pages', [
+            'title' => 'Card Variation Four Page',
+            'template' => 'default',
+            'status' => 'published',
+            'blocks' => [
+                [
+                    'type' => 'card_list',
+                    'is_visible' => true,
+                    'payload' => [
+                        'variation' => 'variation_four',
+                        'title' => 'Yearly Awards',
+                        'items' => [
+                            ['year' => '2023', 'title' => 'Best Science School Award'],
+                            ['year' => '2025', 'title' => 'National Excellence Trophy'],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $response->assertStatus(201);
+
+        $publicResponse = $this->getJson('/api/v1/cms/public/pages/card-variation-four-page');
+        $publicResponse->assertOk();
+
+        $cardData = $publicResponse->json('data.blocks.0.data');
+        $this->assertSame('variation_four', $cardData['variation']);
+        $this->assertSame('Yearly Awards', $cardData['title']);
+        $this->assertCount(2, $cardData['items']);
+        $this->assertSame('2023', $cardData['items'][0]['year']);
+        $this->assertSame('Best Science School Award', $cardData['items'][0]['title']);
+    }
+
+    public function test_card_list_block_variation_five(): void
+    {
+        $this->actingAsBranchUser();
+
+        $response = $this->postJson('/api/v1/cms/pages', [
+            'title' => 'Card Variation Five Page',
+            'template' => 'default',
+            'status' => 'published',
+            'blocks' => [
+                [
+                    'type' => 'card_list',
+                    'is_visible' => true,
+                    'payload' => [
+                        'variation' => 'variation_five',
+                        'title' => 'Key Stats',
+                        'items' => [
+                            ['count' => '98%', 'title' => 'Pass Rate', 'description' => 'Students passing national board exams.'],
+                            ['count' => '50+', 'title' => 'Expert Teachers', 'description' => 'Certified academic educators.'],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $response->assertStatus(201);
+
+        $publicResponse = $this->getJson('/api/v1/cms/public/pages/card-variation-five-page');
+        $publicResponse->assertOk();
+
+        $cardData = $publicResponse->json('data.blocks.0.data');
+        $this->assertSame('variation_five', $cardData['variation']);
+        $this->assertSame('Key Stats', $cardData['title']);
+        $this->assertCount(2, $cardData['items']);
+        $this->assertSame('98%', $cardData['items'][0]['count']);
+        $this->assertSame('Pass Rate', $cardData['items'][0]['title']);
+        $this->assertSame('Students passing national board exams.', $cardData['items'][0]['description']);
+    }
+
+    public function test_about_block_variation_three(): void
+    {
+        $this->actingAsBranchUser();
+
+        $response = $this->postJson('/api/v1/cms/pages', [
+            'title' => 'About Variation Three Page',
+            'template' => 'default',
+            'status' => 'published',
+            'blocks' => [
+                [
+                    'type' => 'about',
+                    'is_visible' => true,
+                    'payload' => [
+                        'variation' => 'variation_three',
+                        'title' => 'Message from Principal',
+                        'content' => '<p>Welcome to our school.</p>',
+                        'quote_subtitle' => 'Principal Message',
+                        'quote_message' => 'Education is the most powerful weapon which you can use to change the world.',
+                        'author' => 'Dr. Rahman',
+                        'designation' => 'Principal & Founder',
+                    ],
+                ],
+            ],
+        ]);
+
+        $response->assertStatus(201);
+
+        $publicResponse = $this->getJson('/api/v1/cms/public/pages/about-variation-three-page');
+        $publicResponse->assertOk();
+
+        $aboutData = $publicResponse->json('data.blocks.0.data');
+        $this->assertSame('variation_three', $aboutData['variation']);
+        $this->assertSame('Message from Principal', $aboutData['title']);
+        $this->assertSame('Principal Message', $aboutData['quote_subtitle']);
+        $this->assertSame('Education is the most powerful weapon which you can use to change the world.', $aboutData['quote_message']);
+        $this->assertSame('Dr. Rahman', $aboutData['author']);
+        $this->assertSame('Principal & Founder', $aboutData['designation']);
+    }
+
+    public function test_cta_block_variation_three(): void
+    {
+        $this->actingAsBranchUser();
+
+        $response = $this->postJson('/api/v1/cms/pages', [
+            'title' => 'CTA Variation Three Page',
+            'template' => 'default',
+            'status' => 'published',
+            'blocks' => [
+                [
+                    'type' => 'cta',
+                    'is_visible' => true,
+                    'payload' => [
+                        'variation' => 'variation_three',
+                        'title' => 'Student Testimonial',
+                        'quote_message' => 'This school provided me with endless opportunities.',
+                        'author_name' => 'Sarah Ahmed',
+                        'author_designation' => 'Alumni Class of 2022',
+                        'disclaimer' => '* Results may vary based on individual effort.',
+                    ],
+                ],
+            ],
+        ]);
+
+        $response->assertStatus(201);
+
+        $publicResponse = $this->getJson('/api/v1/cms/public/pages/cta-variation-three-page');
+        $publicResponse->assertOk();
+
+        $ctaData = $publicResponse->json('data.blocks.0.data');
+        $this->assertSame('variation_three', $ctaData['variation']);
+        $this->assertSame('Student Testimonial', $ctaData['title']);
+        $this->assertSame('This school provided me with endless opportunities.', $ctaData['quote_message']);
+        $this->assertSame('Sarah Ahmed', $ctaData['author_name']);
+        $this->assertSame('Alumni Class of 2022', $ctaData['author_designation']);
+        $this->assertSame('* Results may vary based on individual effort.', $ctaData['disclaimer']);
     }
 }

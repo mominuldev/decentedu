@@ -33,7 +33,17 @@ class CtaBlock extends BaseBlockType
             'button_label' => ['nullable', 'string', 'max:100'],
             'button_url' => ['nullable', 'string', 'max:2048'],
             'button_target' => ['nullable', Rule::in(['self', 'blank'])],
-            'style' => ['nullable', Rule::in(['primary', 'secondary', 'outline', 'ghost'])],
+            'variation' => ['nullable', 'string', Rule::in(['variation_one', 'variation_two', 'variation_three', 'variation_1', 'variation_2', 'variation_3'])],
+            'items' => ['nullable', 'array'],
+            'items.*.year' => ['required', 'string', 'max:50'],
+            'items.*.title' => ['required', 'string', 'max:255'],
+            'quote_message' => ['nullable', 'string'],
+            'author_image_asset_id' => ['nullable', 'integer', Rule::exists('assets', 'id')],
+            'name' => ['nullable', 'string', 'max:255'],
+            'author_name' => ['nullable', 'string', 'max:255'],
+            'designation' => ['nullable', 'string', 'max:255'],
+            'author_designation' => ['nullable', 'string', 'max:255'],
+            'disclaimer' => ['nullable', 'string', 'max:1000'],
         ];
     }
 
@@ -45,8 +55,11 @@ class CtaBlock extends BaseBlockType
         $ctaPrimaryUrl = $payload['cta_primary_url'] ?? $payload['button_url'] ?? null;
         $ctaPrimaryTarget = $payload['cta_primary_target'] ?? $payload['button_target'] ?? 'self';
         $ctaPrimaryVariant = $payload['cta_primary_variant'] ?? $payload['style'] ?? 'primary';
+        $authorName = $payload['author_name'] ?? $payload['name'] ?? null;
+        $authorDesignation = $payload['author_designation'] ?? $payload['designation'] ?? null;
 
         return [
+            'variation' => $payload['variation'] ?? 'variation_one',
             'subtitle' => $payload['subtitle'] ?? null,
             'title' => $title,
             'heading' => $title,
@@ -64,6 +77,20 @@ class CtaBlock extends BaseBlockType
             'button_url' => $ctaPrimaryUrl,
             'button_target' => $ctaPrimaryTarget,
             'style' => $ctaPrimaryVariant,
+            'items' => array_values(array_map(
+                fn (array $item): array => [
+                    'year' => $item['year'] ?? '',
+                    'title' => $item['title'] ?? '',
+                ],
+                $payload['items'] ?? [],
+            )),
+            'quote_message' => $payload['quote_message'] ?? null,
+            'author_image' => $this->assetPayload($payload['author_image_asset_id'] ?? null),
+            'author_name' => $authorName,
+            'name' => $authorName,
+            'author_designation' => $authorDesignation,
+            'designation' => $authorDesignation,
+            'disclaimer' => $payload['disclaimer'] ?? null,
         ];
     }
 }

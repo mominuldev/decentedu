@@ -6,6 +6,7 @@ import { Modal, ConfirmDialog } from '@/components/Modal';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { toApiError } from '@/lib/api';
 import { cn } from '@/lib/cn';
+import { useToast } from '@/components/Toast';
 import {
     listClassConfigs, classConfigOptions, createClassConfig, updateClassConfig, deleteClassConfig,
     type ClassConfigRow, type ConfigOptions,
@@ -15,6 +16,7 @@ export function ClassConfigPanel() {
     const { session } = useAuth();
     const branchId = session?.active_branch?.id;
     const qc = useQueryClient();
+    const toast = useToast();
 
     const { data: rows = [], isLoading } = useQuery({
         queryKey: ['class-configs', branchId],
@@ -32,7 +34,12 @@ export function ClassConfigPanel() {
 
     const del = useMutation({
         mutationFn: (id: number) => deleteClassConfig(id),
-        onSuccess: () => { invalidate(); setDeleting(null); },
+        onSuccess: () => {
+            invalidate();
+            setDeleting(null);
+            toast.success('Class config deleted successfully');
+        },
+        onError: (err) => toast.error(toApiError(err).message),
     });
 
     return (
@@ -116,6 +123,7 @@ function ConfigForm({
     onClose: () => void;
     onSaved: () => void;
 }) {
+    const toast = useToast();
     const [form, setForm] = useState({
         class_id: row?.class_id ?? 0,
         shift_id: row?.shift_id ?? 0,
@@ -127,8 +135,15 @@ function ConfigForm({
 
     const save = useMutation({
         mutationFn: () => (row ? updateClassConfig(row.id, form) : createClassConfig(form)),
-        onSuccess: onSaved,
-        onError: (e) => setError(toApiError(e).message),
+        onSuccess: () => {
+            toast.success(row ? 'Class config updated successfully' : 'Class config created successfully');
+            onSaved();
+        },
+        onError: (e) => {
+            const err = toApiError(e);
+            setError(err.message);
+            toast.error(err.message || 'Could not save class config');
+        },
     });
 
     const selCls = 'w-full rounded-xl border border-border-strong bg-surface px-3.5 py-2.5 text-[14px] text-fg outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25';

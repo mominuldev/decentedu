@@ -4,6 +4,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Plus, Pencil, Trash2, Star, Search, Paperclip } from 'lucide-react';
 import { Card, Button, Badge } from '@/components/ui';
 import { ConfirmDialog } from '@/components/Modal';
+import { toApiError } from '@/lib/api';
+import { useToast } from '@/components/Toast';
 import { listNotices, deleteNotice, inputCls, type NoticeRow } from './api';
 import { Loading, Empty, SortTh, useSort } from './PagesPanel';
 
@@ -13,6 +15,7 @@ const fmtDate = (iso: string | null) =>
 export function NoticesPanel() {
     const qc = useQueryClient();
     const navigate = useNavigate();
+    const toast = useToast();
     const [statusFilter, setStatusFilter] = useState('');
     const [search, setSearch] = useState('');
     const { sort, dir, onSort } = useSort('notice_date', 'desc');
@@ -23,7 +26,15 @@ export function NoticesPanel() {
     const [deleting, setDeleting] = useState<NoticeRow | null>(null);
 
     const invalidate = () => qc.invalidateQueries({ queryKey: ['cms-notices'] });
-    const del = useMutation({ mutationFn: (id: number) => deleteNotice(id), onSuccess: () => { invalidate(); setDeleting(null); } });
+    const del = useMutation({
+        mutationFn: (id: number) => deleteNotice(id),
+        onSuccess: () => {
+            invalidate();
+            setDeleting(null);
+            toast.success('Notice deleted successfully');
+        },
+        onError: (err) => toast.error(toApiError(err).message),
+    });
 
     return (
         <Card>

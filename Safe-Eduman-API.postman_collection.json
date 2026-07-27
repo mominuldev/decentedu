@@ -1,0 +1,3316 @@
+{
+  "info": {
+    "name": "Safe Eduman API (v1)",
+    "_postman_id": "safe-eduman-v1-collection",
+    "description": "Postman collection for the Safe Eduman Laravel v1 API.\n\nScope: every route registered under `routes/api.php`.\n\n**Base URL:** set `base_url` (default `http://localhost:8000`).\n\n**Auth:** Uses Laravel Sanctum cookie-based session auth. Run **Auth → Login**; the session cookie is auto-saved and applied to protected requests. **IMPORTANT:** This collection uses cookie-based authentication, NOT bearer tokens. Ensure cookies are enabled in Postman settings.\n\nResponse envelope: `{ success, message, data, meta }` / `{ success:false, message, error_code, errors }`.\n\nFile-upload endpoints use multipart/form-data — pick a file in the form-data tab before sending.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "description": "routes/api.php - authentication endpoints for login, logout, and session management. Uses Sanctum SPA cookie sessions.",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{login_email}}\",\n  \"password\": \"{{login_password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Login with email and password"
+          },
+          "response": []
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/auth/forgot-password",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "forgot-password"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/auth/reset-password",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "reset-password"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"reset_token\",\n  \"email\": \"user@example.com\",\n  \"password\": \"new_password\",\n  \"password_confirmation\": \"new_password\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/auth/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "me"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Get authenticated user details"
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/auth/logout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "logout"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Logout current user and invalidate session"
+          },
+          "response": []
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/auth/change-password",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "change-password"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"current_password\": \"current_password\",\n  \"password\": \"new_password\",\n  \"password_confirmation\": \"new_password\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Sessions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/auth/sessions",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "sessions"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Get all active sessions for current user"
+          },
+          "response": []
+        },
+        {
+          "name": "Revoke Session",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/auth/sessions/{{session_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "sessions",
+                "{{session_id}}"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Revoke a specific session"
+          },
+          "response": []
+        },
+        {
+          "name": "Switch Branch",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/branch/switch",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "branch",
+                "switch"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"branch_id\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Switch active branch context"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "description": "Dashboard statistics and overview data",
+      "item": [
+        {
+          "name": "Get Dashboard Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/dashboard",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "dashboard"
+              ]
+            },
+            "description": "Get dashboard statistics and overview data"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Academic",
+      "description": "routes/api.php - academic management. Uses generic setup controller for uniform resources (academic-years, classes, shifts, sections, groups, categories, subjects).",
+      "item": [
+        {
+          "name": "Class Configs List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/academic/class-configs",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "academic",
+                "class-configs"
+              ]
+            },
+            "description": "List class configurations"
+          },
+          "response": []
+        },
+        {
+          "name": "Class Configs Create",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/academic/class-configs",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "academic",
+                "class-configs"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"class_id\": 1,\n  \"shift_id\": 1,\n  \"section_id\": 1,\n  \"academic_year_id\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Create class configuration"
+          },
+          "response": []
+        },
+        {
+          "name": "Academic Years List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/academic/academic-years",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "academic",
+                "academic-years"
+              ]
+            },
+            "description": "List academic years (generic setup resource)"
+          },
+          "response": []
+        },
+        {
+          "name": "Academic Years Create",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/academic/academic-years",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "academic",
+                "academic-years"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"2024-25\",\n  \"start_date\": \"2024-01-01\",\n  \"end_date\": \"2024-12-31\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Create academic year"
+          },
+          "response": []
+        },
+        {
+          "name": "Classes List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/academic/classes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "academic",
+                "classes"
+              ]
+            },
+            "description": "List classes (generic setup resource)"
+          },
+          "response": []
+        },
+        {
+          "name": "Classes Create",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/academic/classes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "academic",
+                "classes"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Class 10\",\n  \"numeric_value\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Create class"
+          },
+          "response": []
+        },
+        {
+          "name": "Shifts List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/academic/shifts",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "academic",
+                "shifts"
+              ]
+            },
+            "description": "List school shifts (generic setup resource)"
+          },
+          "response": []
+        },
+        {
+          "name": "Shifts Create",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/academic/shifts",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "academic",
+                "shifts"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Morning\",\n  \"start_time\": \"08:00\",\n  \"end_time\": \"12:00\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Create shift"
+          },
+          "response": []
+        },
+        {
+          "name": "Sections List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/academic/sections",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "academic",
+                "sections"
+              ]
+            },
+            "description": "List sections (generic setup resource)"
+          },
+          "response": []
+        },
+        {
+          "name": "Sections Create",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/academic/sections",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "academic",
+                "sections"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Section A\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Create section"
+          },
+          "response": []
+        },
+        {
+          "name": "Groups List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/academic/groups",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "academic",
+                "groups"
+              ]
+            },
+            "description": "List student groups (generic setup resource)"
+          },
+          "response": []
+        },
+        {
+          "name": "Groups Create",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/academic/groups",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "academic",
+                "groups"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Science Group\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Create group"
+          },
+          "response": []
+        },
+        {
+          "name": "Subjects List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/academic/subjects",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "academic",
+                "subjects"
+              ]
+            },
+            "description": "List subjects (generic setup resource)"
+          },
+          "response": []
+        },
+        {
+          "name": "Subjects Create",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/academic/subjects",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "academic",
+                "subjects"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Mathematics\",\n  \"code\": \"MATH\",\n  \"type\": \"core\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Create subject"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Students",
+      "description": "routes/api.php - student management (enrollment, profiles, academic records). Requires students.manage permission.",
+      "item": [
+        {
+          "name": "List Students",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/students",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "students"
+              ],
+              "query": [
+                {
+                  "key": "per_page",
+                  "value": "15",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "List students with pagination"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Student",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/students/{{student_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "students",
+                "{{student_id}}"
+              ]
+            },
+            "description": "Get single student details"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Student",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/students",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "students"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"John\",\n  \"last_name\": \"Doe\",\n  \"email\": \"student@example.com\",\n  \"phone\": \"01700000000\",\n  \"date_of_birth\": \"2010-01-01\",\n  \"gender\": \"male\",\n  \"address\": \"Dhaka, Bangladesh\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Create new student record"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Student",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/students/{{student_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "students",
+                "{{student_id}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"John\",\n  \"last_name\": \"Doe\",\n  \"email\": \"student@example.com\",\n  \"phone\": \"01700000000\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Update student information"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Student",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/students/{{student_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "students",
+                "{{student_id}}"
+              ]
+            },
+            "description": "Delete student record"
+          },
+          "response": []
+        },
+        {
+          "name": "Bulk Register Students",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/students/bulk-register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "students",
+                "bulk-register"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"students\": [\n    {\"first_name\": \"Student\", \"last_name\": \"One\", \"email\": \"one@example.com\"},\n    {\"first_name\": \"Student\", \"last_name\": \"Two\", \"email\": \"two@example.com\"}\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Bulk register students (throttled)"
+          },
+          "response": []
+        },
+        {
+          "name": "Migrate Student",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/students/migrate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "students",
+                "migrate"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"student_id\": 1,\n  \"new_class_config_id\": 2,\n  \"academic_year_id\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Migrate student to new class"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admissions",
+      "description": "routes/api.php - admission applications and enrollment management. Requires admissions.manage permission.",
+      "item": [
+        {
+          "name": "Admission Years List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/admissions/years",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "admissions",
+                "years"
+              ]
+            },
+            "description": "List admission years (drives)"
+          },
+          "response": []
+        },
+        {
+          "name": "Admission Years Create",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/admissions/years",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "admissions",
+                "years"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"2024-25 Admission\",\n  \"start_date\": \"2024-01-01\",\n  \"end_date\": \"2024-12-31\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Create admission year"
+          },
+          "response": []
+        },
+        {
+          "name": "Admission Quotas List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/admissions/quotas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "admissions",
+                "quotas"
+              ]
+            },
+            "description": "List admission quotas"
+          },
+          "response": []
+        },
+        {
+          "name": "Admission Quotas Create",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/admissions/quotas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "admissions",
+                "quotas"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Merit Quota\",\n  \"seats\": 100,\n  \"description\": \"Merit-based seats\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Create admission quota"
+          },
+          "response": []
+        },
+        {
+          "name": "Applications List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/admissions/applications",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "admissions",
+                "applications"
+              ]
+            },
+            "description": "List admission applications"
+          },
+          "response": []
+        },
+        {
+          "name": "Application Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/admissions/applications/stats",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "admissions",
+                "applications",
+                "stats"
+              ]
+            },
+            "description": "Get application statistics"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Application",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/admissions/applications/{{application_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "admissions",
+                "applications",
+                "{{application_id}}"
+              ]
+            },
+            "description": "Get single application details"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Application",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/admissions/applications",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "admissions",
+                "applications"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Applicant\",\n  \"last_name\": \"Name\",\n  \"email\": \"applicant@example.com\",\n  \"phone\": \"01800000000\",\n  \"admission_year_id\": 1,\n  \"quota_id\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Create admission application"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Application Status",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/admissions/applications/{{application_id}}/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "admissions",
+                "applications",
+                "{{application_id}}",
+                "status"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"approved\",\n  \"remarks\": \"Application approved\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Update application status"
+          },
+          "response": []
+        },
+        {
+          "name": "Convert Application to Student",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/admissions/applications/{{application_id}}/convert",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "admissions",
+                "applications",
+                "{{application_id}}",
+                "convert"
+              ]
+            },
+            "description": "Convert approved application to student record"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Application",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/admissions/applications/{{application_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "admissions",
+                "applications",
+                "{{application_id}}"
+              ]
+            },
+            "description": "Delete application"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "HR",
+      "description": "routes/api.php - human resources management. Requires hr.manage permission. Teacher data from this module is used by the CMS Teachers block for displaying teacher profiles on public pages.",
+      "item": [
+        {
+          "name": "List Employees",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/hr/employees",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "hr",
+                "employees"
+              ]
+            },
+            "description": "List employees"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Employee",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/hr/employees/{{employee_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "hr",
+                "employees",
+                "{{employee_id}}"
+              ]
+            },
+            "description": "Get single employee details"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Employee",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/hr/employees",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "hr",
+                "employees"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Sarah\",\n  \"last_name\": \"Ahmed\",\n  \"email\": \"sarah.ahmed@example.com\",\n  \"phone\": \"01900000000\",\n  \"date_of_birth\": \"1985-03-20\",\n  \"gender\": \"female\",\n  \"employee_type\": \"teaching\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Create new employee record"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Employee",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/hr/employees/{{employee_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "hr",
+                "employees",
+                "{{employee_id}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Sarah\",\n  \"last_name\": \"Ahmed\",\n  \"email\": \"sarah.ahmed@example.com\",\n  \"phone\": \"01900000000\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Update employee information"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Employee",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/hr/employees/{{employee_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "hr",
+                "employees",
+                "{{employee_id}}"
+              ]
+            },
+            "description": "Delete employee record"
+          },
+          "response": []
+        },
+        {
+          "name": "Teachers List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/hr/teachers?search=&status=active&designation_id=&hr_section_id=&employment_type=&subject_id=&class_config_id=&per_page=50&sort=",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "hr",
+                "teachers"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search by name or email"
+                },
+                {
+                  "key": "status",
+                  "value": "active",
+                  "description": "Filter by employment status (active, resigned, terminated, retired)"
+                },
+                {
+                  "key": "designation_id",
+                  "value": "",
+                  "description": "Filter by designation ID"
+                },
+                {
+                  "key": "hr_section_id",
+                  "value": "",
+                  "description": "Filter by HR section ID"
+                },
+                {
+                  "key": "employment_type",
+                  "value": "",
+                  "description": "Filter by employment type (permanent, contract, temporary)"
+                },
+                {
+                  "key": "subject_id",
+                  "value": "",
+                  "description": "Filter teachers by subject ID"
+                },
+                {
+                  "key": "class_config_id",
+                  "value": "",
+                  "description": "Filter teachers by class configuration ID"
+                },
+                {
+                  "key": "per_page",
+                  "value": "50",
+                  "description": "Number of results per page"
+                },
+                {
+                  "key": "sort",
+                  "value": "",
+                  "description": "Sort field and direction (e.g., 'joining_date:desc')"
+                }
+              ]
+            },
+            "description": "List teaching staff. This endpoint is used by the CMS Teachers block to fetch teacher data for display on public pages. Supports filtering by status, designation, department, subject, and class configuration."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Teacher",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/hr/teachers/{{teacher_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "hr",
+                "teachers",
+                "{{teacher_id}}"
+              ]
+            },
+            "description": "Get single teacher details"
+          },
+          "response": []
+        },
+        {
+          "name": "Available Teachers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/hr/teachers/available",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "hr",
+                "teachers",
+                "available"
+              ]
+            },
+            "description": "Get available teachers for assignment"
+          },
+          "response": []
+        },
+        {
+          "name": "Teachers by Subject",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/hr/teachers/subject/{{subject_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "hr",
+                "teachers",
+                "subject",
+                "{{subject_id}}"
+              ]
+            },
+            "description": "Get teachers by subject"
+          },
+          "response": []
+        },
+        {
+          "name": "Teachers by Class Config",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/hr/teachers/class/{{classConfigId}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "hr",
+                "teachers",
+                "class",
+                "{{classConfigId}}"
+              ]
+            },
+            "description": "Get teachers by class configuration"
+          },
+          "response": []
+        },
+        {
+          "name": "Teacher Classes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/hr/teachers/{{teacher_id}}/classes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "hr",
+                "teachers",
+                "{{teacher_id}}",
+                "classes"
+              ]
+            },
+            "description": "Get classes assigned to teacher"
+          },
+          "response": []
+        },
+        {
+          "name": "Designations List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/hr/designations",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "hr",
+                "designations"
+              ]
+            },
+            "description": "List employee designations (setup resource)"
+          },
+          "response": []
+        },
+        {
+          "name": "Designations Create",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/hr/designations",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "hr",
+                "designations"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Senior Teacher\",\n  \"level\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Create designation"
+          },
+          "response": []
+        },
+        {
+          "name": "HR Sections List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/hr/hr-sections",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "hr",
+                "hr-sections"
+              ]
+            },
+            "description": "List HR sections/departments (setup resource)"
+          },
+          "response": []
+        },
+        {
+          "name": "HR Sections Create",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/hr/hr-sections",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "hr",
+                "hr-sections"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Science Department\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Create HR section"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Routines",
+      "description": "routes/api.php - class routines and schedules management. Requires routines.manage permission.",
+      "item": [
+        {
+          "name": "List Routines",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/routines",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "routines"
+              ]
+            },
+            "description": "List class routines"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Routine",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/routines",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "routines"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"class_config_id\": 1,\n  \"period_id\": 1,\n  \"subject_id\": 1,\n  \"teacher_id\": 1,\n  \"day\": \"sunday\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Create class routine"
+          },
+          "response": []
+        },
+        {
+          "name": "Periods List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/routines/periods",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "routines",
+                "periods"
+              ]
+            },
+            "description": "List routine periods"
+          },
+          "response": []
+        },
+        {
+          "name": "Periods Create",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/routines/periods",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "routines",
+                "periods"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Period 1\",\n  \"start_time\": \"08:00\",\n  \"end_time\": \"08:45\",\n  \"order\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Create period"
+          },
+          "response": []
+        },
+        {
+          "name": "Teacher Routines",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/routines/teachers/{{teacher_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "routines",
+                "teachers",
+                "{{teacher_id}}"
+              ]
+            },
+            "description": "Get routines for specific teacher"
+          },
+          "response": []
+        },
+        {
+          "name": "Class Config Routines",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/routines/class-configs/{{classConfigId}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "routines",
+                "class-configs",
+                "{{classConfigId}}"
+              ]
+            },
+            "description": "Get routines for specific class configuration"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Attendance",
+      "description": "routes/api.php - student and employee attendance management. Requires attendance.manage permission.",
+      "item": [
+        {
+          "name": "Student Attendance",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/attendance/students",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "attendance",
+                "students"
+              ]
+            },
+            "description": "List student attendance records"
+          },
+          "response": []
+        },
+        {
+          "name": "Take Student Attendance",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/attendance/students/take",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "attendance",
+                "students",
+                "take"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"date\": \"2024-01-15\",\n  \"class_config_id\": 1,\n  \"attendance\": [\n    {\"student_id\": 1, \"status\": \"present\"},\n    {\"student_id\": 2, \"status\": \"absent\"}\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Take attendance for students"
+          },
+          "response": []
+        },
+        {
+          "name": "Employee Attendance",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/attendance/employees",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "attendance",
+                "employees"
+              ]
+            },
+            "description": "List employee attendance records"
+          },
+          "response": []
+        },
+        {
+          "name": "Take Employee Attendance",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/attendance/employees/take",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "attendance",
+                "employees",
+                "take"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"date\": \"2024-01-15\",\n  \"attendance\": [\n    {\"employee_id\": 1, \"status\": \"present\"},\n    {\"employee_id\": 2, \"status\": \"absent\"}\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Take attendance for employees"
+          },
+          "response": []
+        },
+        {
+          "name": "Holidays List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/attendance/holidays",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "attendance",
+                "holidays"
+              ]
+            },
+            "description": "List holidays"
+          },
+          "response": []
+        },
+        {
+          "name": "Holidays Create",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/attendance/holidays",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "attendance",
+                "holidays"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Eid Holiday\",\n  \"date\": \"2024-06-17\",\n  \"type\": \"public\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Create holiday"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Examinations",
+      "description": "routes/api.php - exam management, results processing, and academic performance. Requires examinations.manage permission.",
+      "item": [
+        {
+          "name": "Exams List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/examinations/exams",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "examinations",
+                "exams"
+              ]
+            },
+            "description": "List exams (setup resource)"
+          },
+          "response": []
+        },
+        {
+          "name": "Exams Create",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/examinations/exams",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "examinations",
+                "exams"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Final Exam 2024\",\n  \"academic_year_id\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Create exam"
+          },
+          "response": []
+        },
+        {
+          "name": "Grades List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/examinations/grades",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "examinations",
+                "grades"
+              ]
+            },
+            "description": "List grading scales"
+          },
+          "response": []
+        },
+        {
+          "name": "Grades Create",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/examinations/grades",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "examinations",
+                "grades"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"A+\",\n  \"min_marks\": 80,\n  \"max_marks\": 100,\n  \"grade_point\": 5.0,\n  \"class_config_id\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Create grade scale"
+          },
+          "response": []
+        },
+        {
+          "name": "Exam Configs List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/examinations/exam-configs",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "examinations",
+                "exam-configs"
+              ]
+            },
+            "description": "List exam configurations"
+          },
+          "response": []
+        },
+        {
+          "name": "Exam Configs Create",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/examinations/exam-configs",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "examinations",
+                "exam-configs"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"exam_id\": 1,\n  \"class_config_id\": 1,\n  \"academic_year_id\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Create exam configuration"
+          },
+          "response": []
+        },
+        {
+          "name": "Marks Grid",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/examinations/marks/grid",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "examinations",
+                "marks",
+                "grid"
+              ]
+            },
+            "description": "Get marks entry grid"
+          },
+          "response": []
+        },
+        {
+          "name": "Save Marks",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/examinations/marks",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "examinations",
+                "marks"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"exam_config_id\": 1,\n  \"subject_id\": 1,\n  \"marks\": [\n    {\"student_id\": 1, \"marks\": 85},\n    {\"student_id\": 2, \"marks\": 90}\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Save marks for students"
+          },
+          "response": []
+        },
+        {
+          "name": "Results Marksheet",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/examinations/results/marksheet",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "examinations",
+                "results",
+                "marksheet"
+              ]
+            },
+            "description": "Generate student marksheet"
+          },
+          "response": []
+        },
+        {
+          "name": "Admit Card",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/examinations/admit/card",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "examinations",
+                "admit",
+                "card"
+              ]
+            },
+            "description": "Generate exam admit card"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "CMS",
+      "description": "routes/api.php - content management system. Public endpoints for frontend site, admin endpoints for content management. Includes block-based page builder with integration to HR module for Teachers block.",
+      "item": [
+        {
+          "name": "Public Pages List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/cms/public/pages",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "cms",
+                "public",
+                "pages"
+              ]
+            },
+            "description": "List published pages (public)"
+          },
+          "response": []
+        },
+        {
+          "name": "Public Page",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/cms/public/pages/{{path}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "cms",
+                "public",
+                "pages",
+                "{{path}}"
+              ]
+            },
+            "description": "Get published page by path (public)"
+          },
+          "response": []
+        },
+        {
+          "name": "Pages List (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/cms/pages",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "cms",
+                "pages"
+              ]
+            },
+            "description": "List all pages (admin)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Page (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/cms/pages/{{page_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "cms",
+                "pages",
+                "{{page_id}}"
+              ]
+            },
+            "description": "Get single page (admin)"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Page (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/cms/pages",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "cms",
+                "pages"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"About Us\",\n  \"path\": \"about\",\n  \"content\": \"Page content here\",\n  \"status\": \"published\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Create page"
+          },
+          "response": []
+        },
+        {
+          "name": "Posts List (Public)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/cms/public/posts",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "cms",
+                "public",
+                "posts"
+              ]
+            },
+            "description": "List published posts (public)"
+          },
+          "response": []
+        },
+        {
+          "name": "Posts List (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/cms/posts",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "cms",
+                "posts"
+              ]
+            },
+            "description": "List all posts (admin)"
+          },
+          "response": []
+        },
+        {
+          "name": "Taxonomies",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/cms/taxonomies",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "cms",
+                "taxonomies"
+              ]
+            },
+            "description": "List taxonomies (categories/tags)"
+          },
+          "response": []
+        },
+        {
+          "name": "Media Library",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/cms/media",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "cms",
+                "media"
+              ]
+            },
+            "description": "List media files"
+          },
+          "response": []
+        },
+        {
+          "name": "Menus",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/cms/menus",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "cms",
+                "menus"
+              ]
+            },
+            "description": "List navigation menus"
+          },
+          "response": []
+        },
+        {
+          "name": "Notices",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/cms/notices",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "cms",
+                "notices"
+              ]
+            },
+            "description": "List notices/announcements"
+          },
+          "response": []
+        },
+        {
+          "name": "Events",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/cms/events",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "cms",
+                "events"
+              ]
+            },
+            "description": "List events"
+          },
+          "response": []
+        },
+        {
+          "name": "Redirects",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/cms/redirects",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "cms",
+                "redirects"
+              ]
+            },
+            "description": "List URL redirects"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Public Site",
+      "description": "routes/api.php - rendered public site for Next.js frontend. Unauthenticated, read-only, serving published CMS content.",
+      "item": [
+        {
+          "name": "Site Pages",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/site/pages",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "site",
+                "pages"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "List published site pages"
+          },
+          "response": []
+        },
+        {
+          "name": "Site Page by Path",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/site/pages/{{path}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "site",
+                "pages",
+                "{{path}}"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Get site page by path (catch-all wildcard)"
+          },
+          "response": []
+        },
+        {
+          "name": "Site Posts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/site/posts",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "site",
+                "posts"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "List published site posts"
+          },
+          "response": []
+        },
+        {
+          "name": "Site Post by Slug",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/site/posts/{{slug}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "site",
+                "posts",
+                "{{slug}}"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Get site post by slug"
+          },
+          "response": []
+        },
+        {
+          "name": "Site Events",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/site/events",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "site",
+                "events"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "List published site events"
+          },
+          "response": []
+        },
+        {
+          "name": "Site Event by Slug",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/site/events/{{slug}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "site",
+                "events",
+                "{{slug}}"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Get site event by slug"
+          },
+          "response": []
+        },
+        {
+          "name": "Site Notices",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/site/notices",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "site",
+                "notices"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "List published site notices"
+          },
+          "response": []
+        },
+        {
+          "name": "Site Notice by Slug",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/site/notices/{{slug}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "site",
+                "notices",
+                "{{slug}}"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Get site notice by slug"
+          },
+          "response": []
+        },
+        {
+          "name": "Site Menu",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/site/menus/{{key}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "site",
+                "menus",
+                "{{key}}"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Get site navigation menu by key"
+          },
+          "response": []
+        },
+        {
+          "name": "Site Taxonomies Terms",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/site/taxonomies/{{taxonomy}}/terms",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "site",
+                "taxonomies",
+                "{{taxonomy}}",
+                "terms"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Get terms for a taxonomy (e.g., categories, tags)"
+          },
+          "response": []
+        },
+        {
+          "name": "Site Term by Slug",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/site/terms/{{taxonomy}}/{{slug}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "site",
+                "terms",
+                "{{taxonomy}}",
+                "{{slug}}"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Get term by taxonomy and slug"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000/api",
+      "description": "API base URL"
+    },
+    {
+      "key": "login_email",
+      "value": "admin@example.com",
+      "description": "Login email for authentication"
+    },
+    {
+      "key": "login_password",
+      "value": "password",
+      "description": "Login password for authentication"
+    },
+    {
+      "key": "student_id",
+      "value": "1",
+      "description": "Student ID for testing"
+    },
+    {
+      "key": "employee_id",
+      "value": "1",
+      "description": "Employee ID for testing"
+    },
+    {
+      "key": "application_id",
+      "value": "1",
+      "description": "Application ID for testing"
+    },
+    {
+      "key": "teacher_id",
+      "value": "1",
+      "description": "Teacher ID for testing"
+    },
+    {
+      "key": "page_id",
+      "value": "1",
+      "description": "Page ID for testing"
+    },
+    {
+      "key": "session_id",
+      "value": "1",
+      "description": "Session ID for testing"
+    },
+    {
+      "key": "subject_id",
+      "value": "1",
+      "description": "Subject ID for testing"
+    },
+    {
+      "key": "classConfigId",
+      "value": "1",
+      "description": "Class Config ID for testing"
+    },
+    {
+      "key": "path",
+      "value": "about",
+      "description": "Page path for testing"
+    },
+    {
+      "key": "slug",
+      "value": "sample-post",
+      "description": "Post slug for testing"
+    },
+    {
+      "key": "key",
+      "value": "main",
+      "description": "Menu key for testing"
+    },
+    {
+      "key": "taxonomy",
+      "value": "category",
+      "description": "Taxonomy name for testing"
+    }
+  ]
+}

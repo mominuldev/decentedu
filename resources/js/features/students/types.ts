@@ -6,8 +6,11 @@ export interface StudentFormData {
   religion: string;
   blood_group: string;
   dob: string;
+  birth_certificate_no: string;
   fathers_name: string;
   mothers_name: string;
+  father_nid: string;
+  mother_nid: string;
   mobile: string;
   father_mobile: string;
   mother_mobile: string;

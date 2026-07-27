@@ -4,12 +4,14 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { Loader2, Upload, X, Check, AlertCircle, ArrowLeft } from 'lucide-react';
 import { Button, Card } from '@/components/ui';
 import { toApiError } from '@/lib/api';
+import { useToast } from '@/components/Toast';
 import { bulkRegister, type BulkRegisterRequest } from './api';
 import { listSetup, listClassConfigs } from '@/features/academic/api';
 import { GENDER_OPTIONS } from './types';
 
 export default function BulkRegisterPage() {
   const navigate = useNavigate();
+  const toast = useToast();
 
   // Fetch setup data
   const { data: academicYears = [] } = useQuery({
@@ -56,10 +58,16 @@ export default function BulkRegisterPage() {
     mutationFn: (payload: BulkRegisterRequest) => bulkRegister(payload),
     onSuccess: (data) => {
       setResult(data);
+      if (data.summary.failed_count === 0) {
+        toast.success(`Successfully registered ${data.summary.created_count} students`);
+      } else {
+        toast.warning(`Registered ${data.summary.created_count} students (${data.summary.failed_count} failed)`);
+      }
     },
     onError: (e) => {
-      const apiError = toApiError(e);
-      setError(apiError.message);
+      const err = toApiError(e);
+      setError(err.message);
+      toast.error(err.message || 'Bulk registration failed');
     },
   });
 

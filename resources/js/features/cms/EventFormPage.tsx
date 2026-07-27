@@ -11,6 +11,7 @@ import {
 import { RichTextEditor } from './RichTextEditor';
 import { MediaPicker } from './MediaPicker';
 import { Field, Loading } from './PagesPanel';
+import { useToast } from '@/components/Toast';
 
 const toLocalInput = (iso: string | null) => (iso ? iso.slice(0, 16) : '');
 const EMPTY: EventPayload = { title: '', status: 'draft', body: '', starts_at: '', ends_at: '', location: '', terms: [] };
@@ -20,6 +21,7 @@ export default function EventFormPage() {
     const id = idParam ? Number(idParam) : null;
     const navigate = useNavigate();
     const qc = useQueryClient();
+    const toast = useToast();
 
     const [form, setForm] = useState<EventPayload>(EMPTY);
     const [cover, setCover] = useState<AssetPayload | null>(null);
@@ -43,8 +45,17 @@ export default function EventFormPage() {
 
     const save = useMutation({
         mutationFn: () => { const payload: EventPayload = { ...form, ends_at: form.ends_at || null, featured_asset_id: cover?.id ?? null }; return id ? updateEvent(id, payload) : createEvent(payload); },
-        onSuccess: () => { qc.invalidateQueries({ queryKey: ['cms-events'] }); back(); },
-        onError: (e) => { const err = toApiError(e); setError(err.message); setErrors(err.errors ?? {}); },
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: ['cms-events'] });
+            toast.success('Event saved successfully');
+            back();
+        },
+        onError: (e) => {
+            const err = toApiError(e);
+            setError(err.message);
+            setErrors(err.errors ?? {});
+            toast.error(err.message || 'Could not save event');
+        },
     });
 
     const set = (patch: Partial<EventPayload>) => setForm((f) => ({ ...f, ...patch }));

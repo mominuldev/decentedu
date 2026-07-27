@@ -12,6 +12,7 @@ import { BlockEditor } from './BlockEditor';
 import { SeoFields } from './SeoFields';
 import { RichTextEditor } from './RichTextEditor';
 import { Tabs, Field, Loading } from './PagesPanel';
+import { useToast } from '@/components/Toast';
 
 const EMPTY: PostPayload = { title: '', status: 'draft', body: '', terms: [], tags: [], blocks: [], seo: {} };
 
@@ -20,6 +21,7 @@ export default function PostFormPage() {
     const id = idParam ? Number(idParam) : null;
     const navigate = useNavigate();
     const qc = useQueryClient();
+    const toast = useToast();
 
     const [tab, setTab] = useState<'content' | 'blocks' | 'seo'>('content');
     const [form, setForm] = useState<PostPayload>(EMPTY);
@@ -35,21 +37,34 @@ export default function PostFormPage() {
     const { data: meta } = useQuery({ queryKey: ['cms-post-meta'], queryFn: getPostMeta });
     const { isLoading } = useQuery({
         queryKey: ['cms-post', id],
-        queryFn: async () => { const p = await getPost(id!); hydrate(p); return p; },
+        queryFn: async () => {
+            const p = await getPost(id!);
+            setForm({
+                title: p.title, slug: p.slug, excerpt: p.excerpt, body: p.body, status: p.status,
+                is_featured: p.is_featured, published_at: p.published_at, featured_asset_id: p.featured_asset_id,
+                terms: p.terms.map((t) => t.id), tags: p.tags,
+            });
+            setSeo(p.seo ?? {});
+            setOgImage(p.seo_og_image);
+            setBlocks(p.blocks);
+            return p;
+        },
         enabled: id !== null,
     });
 
-    const hydrate = (p: PostDetail) => {
-        setForm({ title: p.title, slug: p.slug, excerpt: p.excerpt, body: p.body ?? '', author_id: p.author_id, status: p.status, published_at: p.published_at, is_featured: p.is_featured, featured_asset_id: p.featured_asset_id, terms: p.terms, tags: p.tags });
-        setSeo(p.seo ?? {});
-        setOgImage(p.seo_og_image);
-        setBlocks(p.blocks);
-    };
-
     const save = useMutation({
         mutationFn: () => { const payload: PostPayload = { ...form, seo, blocks }; return id ? updatePost(id, payload) : createPost(payload); },
-        onSuccess: () => { qc.invalidateQueries({ queryKey: ['cms-posts'] }); back(); },
-        onError: (e) => { const err = toApiError(e); setError(err.message); setErrors(err.errors ?? {}); },
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: ['cms-posts'] });
+            toast.success('Post saved successfully');
+            back();
+        },
+        onError: (e) => {
+            const err = toApiError(e);
+            setError(err.message);
+            setErrors(err.errors ?? {});
+            toast.error(err.message || 'Could not save post');
+        },
     });
 
     const set = (patch: Partial<PostPayload>) => setForm((f) => ({ ...f, ...patch }));

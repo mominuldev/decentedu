@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Download, FileSpreadsheet, Loader2, Search } from 'lucide-react';
 import { Card, Button, Badge } from '@/components/ui';
+import { Toast, type ToastState } from '@/components/Toast';
 import { toApiError } from '@/lib/api';
 import { classConfigOptions, listClassConfigs } from '@/features/academic/api';
 import { downloadReport } from '@/features/reporting/api';
@@ -37,16 +38,42 @@ export function ReportsPanel() {
     const [classConfigId, setClassConfigId] = useState(0);
     const [classId, setClassId] = useState(0);
     const [examId, setExamId] = useState(0);
+    const [toast, setToast] = useState<ToastState | null>(null);
 
     const needsClass = kind === 'merit-class' || kind === 'fail-class';
 
-    const marksheetQ = useMutation({ mutationFn: () => marksheet({ class_config_id: classConfigId, exam_id: examId }) });
-    const tabulationQ = useMutation({ mutationFn: () => tabulationSheet({ class_config_id: classConfigId, exam_id: examId }) });
+    const handleReportSuccess = (data: any, name: string) => {
+        const rowsCount = Array.isArray(data) ? data.length : data?.rows ? data.rows.length : 0;
+        if (rowsCount === 0) {
+            setToast({ tone: 'warning', message: `No data found for ${name}. Please verify exam results have been processed.` });
+        } else {
+            setToast({ tone: 'success', message: `${name} loaded successfully (${rowsCount} student records).` });
+        }
+    };
+
+    const handleReportError = (err: unknown) => {
+        setToast({ tone: 'error', message: toApiError(err).message || 'Failed to run report.' });
+    };
+
+    const marksheetQ = useMutation({
+        mutationFn: () => marksheet({ class_config_id: classConfigId, exam_id: examId }),
+        onSuccess: (data) => handleReportSuccess(data, 'Marksheet'),
+        onError: handleReportError,
+    });
+    const tabulationQ = useMutation({
+        mutationFn: () => tabulationSheet({ class_config_id: classConfigId, exam_id: examId }),
+        onSuccess: (data) => handleReportSuccess(data, 'Tabulation sheet'),
+        onError: handleReportError,
+    });
     const meritQ = useMutation({
         mutationFn: () => meritList(needsClass ? { class_id: classId, exam_id: examId } : { class_config_id: classConfigId, exam_id: examId }),
+        onSuccess: (data) => handleReportSuccess(data, 'Merit list'),
+        onError: handleReportError,
     });
     const failQ = useMutation({
         mutationFn: () => failList(needsClass ? { class_id: classId, exam_id: examId } : { class_config_id: classConfigId, exam_id: examId }),
+        onSuccess: (data) => handleReportSuccess(data, 'Fail list'),
+        onError: handleReportError,
     });
 
     const active = kind === 'marksheet' ? marksheetQ : kind === 'tabulation' ? tabulationQ : kind.startsWith('merit') ? meritQ : failQ;
@@ -54,13 +81,23 @@ export function ReportsPanel() {
     const reportParams = needsClass ? { class_id: classId, exam_id: examId } : { class_config_id: classConfigId, exam_id: examId };
     const supportsExcel = kind !== 'tabulation';
 
-    const downloadPdf = useMutation({ mutationFn: () => downloadReport(reportKeys[kind], 'pdf', reportParams) });
-    const downloadExcel = useMutation({ mutationFn: () => downloadReport(reportKeys[kind], 'excel', reportParams) });
+    const downloadPdf = useMutation({
+        mutationFn: () => downloadReport(reportKeys[kind], 'pdf', reportParams),
+        onSuccess: () => setToast({ tone: 'success', message: 'PDF report generated and downloaded successfully.' }),
+        onError: handleReportError,
+    });
+    const downloadExcel = useMutation({
+        mutationFn: () => downloadReport(reportKeys[kind], 'excel', reportParams),
+        onSuccess: () => setToast({ tone: 'success', message: 'Excel report generated and downloaded successfully.' }),
+        onError: handleReportError,
+    });
 
     const selectCls = 'rounded-xl border border-border-strong bg-surface px-3.5 py-2.5 text-[14px] text-fg outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25';
 
     return (
-        <Card>
+        <>
+            <Toast toast={toast} onClose={() => setToast(null)} />
+            <Card>
             <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
                 <div>
                     <h3 className="text-[15px] font-semibold text-fg">Reports</h3>
@@ -102,7 +139,7 @@ export function ReportsPanel() {
             <div className="overflow-x-auto border-t border-border">
                 {active.isError && <div className="p-5 text-[13.5px] text-rose-500">{toApiError(active.error).message}</div>}
                 {(downloadPdf.isError || downloadExcel.isError) && (
-                    <div className="p-5 text-[13.5px] text-rose-500">{(downloadPdf.error ?? downloadExcel.error)?.message ?? 'Download failed.'}</div>
+                    <div className="p-5 text-[13.5px] text-rose-500">{toApiError(downloadPdf.error ?? downloadExcel.error).message}</div>
                 )}
 
                 {kind === 'marksheet' && marksheetQ.data && (
@@ -210,5 +247,6 @@ export function ReportsPanel() {
                 )}
             </div>
         </Card>
+    </>
     );
 }

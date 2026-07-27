@@ -4,11 +4,14 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Plus, Pencil, Trash2, Loader2, Inbox, Search, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
 import { Card, Button, Badge } from '@/components/ui';
 import { ConfirmDialog } from '@/components/Modal';
+import { toApiError } from '@/lib/api';
+import { useToast } from '@/components/Toast';
 import { listPages, deletePage, inputCls, labelCls, type PageRow, type SortDir } from './api';
 
 export function PagesPanel() {
     const qc = useQueryClient();
     const navigate = useNavigate();
+    const toast = useToast();
     const [search, setSearch] = useState('');
     const { sort, dir, onSort } = useSort('path', 'asc');
     const { data: rows = [], isLoading } = useQuery({
@@ -18,7 +21,15 @@ export function PagesPanel() {
     const [deleting, setDeleting] = useState<PageRow | null>(null);
 
     const invalidate = () => qc.invalidateQueries({ queryKey: ['cms-pages'] });
-    const del = useMutation({ mutationFn: (id: number) => deletePage(id), onSuccess: () => { invalidate(); setDeleting(null); } });
+    const del = useMutation({
+        mutationFn: (id: number) => deletePage(id),
+        onSuccess: () => {
+            invalidate();
+            setDeleting(null);
+            toast.success('Page deleted successfully');
+        },
+        onError: (err) => toast.error(toApiError(err).message),
+    });
 
     return (
         <Card>

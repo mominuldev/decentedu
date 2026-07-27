@@ -22,9 +22,12 @@ export function AdmissionSetupPanel() {
   );
 }
 
+import { useToast } from '@/components/Toast';
+
 /* ---- Admission years ----------------------------------------------------- */
 function YearsCard() {
   const qc = useQueryClient();
+  const toast = useToast();
   const { data: years = [], isLoading } = useQuery({ queryKey: ['admission-years'], queryFn: listYears });
   const [editing, setEditing] = useState<AdmissionYear | null>(null);
   const [adding, setAdding] = useState(false);
@@ -33,8 +36,16 @@ function YearsCard() {
 
   const del = useMutation({
     mutationFn: (id: number) => deleteYear(id),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['admission-years'] }); setDeleting(null); },
-    onError: (e) => setError(toApiError(e).message),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admission-years'] });
+      setDeleting(null);
+      toast.success('Admission year deleted successfully');
+    },
+    onError: (e) => {
+      const err = toApiError(e);
+      setError(err.message);
+      toast.error(err.message);
+    },
   });
 
   return (
@@ -137,6 +148,7 @@ function YearForm({ year, onClose }: { year: AdmissionYear | null; onClose: () =
 /* ---- Quotas -------------------------------------------------------------- */
 function QuotasCard() {
   const qc = useQueryClient();
+  const toast = useToast();
   const { data: quotas = [], isLoading } = useQuery({ queryKey: ['admission-quotas'], queryFn: listQuotas });
   const [editing, setEditing] = useState<Quota | null>(null);
   const [adding, setAdding] = useState(false);
@@ -145,8 +157,16 @@ function QuotasCard() {
 
   const del = useMutation({
     mutationFn: (id: number) => deleteQuota(id),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['admission-quotas'] }); setDeleting(null); },
-    onError: (e) => setError(toApiError(e).message),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admission-quotas'] });
+      setDeleting(null);
+      toast.success('Quota deleted successfully');
+    },
+    onError: (e) => {
+      const err = toApiError(e);
+      setError(err.message);
+      toast.error(err.message);
+    },
   });
 
   return (

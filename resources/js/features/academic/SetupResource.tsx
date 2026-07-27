@@ -6,6 +6,7 @@ import { Modal, ConfirmDialog } from '@/components/Modal';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { toApiError } from '@/lib/api';
 import { cn } from '@/lib/cn';
+import { useToast } from '@/components/Toast';
 import { listSetup, createSetup, updateSetup, deleteSetup, type SetupRow } from './api';
 
 export interface FieldDef {
@@ -31,6 +32,7 @@ export function SetupResource({
     const { session } = useAuth();
     const branchId = session?.active_branch?.id;
     const qc = useQueryClient();
+    const toast = useToast();
     const key = ['setup', resource, branchId];
 
     const fields = useMemo<FieldDef[]>(
@@ -48,7 +50,12 @@ export function SetupResource({
 
     const del = useMutation({
         mutationFn: (id: number) => deleteSetup(resource, id),
-        onSuccess: () => { invalidate(); setDeleting(null); },
+        onSuccess: () => {
+            invalidate();
+            setDeleting(null);
+            toast.success(`${singular} deleted successfully`);
+        },
+        onError: (err) => toast.error(toApiError(err).message),
     });
 
     return (
@@ -157,14 +164,23 @@ function SetupForm({
     onClose: () => void;
     onSaved: () => void;
 }) {
+    const toast = useToast();
     const [form, setForm] = useState<Record<string, unknown>>(() => defaults(fields, row));
     const [errors, setErrors] = useState<Record<string, string[]>>({});
     const [error, setError] = useState<string | null>(null);
 
     const save = useMutation({
         mutationFn: () => (row ? updateSetup(resource, row.id, form) : createSetup(resource, form)),
-        onSuccess: onSaved,
-        onError: (e) => { const a = toApiError(e); setError(a.errors ? null : a.message); setErrors(a.errors ?? {}); },
+        onSuccess: () => {
+            toast.success(row ? `${singular} updated successfully` : `${singular} created successfully`);
+            onSaved();
+        },
+        onError: (e) => {
+            const a = toApiError(e);
+            setError(a.errors ? null : a.message);
+            setErrors(a.errors ?? {});
+            toast.error(a.message || `Could not save ${singular.toLowerCase()}`);
+        },
     });
 
     const set = (k: string, v: unknown) => setForm((f) => ({ ...f, [k]: v }));

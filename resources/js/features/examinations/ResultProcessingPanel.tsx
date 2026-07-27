@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Loader2, PlayCircle } from 'lucide-react';
 import { Card, Button } from '@/components/ui';
+import { Toast, type ToastState } from '@/components/Toast';
 import { toApiError } from '@/lib/api';
 import { classConfigOptions, listClassConfigs } from '@/features/academic/api';
 import { listSetup, generalProcess, finalProcess, meritProcess } from './api';
@@ -14,21 +15,47 @@ export function ResultProcessingPanel() {
     const [classConfigId, setClassConfigId] = useState(0);
     const [classId, setClassId] = useState(0);
     const [examId, setExamId] = useState(0);
+    const [toast, setToast] = useState<ToastState | null>(null);
 
     const general = useMutation({
         mutationFn: () => generalProcess({ class_config_id: classConfigId, exam_id: examId }),
+        onSuccess: (res) => {
+            if (res.subject_results_processed === 0) {
+                setToast({ tone: 'warning', message: 'General process finished, but 0 subject results were processed.' });
+            } else {
+                setToast({ tone: 'success', message: `General process completed: ${res.subject_results_processed} subject results processed.` });
+            }
+        },
+        onError: (err) => setToast({ tone: 'error', message: toApiError(err).message }),
     });
     const final = useMutation({
         mutationFn: () => finalProcess({ class_config_id: classConfigId, exam_id: examId }),
+        onSuccess: (res) => {
+            if (res.subject_results_processed === 0) {
+                setToast({ tone: 'warning', message: 'Final process finished, but 0 subject results were processed.' });
+            } else {
+                setToast({ tone: 'success', message: `Final process completed: ${res.subject_results_processed} subject results processed.` });
+            }
+        },
+        onError: (err) => setToast({ tone: 'error', message: toApiError(err).message }),
     });
     const merit = useMutation({
         mutationFn: () => meritProcess({ class_id: classId, exam_id: examId }),
+        onSuccess: (res) => {
+            if (res.students_processed === 0) {
+                setToast({ tone: 'warning', message: 'Merit process finished, but 0 students were processed.' });
+            } else {
+                setToast({ tone: 'success', message: `Merit process completed: ${res.students_processed} students processed.` });
+            }
+        },
+        onError: (err) => setToast({ tone: 'error', message: toApiError(err).message }),
     });
 
     const selectCls = 'rounded-xl border border-border-strong bg-surface px-3.5 py-2.5 text-[14px] text-fg outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25';
 
     return (
         <div className="space-y-5">
+            <Toast toast={toast} onClose={() => setToast(null)} />
             <Card>
                 <div className="px-5 py-4">
                     <h3 className="text-[15px] font-semibold text-fg">1 &amp; 2 · General / Final process</h3>

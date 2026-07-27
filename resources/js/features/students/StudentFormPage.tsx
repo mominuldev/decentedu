@@ -54,6 +54,7 @@ function StudentFormBody({
   onCancel: () => void;
   onSaved: () => void;
 }) {
+  const toast = useToast();
   // Fetch setup data for dropdowns
   const { data: academicYears = [] } = useQuery({
     queryKey: ['setup', 'academic-years'],
@@ -75,7 +76,30 @@ function StudentFormBody({
     queryFn: () => listSetup('categories'),
   });
 
-  const [form, setForm] = useState<StudentFormData>(() => initializeForm(student));
+  const [form, setForm] = useState<StudentFormData>(() => ({
+    student_uid: student?.student_uid || '',
+    name: student?.name || '',
+    name_bn: student?.name_bn || '',
+    sex: student?.sex || 'male',
+    dob: student?.dob || '',
+    birth_certificate_no: student?.birth_certificate_no || '',
+    nid: student?.nid || '',
+    religion: student?.religion || 'Islam',
+    blood_group: student?.blood_group || '',
+    nationality: student?.nationality || 'Bangladeshi',
+    academic_year_id: student?.academic_year_id || academicYears[0]?.id || 0,
+    class_config_id: student?.class_config_id || classConfigs[0]?.id || 0,
+    group_id: student?.group_id || undefined,
+    category_id: student?.category_id || undefined,
+    roll_no: student?.roll_no || undefined,
+    status: student?.status || 'active',
+    father_name: student?.father_name || '',
+    father_mobile: student?.father_mobile || '',
+    mother_name: student?.mother_name || '',
+    mother_mobile: student?.mother_mobile || '',
+    photo_asset_id: student?.photo_asset_id || undefined,
+  }));
+
   const [guardians, setGuardians] = useState(() =>
     student?.guardians?.map(g => ({
       relationship: g.relationship,
@@ -105,11 +129,15 @@ function StudentFormBody({
   const saveMutation = useMutation({
     mutationFn: (payload: CreateStudentRequest) =>
       student ? updateStudent(student.id, payload) : createStudent(payload),
-    onSuccess: onSaved,
+    onSuccess: () => {
+      toast.success(student ? 'Student updated successfully' : 'Student created successfully');
+      onSaved();
+    },
     onError: (e) => {
       const apiError = toApiError(e);
       setError(apiError.errors ? null : apiError.message);
       setErrors(apiError.errors ?? {});
+      toast.error(apiError.message || 'Could not save student');
     },
   });
 
@@ -232,6 +260,13 @@ function StudentFormBody({
               value={form.dob}
               onChange={(v) => setField('dob', v)}
             />
+            <FormField
+              label="Birth Certificate Number"
+              value={form.birth_certificate_no}
+              onChange={(v) => setField('birth_certificate_no', v)}
+              error={errors.birth_certificate_no?.[0]}
+              required
+            />
             <SelectField
               label="Religion"
               value={form.religion}
@@ -262,6 +297,20 @@ function StudentFormBody({
               required
             />
             <FormField
+              label="Father's NID"
+              value={form.father_nid}
+              onChange={(v) => setField('father_nid', v)}
+              error={errors.father_nid?.[0]}
+              required
+            />
+            <FormField
+              label="Father's Mobile Number"
+              value={form.father_mobile}
+              onChange={(v) => setField('father_mobile', v)}
+              error={errors.father_mobile?.[0]}
+              required
+            />
+            <FormField
               label="Mother's Name"
               value={form.mothers_name}
               onChange={(v) => setField('mothers_name', v)}
@@ -269,14 +318,17 @@ function StudentFormBody({
               required
             />
             <FormField
-              label="Father's Mobile"
-              value={form.father_mobile}
-              onChange={(v) => setField('father_mobile', v)}
+              label="Mother's NID"
+              value={form.mother_nid}
+              onChange={(v) => setField('mother_nid', v)}
+              error={errors.mother_nid?.[0]}
+              required
             />
             <FormField
-              label="Mother's Mobile"
+              label="Mother's Mobile Number"
               value={form.mother_mobile}
               onChange={(v) => setField('mother_mobile', v)}
+              error={errors.mother_mobile?.[0]}
             />
           </div>
         </Card>
@@ -470,8 +522,11 @@ function initializeForm(student: Student | null): StudentFormData {
     religion: student?.religion || '',
     blood_group: student?.blood_group || '',
     dob: student?.dob?.split('T')[0] || '',
+    birth_certificate_no: student?.birth_certificate_no || '',
     fathers_name: student?.fathers_name || '',
     mothers_name: student?.mothers_name || '',
+    father_nid: student?.father_nid || '',
+    mother_nid: student?.mother_nid || '',
     mobile: student?.mobile || '',
     father_mobile: student?.father_mobile || '',
     mother_mobile: student?.mother_mobile || '',

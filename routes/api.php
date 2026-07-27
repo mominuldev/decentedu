@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\Attendance\TimeConfigController;
 use App\Http\Controllers\Api\Audit\AuditLogController;
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\BranchController;
+use App\Http\Controllers\Api\SettingsController;
 use App\Http\Controllers\Api\Cms\AssetController;
 use App\Http\Controllers\Api\Cms\EventController;
 use App\Http\Controllers\Api\Cms\MediaFolderController;
@@ -110,6 +111,13 @@ Route::prefix('v1')->group(function () use ($setupSlugs) {
         Route::get('auth/sessions', [AuthController::class, 'sessions']);
         Route::delete('auth/sessions/{id}', [AuthController::class, 'revokeSession']);
         Route::post('branch/switch', [BranchController::class, 'switch']);
+
+        Route::prefix('settings')->group(function () {
+            Route::get('branch', [SettingsController::class, 'getBranchSettings']);
+            Route::match(['put', 'patch'], 'branch', [SettingsController::class, 'updateBranchSettings']);
+            Route::get('system', [SettingsController::class, 'getSystemSettings']);
+            Route::match(['put', 'patch'], 'profile', [SettingsController::class, 'updateProfile']);
+        });
 
         // ---- Users & Roles -----------------------------------------------------
         // GET routes stay open to any authenticated user (the SPA needs role/permission

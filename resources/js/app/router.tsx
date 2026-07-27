@@ -28,6 +28,7 @@ import NoticeFormPage from '@/features/cms/NoticeFormPage';
 import EventFormPage from '@/features/cms/EventFormPage';
 import UsersPage from '@/features/users/UsersPage';
 import AuditLogPage from '@/features/audit/AuditLogPage';
+import SettingsPage from '@/features/settings/SettingsPage';
 import PrintClassRoutinePage from '@/features/routines/PrintClassRoutinePage';
 import PrintStudentListPage from '@/features/students/PrintStudentListPage';
 import Placeholder from '@/features/misc/Placeholder';
@@ -77,6 +78,6 @@ export const router = createBrowserRouter([
     { path: '/audit-log', element: page(<AuditLogPage />) },
     { path: '/print/routine/:classConfigId', element: <ProtectedRoute><PrintClassRoutinePage /></ProtectedRoute> },
     { path: '/print/students', element: <ProtectedRoute><PrintStudentListPage /></ProtectedRoute> },
-    { path: '/settings', element: stub('Settings', 'Phase 2') },
+    { path: '/settings', element: page(<SettingsPage />) },
     { path: '*', element: stub('Page not found', 'Unknown route') },
 ]);

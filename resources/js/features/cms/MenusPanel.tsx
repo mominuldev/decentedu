@@ -5,6 +5,7 @@ import { Card, Button, Badge } from '@/components/ui';
 import { Modal, ConfirmDialog } from '@/components/Modal';
 import { toApiError } from '@/lib/api';
 import { cn } from '@/lib/cn';
+import { useToast } from '@/components/Toast';
 import {
     listMenus, createMenu, deleteMenu, getMenu, saveMenuTree,
     inputCls, type MenuRow, type MenuTreeItem, type MenuDetail,
@@ -13,12 +14,22 @@ import { Field, Loading, Empty } from './PagesPanel';
 
 export function MenusPanel() {
     const qc = useQueryClient();
+    const toast = useToast();
     const { data: menus = [], isLoading } = useQuery({ queryKey: ['cms-menus'], queryFn: listMenus });
     const [selectedId, setSelectedId] = useState<number | null>(null);
     const [creating, setCreating] = useState(false);
     const [deleting, setDeleting] = useState<MenuRow | null>(null);
 
-    const del = useMutation({ mutationFn: (id: number) => deleteMenu(id), onSuccess: () => { qc.invalidateQueries({ queryKey: ['cms-menus'] }); setDeleting(null); setSelectedId(null); } });
+    const del = useMutation({
+        mutationFn: (id: number) => deleteMenu(id),
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: ['cms-menus'] });
+            setDeleting(null);
+            setSelectedId(null);
+            toast.success('Menu deleted successfully');
+        },
+        onError: (err) => toast.error(toApiError(err).message),
+    });
 
     return (
         <div className="grid gap-4 lg:grid-cols-[280px_1fr]">
@@ -49,10 +60,23 @@ export function MenusPanel() {
 }
 
 function MenuForm({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
+    const toast = useToast();
     const [form, setForm] = useState({ name: '', key: '', is_active: true });
     const [errors, setErrors] = useState<Record<string, string[]>>({});
     const [error, setError] = useState<string | null>(null);
-    const save = useMutation({ mutationFn: () => createMenu(form), onSuccess: onSaved, onError: (e) => { const err = toApiError(e); setError(err.message); setErrors(err.errors ?? {}); } });
+    const save = useMutation({
+        mutationFn: () => createMenu(form),
+        onSuccess: () => {
+            toast.success('Menu created successfully');
+            onSaved();
+        },
+        onError: (e) => {
+            const err = toApiError(e);
+            setError(err.message);
+            setErrors(err.errors ?? {});
+            toast.error(err.message || 'Could not create menu');
+        },
+    });
     return (
         <Modal open onClose={onClose} title="New menu"
             footer={<><Button variant="outline" onClick={onClose}>Cancel</Button><Button onClick={() => save.mutate()} disabled={save.isPending}>Create</Button></>}>
@@ -69,6 +93,7 @@ let tmpId = -1;
 
 function MenuTreeEditor({ menuId }: { menuId: number }) {
     const qc = useQueryClient();
+    const toast = useToast();
     const { data, isLoading } = useQuery({ queryKey: ['cms-menu', menuId], queryFn: () => getMenu(menuId) });
     const [items, setItems] = useState<MenuTreeItem[]>([]);
 
@@ -76,7 +101,12 @@ function MenuTreeEditor({ menuId }: { menuId: number }) {
 
     const save = useMutation({
         mutationFn: () => saveMenuTree(menuId, items),
-        onSuccess: (tree) => { setItems(tree); qc.invalidateQueries({ queryKey: ['cms-menus'] }); },
+        onSuccess: (tree) => {
+            setItems(tree);
+            qc.invalidateQueries({ queryKey: ['cms-menus'] });
+            toast.success('Menu structure saved successfully');
+        },
+        onError: (err) => toast.error(toApiError(err).message),
     });
 
     if (isLoading || !data) return <Card><Loading /></Card>;

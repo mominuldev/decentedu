@@ -9,7 +9,8 @@ import { CSS } from '@dnd-kit/utilities';
 import {
     GripVertical, ChevronDown, ChevronRight, Eye, EyeOff, Trash2, Plus,
     LayoutTemplate, Type, Image as ImageIcon, Images, Video, MousePointerClick,
-    HelpCircle, List, Code2, Minus, Rows3, PanelTop, ShoppingBag, Square, Info, Milestone, type LucideIcon,
+    HelpCircle, Code2, Rows3, PanelTop, ShoppingBag, Square, Info, Milestone,
+    Heading, Quote, GraduationCap, BellRing, LayoutGrid, Newspaper, SeparatorHorizontal, type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { BlockFields } from './BlockForms';
@@ -28,6 +29,7 @@ function withKeys(blocks: EditorBlock[]): Keyed[] {
 /* Icon shown in the palette + as the block's glyph. */
 const BLOCK_ICONS: Record<string, LucideIcon> = {
     hero: LayoutTemplate,
+    heading: Heading,
     page_header: PanelTop,
     rich_text: Type,
     image: ImageIcon,
@@ -35,13 +37,17 @@ const BLOCK_ICONS: Record<string, LucideIcon> = {
     video_embed: Video,
     cta: MousePointerClick,
     faq: HelpCircle,
-    posts_list: List,
+    posts_list: Newspaper,
     html: Code2,
-    divider: Minus,
+    divider: SeparatorHorizontal,
     section: Rows3,
-    product_grid: ShoppingBag,
+    card_list: LayoutGrid,
+    notice_board: BellRing,
+    quote: Quote,
+    teachers: GraduationCap,
     about: Info,
     milestones_timeline: Milestone,
+    product_grid: ShoppingBag,
 };
 const iconFor = (type: string): LucideIcon => BLOCK_ICONS[type] ?? Square;
 
@@ -52,6 +58,7 @@ function blockSummary(b: EditorBlock): string {
     const p = b.payload ?? {};
     switch (b.type) {
         case 'hero': return (p.heading as string) || '';
+        case 'heading': return (p.title as string) || (p.heading as string) || (p.subtitle as string) || '';
         case 'page_header': return (p.heading as string) || '';
         case 'rich_text': return stripHtml((p.content as string) ?? '');
         case 'html': return 'Custom HTML';
@@ -61,6 +68,10 @@ function blockSummary(b: EditorBlock): string {
         case 'cta': return (p.title as string) || (p.heading as string) || '';
         case 'about': return (p.title as string) || (p.heading as string) || '';
         case 'milestones_timeline': return `${((p.items as unknown[]) ?? []).length} milestones`;
+        case 'card_list': return `${((p.items as unknown[]) ?? []).length} cards`;
+        case 'notice_board': return (p.heading as string) || (p.title as string) || '';
+        case 'quote': return (p.name as string) || (p.quote_message as string) || '';
+        case 'teachers': return (p.title as string) || (p.heading as string) || '';
         case 'faq': return `${((p.items as unknown[]) ?? []).length} questions`;
         case 'posts_list': return `${(p.mode as string) ?? 'latest'} · ${(p.limit as number) ?? 3}`;
         case 'divider': return (p.style as string) ?? 'line';

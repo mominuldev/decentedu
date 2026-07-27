@@ -4,6 +4,7 @@ import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { Card, Button, Badge } from '@/components/ui';
 import { Modal, ConfirmDialog } from '@/components/Modal';
 import { toApiError } from '@/lib/api';
+import { useToast } from '@/components/Toast';
 import {
     listRedirects, createRedirect, updateRedirect, deleteRedirect,
     inputCls, type RedirectRow,
@@ -12,13 +13,22 @@ import { Field, Loading, Empty } from './PagesPanel';
 
 export function RedirectsPanel() {
     const qc = useQueryClient();
+    const toast = useToast();
     const { data: rows = [], isLoading } = useQuery({ queryKey: ['cms-redirects'], queryFn: () => listRedirects() });
     const [editing, setEditing] = useState<RedirectRow | null>(null);
     const [creating, setCreating] = useState(false);
     const [deleting, setDeleting] = useState<RedirectRow | null>(null);
 
     const invalidate = () => qc.invalidateQueries({ queryKey: ['cms-redirects'] });
-    const del = useMutation({ mutationFn: (id: number) => deleteRedirect(id), onSuccess: () => { invalidate(); setDeleting(null); } });
+    const del = useMutation({
+        mutationFn: (id: number) => deleteRedirect(id),
+        onSuccess: () => {
+            invalidate();
+            setDeleting(null);
+            toast.success('Redirect deleted successfully');
+        },
+        onError: (err) => toast.error(toApiError(err).message),
+    });
 
     return (
         <Card>
@@ -62,13 +72,22 @@ export function RedirectsPanel() {
 }
 
 function RedirectForm({ row, onClose, onSaved }: { row: RedirectRow | null; onClose: () => void; onSaved: () => void }) {
+    const toast = useToast();
     const [form, setForm] = useState({ from_path: row?.from_path ?? '', to_path: row?.to_path ?? '', status_code: row?.status_code ?? 301, is_active: row?.is_active ?? true });
     const [errors, setErrors] = useState<Record<string, string[]>>({});
     const [error, setError] = useState<string | null>(null);
     const save = useMutation({
         mutationFn: () => row ? updateRedirect(row.id, form) : createRedirect(form),
-        onSuccess: onSaved,
-        onError: (e) => { const err = toApiError(e); setError(err.message); setErrors(err.errors ?? {}); },
+        onSuccess: () => {
+            toast.success(row ? 'Redirect updated successfully' : 'Redirect created successfully');
+            onSaved();
+        },
+        onError: (e) => {
+            const err = toApiError(e);
+            setError(err.message);
+            setErrors(err.errors ?? {});
+            toast.error(err.message || 'Could not save redirect');
+        },
     });
     const set = (p: Partial<typeof form>) => setForm((f) => ({ ...f, ...p }));
     return (

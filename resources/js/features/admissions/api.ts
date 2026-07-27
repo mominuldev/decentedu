@@ -38,8 +38,11 @@ export interface AdmissionApplication {
   religion: string | null;
   blood_group: string | null;
   dob: string | null;
+  birth_certificate_no: string | null;
   fathers_name: string;
   mothers_name: string;
+  father_nid: string | null;
+  mother_nid: string | null;
   mobile: string | null;
   guardian_mobile: string | null;
   photo_path: string | null;

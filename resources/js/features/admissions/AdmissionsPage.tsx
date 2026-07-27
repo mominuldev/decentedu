@@ -20,9 +20,13 @@ type Tab = 'applications' | 'setup';
 
 const control = 'rounded-xl border border-border-strong bg-surface px-3.5 py-2.5 text-[14px] text-fg outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25';
 
+import { useToast } from '@/components/Toast';
+import { toApiError } from '@/lib/api';
+
 export default function AdmissionsPage() {
   const qc = useQueryClient();
   const navigate = useNavigate();
+  const globalToast = useToast();
   const [tab, setTab] = useState<Tab>('applications');
   const [search, setSearch] = useState('');
   const [yearId, setYearId] = useState<number>(0);
@@ -31,7 +35,6 @@ export default function AdmissionsPage() {
 
   const [converting, setConverting] = useState<AdmissionApplication | null>(null);
   const [deleting, setDeleting] = useState<AdmissionApplication | null>(null);
-  const [toast, setToast] = useState<string | null>(null);
 
   const { data: years = [] } = useQuery({ queryKey: ['admission-years'], queryFn: listYears });
   const { data: classConfigs = [] } = useQuery({ queryKey: ['class-configs'], queryFn: listClassConfigs });
@@ -64,7 +67,9 @@ export default function AdmissionsPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admission-applications'] });
       qc.invalidateQueries({ queryKey: ['admission-stats'] });
+      globalToast.success('Application status updated successfully');
     },
+    onError: (err) => globalToast.error(toApiError(err).message),
   });
 
   const delMutation = useMutation({
@@ -73,7 +78,9 @@ export default function AdmissionsPage() {
       qc.invalidateQueries({ queryKey: ['admission-applications'] });
       qc.invalidateQueries({ queryKey: ['admission-stats'] });
       setDeleting(null);
+      globalToast.success('Application deleted successfully');
     },
+    onError: (err) => globalToast.error(toApiError(err).message),
   });
 
   const resetPage = () => setPage(1);
@@ -89,11 +96,6 @@ export default function AdmissionsPage() {
 
   return (
     <div className="space-y-6">
-      {toast && (
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-[13.5px] text-emerald-700 dark:border-emerald-500/25 dark:bg-emerald-500/10 dark:text-emerald-300">
-          {toast}
-        </div>
-      )}
 
       {/* Header */}
       <div className="flex items-center justify-between">

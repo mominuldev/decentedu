@@ -4,12 +4,15 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Plus, Pencil, Trash2, Star, Search } from 'lucide-react';
 import { Card, Button, Badge } from '@/components/ui';
 import { ConfirmDialog } from '@/components/Modal';
+import { toApiError } from '@/lib/api';
+import { useToast } from '@/components/Toast';
 import { listPosts, deletePost, inputCls, type PostRow } from './api';
 import { Loading, Empty, SortTh, useSort } from './PagesPanel';
 
 export function PostsPanel() {
     const qc = useQueryClient();
     const navigate = useNavigate();
+    const toast = useToast();
     const [statusFilter, setStatusFilter] = useState('');
     const [search, setSearch] = useState('');
     const { sort, dir, onSort } = useSort('published_at', 'desc');
@@ -20,7 +23,15 @@ export function PostsPanel() {
     const [deleting, setDeleting] = useState<PostRow | null>(null);
 
     const invalidate = () => qc.invalidateQueries({ queryKey: ['cms-posts'] });
-    const del = useMutation({ mutationFn: (id: number) => deletePost(id), onSuccess: () => { invalidate(); setDeleting(null); } });
+    const del = useMutation({
+        mutationFn: (id: number) => deletePost(id),
+        onSuccess: () => {
+            invalidate();
+            setDeleting(null);
+            toast.success('Post deleted successfully');
+        },
+        onError: (err) => toast.error(toApiError(err).message),
+    });
 
     return (
         <Card>

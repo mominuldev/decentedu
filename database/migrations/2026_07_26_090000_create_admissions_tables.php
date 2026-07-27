@@ -67,8 +67,13 @@ return new class extends Migration
             $table->enum('religion', ['islam', 'hindu', 'christian', 'buddhist', 'others'])->nullable();
             $table->string('blood_group')->nullable();
             $table->date('dob')->nullable();
+            $table->string('birth_certificate_no')->nullable();
             $table->string('fathers_name');
+            $table->string('father_nid')->nullable();
+            $table->string('father_mobile')->nullable();
             $table->string('mothers_name');
+            $table->string('mother_nid')->nullable();
+            $table->string('mother_mobile')->nullable();
             $table->string('mobile')->nullable();
             $table->string('guardian_mobile')->nullable();
             $table->string('photo_path')->nullable();

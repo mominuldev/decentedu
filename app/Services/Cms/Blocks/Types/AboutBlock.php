@@ -27,6 +27,15 @@ class AboutBlock extends BaseBlockType
             'items' => ['nullable', 'array'],
             'items.*.label' => ['required', 'string', 'max:255'],
             'items.*.value' => ['required', 'string', 'max:255'],
+            'variation' => ['nullable', 'string', Rule::in(['variation_one', 'variation_two', 'variation_three', 'variation_1', 'variation_2', 'variation_3'])],
+            'cta_label' => ['nullable', 'string', 'max:100'],
+            'cta_url' => ['nullable', 'string', 'max:2048'],
+            'cta_target' => ['nullable', Rule::in(['self', 'blank'])],
+            'cta_variant' => ['nullable', Rule::in(['primary', 'secondary', 'outline', 'ghost'])],
+            'quote_subtitle' => ['nullable', 'string', 'max:500'],
+            'quote_message' => ['nullable', 'string'],
+            'author' => ['nullable', 'string', 'max:255'],
+            'designation' => ['nullable', 'string', 'max:255'],
         ];
     }
 
@@ -35,6 +44,7 @@ class AboutBlock extends BaseBlockType
         $title = $payload['title'] ?? $payload['heading'] ?? null;
 
         return [
+            'variation' => $payload['variation'] ?? 'variation_one',
             'subtitle' => $payload['subtitle'] ?? null,
             'title' => $title,
             'heading' => $title,
@@ -49,6 +59,14 @@ class AboutBlock extends BaseBlockType
                 ],
                 $payload['items'] ?? [],
             )),
+            'cta_label' => $payload['cta_label'] ?? null,
+            'cta_url' => $payload['cta_url'] ?? null,
+            'cta_target' => $payload['cta_target'] ?? 'self',
+            'cta_variant' => $payload['cta_variant'] ?? 'primary',
+            'quote_subtitle' => $payload['quote_subtitle'] ?? null,
+            'quote_message' => $payload['quote_message'] ?? null,
+            'author' => $payload['author'] ?? null,
+            'designation' => $payload['designation'] ?? null,
         ];
     }
 }

@@ -5,6 +5,7 @@ import { Card, Button } from '@/components/ui';
 import { Modal, ConfirmDialog } from '@/components/Modal';
 import { toApiError } from '@/lib/api';
 import { cn } from '@/lib/cn';
+import { useToast } from '@/components/Toast';
 import {
     listFolders, createFolder, deleteFolder, listAssets, uploadAssets, updateAsset, deleteAsset,
     inputCls, type FolderRow, type AssetRow,
@@ -13,6 +14,7 @@ import { Field, Loading, Empty } from './PagesPanel';
 
 export function MediaPanel() {
     const qc = useQueryClient();
+    const toast = useToast();
     const [folderId, setFolderId] = useState<number | null>(null);
     const [search, setSearch] = useState('');
     const [creatingFolder, setCreatingFolder] = useState(false);
@@ -28,9 +30,34 @@ export function MediaPanel() {
     });
 
     const invalidate = () => qc.invalidateQueries({ queryKey: ['cms-assets'] });
-    const upload = useMutation({ mutationFn: (files: FileList) => uploadAssets(files, folderId), onSuccess: invalidate });
-    const delAsset = useMutation({ mutationFn: (id: number) => deleteAsset(id), onSuccess: () => { invalidate(); setDeletingAsset(null); } });
-    const delFolder = useMutation({ mutationFn: (id: number) => deleteFolder(id), onSuccess: () => { qc.invalidateQueries({ queryKey: ['cms-folders'] }); invalidate(); setDeletingFolder(null); if (deletingFolder?.id === folderId) setFolderId(null); } });
+    const upload = useMutation({
+        mutationFn: (files: FileList) => uploadAssets(files, folderId),
+        onSuccess: () => {
+            invalidate();
+            toast.success('Assets uploaded successfully');
+        },
+        onError: (err) => toast.error(toApiError(err).message),
+    });
+    const delAsset = useMutation({
+        mutationFn: (id: number) => deleteAsset(id),
+        onSuccess: () => {
+            invalidate();
+            setDeletingAsset(null);
+            toast.success('Asset deleted successfully');
+        },
+        onError: (err) => toast.error(toApiError(err).message),
+    });
+    const delFolder = useMutation({
+        mutationFn: (id: number) => deleteFolder(id),
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: ['cms-folders'] });
+            invalidate();
+            setDeletingFolder(null);
+            if (deletingFolder?.id === folderId) setFolderId(null);
+            toast.success('Folder deleted successfully');
+        },
+        onError: (err) => toast.error(toApiError(err).message),
+    });
 
     return (
         <div className="grid gap-4 lg:grid-cols-[260px_1fr]">

@@ -4,6 +4,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Plus, Pencil, Trash2, Search, MapPin } from 'lucide-react';
 import { Card, Button, Badge } from '@/components/ui';
 import { ConfirmDialog } from '@/components/Modal';
+import { toApiError } from '@/lib/api';
+import { useToast } from '@/components/Toast';
 import { listEvents, deleteEvent, inputCls, type EventRow } from './api';
 import { Loading, Empty, SortTh, useSort } from './PagesPanel';
 
@@ -13,6 +15,7 @@ const fmtDateTime = (iso: string | null) =>
 export function EventsPanel() {
     const qc = useQueryClient();
     const navigate = useNavigate();
+    const toast = useToast();
     const [statusFilter, setStatusFilter] = useState('');
     const [search, setSearch] = useState('');
     const { sort, dir, onSort } = useSort('starts_at', 'desc');
@@ -23,7 +26,15 @@ export function EventsPanel() {
     const [deleting, setDeleting] = useState<EventRow | null>(null);
 
     const invalidate = () => qc.invalidateQueries({ queryKey: ['cms-events'] });
-    const del = useMutation({ mutationFn: (id: number) => deleteEvent(id), onSuccess: () => { invalidate(); setDeleting(null); } });
+    const del = useMutation({
+        mutationFn: (id: number) => deleteEvent(id),
+        onSuccess: () => {
+            invalidate();
+            setDeleting(null);
+            toast.success('Event deleted successfully');
+        },
+        onError: (err) => toast.error(toApiError(err).message),
+    });
 
     return (
         <Card>

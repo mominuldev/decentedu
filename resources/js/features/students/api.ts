@@ -10,8 +10,11 @@ export interface Student {
   religion: string | null;
   blood_group: string | null;
   dob: string | null;
+  birth_certificate_no: string | null;
   fathers_name: string;
   mothers_name: string;
+  father_nid: string | null;
+  mother_nid: string | null;
   mobile: string | null;
   father_mobile: string | null;
   mother_mobile: string | null;
@@ -76,8 +79,11 @@ export interface CreateStudentRequest {
   religion?: string;
   blood_group?: string;
   dob?: string;
+  birth_certificate_no: string;
   fathers_name: string;
   mothers_name: string;
+  father_nid: string;
+  mother_nid: string;
   mobile?: string;
   father_mobile?: string;
   mother_mobile?: string;

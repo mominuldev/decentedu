@@ -25,10 +25,13 @@ return new class extends Migration
             $table->string('religion')->nullable();
             $table->string('blood_group')->nullable();
             $table->date('dob')->nullable();
+            $table->string('birth_certificate_no')->nullable();
 
             // Parents/Guardians info
             $table->string('fathers_name');
             $table->string('mothers_name');
+            $table->string('father_nid')->nullable();
+            $table->string('mother_nid')->nullable();
             $table->string('mobile')->nullable();
             $table->string('father_mobile')->nullable();
             $table->string('mother_mobile')->nullable();

@@ -23,8 +23,13 @@ type FormState = {
   religion: string;
   blood_group: string;
   dob: string;
+  birth_certificate_no: string;
   fathers_name: string;
+  father_nid: string;
+  father_mobile: string;
   mothers_name: string;
+  mother_nid: string;
+  mother_mobile: string;
   mobile: string;
   guardian_mobile: string;
   present_address: string;
@@ -67,8 +72,13 @@ function initForm(a: AdmissionApplication | null, defaultYearId: number): FormSt
     religion: a?.religion ?? '',
     blood_group: a?.blood_group ?? '',
     dob: a?.dob ? a.dob.slice(0, 10) : '',
+    birth_certificate_no: a?.birth_certificate_no ?? '',
     fathers_name: a?.fathers_name ?? '',
+    father_nid: a?.father_nid ?? '',
+    father_mobile: a?.father_mobile ?? a?.guardian_mobile ?? '',
     mothers_name: a?.mothers_name ?? '',
+    mother_nid: a?.mother_nid ?? '',
+    mother_mobile: a?.mother_mobile ?? '',
     mobile: a?.mobile ?? '',
     guardian_mobile: a?.guardian_mobile ?? '',
     present_address: a?.present_address ?? '',
@@ -81,19 +91,55 @@ function initForm(a: AdmissionApplication | null, defaultYearId: number): FormSt
 
 function ApplicationFormBody({ application }: { application: AdmissionApplication | null }) {
   const navigate = useNavigate();
-
+  const toast = useToast();
   const { data: years = [] } = useQuery({ queryKey: ['admission-years'], queryFn: listYears });
   const { data: quotas = [] } = useQuery({ queryKey: ['admission-quotas'], queryFn: listQuotas });
   const { data: classConfigs = [] } = useQuery({ queryKey: ['class-configs'], queryFn: listClassConfigs });
 
-  const openYear = years.find((y) => y.status === 'open') ?? years[0];
-  const [form, setForm] = useState<FormState>(() => initForm(application, 0));
+  const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [errors, setErrors] = useState<Record<string, string[]>>({});
   const [error, setError] = useState<string | null>(null);
 
-  // Default the year once options arrive (create mode only).
-  if (!application && form.admission_year_id === 0 && openYear) {
-    setForm((prev) => ({ ...prev, admission_year_id: openYear.id }));
+  useEffect(() => {
+    if (application) {
+      setForm({
+        admission_year_id: application.admission_year_id,
+        class_config_id: application.class_config_id,
+        quota_id: application.quota_id ?? '',
+        application_no: application.application_no ?? '',
+        name: application.name,
+        name_bn: application.name_bn ?? '',
+        sex: application.sex,
+        religion: application.religion ?? '',
+        blood_group: application.blood_group ?? '',
+        dob: application.dob ? application.dob.slice(0, 10) : '',
+        birth_certificate_no: application.birth_certificate_no ?? '',
+        fathers_name: application.fathers_name ?? '',
+        father_nid: application.father_nid ?? '',
+        father_mobile: application.father_mobile ?? '',
+        mothers_name: application.mothers_name ?? '',
+        mother_nid: application.mother_nid ?? '',
+        mother_mobile: application.mother_mobile ?? '',
+        mobile: application.mobile ?? '',
+        guardian_mobile: application.guardian_mobile ?? '',
+        present_address: application.present_address ?? '',
+        permanent_address: application.permanent_address ?? '',
+        score: application.score != null ? String(application.score) : '',
+        status: application.status,
+        remarks: application.remarks ?? '',
+      });
+    } else if (years.length > 0 && !form.admission_year_id) {
+      const openYear = years.find((y) => y.status === 'open') ?? years[0];
+      setForm(f => ({ ...f, admission_year_id: openYear.id }));
+    }
+  }, [application, years]);
+
+  if (isEdit && isLoadingApplication) {
+    return (
+      <div className="flex items-center justify-center py-24 text-faint">
+        <Loader2 size={24} className="animate-spin" />
+      </div>
+    );
   }
 
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
@@ -104,9 +150,9 @@ function ApplicationFormBody({ application }: { application: AdmissionApplicatio
   const saveMutation = useMutation({
     mutationFn: () => {
       const payload = {
-        admission_year_id: form.admission_year_id,
-        class_config_id: form.class_config_id,
-        quota_id: form.quota_id === '' ? null : form.quota_id,
+        admission_year_id: Number(form.admission_year_id),
+        class_config_id: Number(form.class_config_id),
+        quota_id: form.quota_id === '' ? null : Number(form.quota_id),
         application_no: form.application_no || undefined,
         name: form.name,
         name_bn: form.name_bn || null,
@@ -114,10 +160,15 @@ function ApplicationFormBody({ application }: { application: AdmissionApplicatio
         religion: form.religion || null,
         blood_group: form.blood_group || null,
         dob: form.dob || null,
+        birth_certificate_no: form.birth_certificate_no,
         fathers_name: form.fathers_name,
+        father_nid: form.father_nid,
+        father_mobile: form.father_mobile,
         mothers_name: form.mothers_name,
+        mother_nid: form.mother_nid,
+        mother_mobile: form.mother_mobile || null,
         mobile: form.mobile || null,
-        guardian_mobile: form.guardian_mobile || null,
+        guardian_mobile: form.guardian_mobile || form.father_mobile || null,
         present_address: form.present_address || null,
         permanent_address: form.permanent_address || null,
         score: form.score === '' ? null : Number(form.score),
@@ -126,19 +177,23 @@ function ApplicationFormBody({ application }: { application: AdmissionApplicatio
       };
       return application ? updateApplication(application.id, payload) : createApplication(payload);
     },
-    onSuccess: () => navigate('/admissions'),
+    onSuccess: () => {
+      toast.success(application ? 'Application updated successfully' : 'Application created successfully');
+      navigate('/admissions');
+    },
     onError: (e) => {
       const apiError = toApiError(e);
       setError(apiError.errors ? null : apiError.message);
       setErrors(apiError.errors ?? {});
+      toast.error(apiError.message || 'Could not save application');
     },
   });
 
   const handleSubmit = () => {
     setError(null);
     setErrors({});
-    if (!form.admission_year_id || !form.class_config_id || !form.name || !form.fathers_name || !form.mothers_name) {
-      setError('Admission year, class, applicant name and both parent names are required.');
+    if (!form.admission_year_id || !form.class_config_id || !form.name || !form.birth_certificate_no || !form.fathers_name || !form.father_nid || !form.father_mobile || !form.mothers_name || !form.mother_nid) {
+      setError('Admission year, class, applicant name, birth certificate number, father info (name, NID, mobile), mother name and mother NID are required.');
       return;
     }
     saveMutation.mutate();
@@ -232,6 +287,7 @@ function ApplicationFormBody({ application }: { application: AdmissionApplicatio
           <SelectField label="Gender" required value={form.sex} onChange={(v) => set('sex', v as FormState['sex'])} options={GENDER_OPTIONS.map((o) => ({ value: o.value, label: o.label }))} error={errors.sex?.[0]} />
           <SelectField label="Religion" value={form.religion} onChange={(v) => set('religion', v)} options={RELIGION_OPTIONS.map((o) => ({ value: o.value, label: o.label }))} placeholder="Select religion" error={errors.religion?.[0]} />
           <FormField label="Date of Birth" type="date" value={form.dob} onChange={(v) => set('dob', v)} />
+          <FormField label="Birth Certificate Number" required value={form.birth_certificate_no} onChange={(v) => set('birth_certificate_no', v)} error={errors.birth_certificate_no?.[0]} />
           <FormField label="Blood Group" value={form.blood_group} onChange={(v) => set('blood_group', v)} />
         </div>
       </Card>
@@ -241,7 +297,11 @@ function ApplicationFormBody({ application }: { application: AdmissionApplicatio
         <h3 className="mb-4 text-sm font-semibold text-fg">Parents & Contact</h3>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <FormField label="Father's Name" required value={form.fathers_name} onChange={(v) => set('fathers_name', v)} error={errors.fathers_name?.[0]} />
+          <FormField label="Father's NID" required value={form.father_nid} onChange={(v) => set('father_nid', v)} error={errors.father_nid?.[0]} />
+          <FormField label="Father's Mobile Number" required value={form.father_mobile} onChange={(v) => set('father_mobile', v)} error={errors.father_mobile?.[0]} />
           <FormField label="Mother's Name" required value={form.mothers_name} onChange={(v) => set('mothers_name', v)} error={errors.mothers_name?.[0]} />
+          <FormField label="Mother's NID" required value={form.mother_nid} onChange={(v) => set('mother_nid', v)} error={errors.mother_nid?.[0]} />
+          <FormField label="Mother's Mobile Number" value={form.mother_mobile} onChange={(v) => set('mother_mobile', v)} error={errors.mother_mobile?.[0]} />
           <FormField label="Applicant Mobile" value={form.mobile} onChange={(v) => set('mobile', v)} />
           <FormField label="Guardian Mobile" value={form.guardian_mobile} onChange={(v) => set('guardian_mobile', v)} />
         </div>

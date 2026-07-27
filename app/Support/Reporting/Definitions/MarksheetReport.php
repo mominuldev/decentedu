@@ -39,7 +39,7 @@ class MarksheetReport extends ReportDefinition
             ->get()
             ->keyBy('student_id');
 
-        $subjectResults = StudentExamResult::with(['subject', 'grade'])
+        $subjectResults = StudentExamResult::with(['student', 'subject', 'grade'])
             ->where('class_config_id', $params['class_config_id'])
             ->where('exam_id', $params['exam_id'])
             ->get()
@@ -50,7 +50,7 @@ class MarksheetReport extends ReportDefinition
 
             return [
                 'student_id' => $studentId,
-                'name' => $subjectRows->first()->student?->name,
+                'name' => $summary?->student?->name ?? $subjectRows->first()?->student?->name,
                 'subjects' => $subjectRows->map(fn (StudentExamResult $r) => [
                     'subject_name' => $r->subject?->name,
                     'total_marks' => $r->total_marks,

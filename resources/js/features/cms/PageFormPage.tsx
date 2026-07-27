@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, CheckCircle2, Loader2, XCircle } from 'lucide-react';
 import { Card, Button } from '@/components/ui';
 import { toApiError } from '@/lib/api';
+import { useToast } from '@/components/Toast';
 import {
     getPage, getPageMeta, createPage, updatePage,
     inputCls, type PageDetail, type PagePayload, type SeoData, type AssetPayload, type EditorBlock,
@@ -18,6 +19,7 @@ export default function PageFormPage() {
     const { id: idParam } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const qc = useQueryClient();
+    const toast = useToast();
 
     // Track the id locally so a freshly-created page switches into edit mode
     // (subsequent saves become updates) without a route remount that would reset the tab.
@@ -29,13 +31,6 @@ export default function PageFormPage() {
     const [blocks, setBlocks] = useState<EditorBlock[]>([]);
     const [errors, setErrors] = useState<Record<string, string[]>>({});
     const [error, setError] = useState<string | null>(null);
-    const [toast, setToast] = useState<{ tone: 'success' | 'error'; message: string } | null>(null);
-
-    useEffect(() => {
-        if (!toast) return;
-        const t = setTimeout(() => setToast(null), 4000);
-        return () => clearTimeout(t);
-    }, [toast]);
 
     const back = () => navigate('/cms?tab=pages');
 
@@ -78,13 +73,13 @@ export default function PageFormPage() {
             } else {
                 qc.invalidateQueries({ queryKey: ['cms-page', id] });
             }
-            setToast({ tone: 'success', message: 'Page saved' });
+            toast.success('Page saved successfully');
         },
         onError: (e) => {
             const err = toApiError(e);
             setError(err.message);
             setErrors(err.errors ?? {});
-            setToast({ tone: 'error', message: err.message || 'Could not save page' });
+            toast.error(err.message || 'Could not save page');
         },
     });
 
@@ -93,19 +88,6 @@ export default function PageFormPage() {
 
     return (
         <div className="space-y-6">
-            {toast && (
-                <div
-                    role="status"
-                    className={`fixed right-5 top-5 z-50 flex items-center gap-2 rounded-lg px-4 py-2.5 text-[13.5px] font-medium shadow-lg ${
-                        toast.tone === 'success'
-                            ? 'bg-emerald-600 text-white'
-                            : 'bg-rose-600 text-white'
-                    }`}
-                >
-                    {toast.tone === 'success' ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
-                    {toast.message}
-                </div>
-            )}
             <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                     <Button variant="outline" onClick={back} disabled={save.isPending}><ArrowLeft size={16} /> Back</Button>

@@ -285,8 +285,11 @@ function StudentDetailsView({
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
             <InfoItem label="Gender" value={student.sex} />
             <InfoItem label="Date of Birth" value={formatDate(student.dob) || 'N/A'} />
+            <InfoItem label="Birth Certificate No." value={student.birth_certificate_no || 'N/A'} />
             <InfoItem label="Religion" value={student.religion || 'N/A'} />
             <InfoItem label="Blood Group" value={student.blood_group || 'N/A'} />
+            <InfoItem label="Father's NID" value={student.father_nid || 'N/A'} />
+            <InfoItem label="Mother's NID" value={student.mother_nid || 'N/A'} />
             <InfoItem label="Mobile" value={student.mobile || 'N/A'} />
             <InfoItem label="Father's Mobile" value={student.father_mobile || 'N/A'} />
             <InfoItem label="Mother's Mobile" value={student.mother_mobile || 'N/A'} />

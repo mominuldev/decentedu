@@ -21,10 +21,12 @@ class CardListBlock extends BaseBlockType
             'title' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:1000'],
             'heading_align' => ['nullable', Rule::in(['left', 'center', 'right'])],
-            'layout' => ['nullable', Rule::in(['layout_one', 'layout_two', 'layout_three'])],
+            'layout' => ['nullable', Rule::in(['layout_one', 'layout_two', 'layout_three', 'variation_one', 'variation_two', 'variation_three', 'variation_four', 'variation_five'])],
+            'variation' => ['nullable', Rule::in(['variation_one', 'variation_two', 'variation_three', 'variation_four', 'variation_five', 'variation_1', 'variation_2', 'variation_3', 'variation_4', 'variation_5', 'layout_one', 'layout_two', 'layout_three'])],
             'content_text_align' => ['nullable', Rule::in(['left', 'center', 'right'])],
             'items' => ['nullable', 'array'],
             'items.*.icon_asset_id' => ['nullable', 'integer'],
+            'items.*.year' => ['nullable', 'string', 'max:50'],
             'items.*.title' => ['nullable', 'string', 'max:255'],
             'items.*.description' => ['nullable', 'string', 'max:1000'],
             'items.*.cta_label' => ['nullable', 'string', 'max:100'],
@@ -40,6 +42,7 @@ class CardListBlock extends BaseBlockType
         foreach (($payload['items'] ?? []) as $item) {
             $items[] = [
                 'icon' => $this->assetPayload($item['icon_asset_id'] ?? null),
+                'year' => $item['year'] ?? null,
                 'title' => $item['title'] ?? null,
                 'description' => $item['description'] ?? null,
                 'cta_label' => $item['cta_label'] ?? null,
@@ -49,12 +52,15 @@ class CardListBlock extends BaseBlockType
             ];
         }
 
+        $variation = $payload['variation'] ?? $payload['layout'] ?? 'variation_one';
+
         return [
             'subtitle' => $payload['subtitle'] ?? null,
             'title' => $payload['title'] ?? null,
             'description' => $payload['description'] ?? null,
             'heading_align' => $payload['heading_align'] ?? 'left',
-            'layout' => $payload['layout'] ?? 'layout_one',
+            'variation' => $variation,
+            'layout' => $variation,
             'content_text_align' => $payload['content_text_align'] ?? 'left',
             'items' => $items,
         ];

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Loader2, Monitor, LogOut } from 'lucide-react';
 import { Card, Button, Badge } from '@/components/ui';
+import { Toast, type ToastState } from '@/components/Toast';
 import { toApiError } from '@/lib/api';
 import { cn } from '@/lib/cn';
 import { useAuth } from '@/features/auth/AuthProvider';
@@ -9,15 +10,23 @@ import { listSessions, revokeSession, changePassword } from './api';
 
 export function SessionsPanel() {
     const qc = useQueryClient();
+    const [toast, setToast] = useState<ToastState | null>(null);
+
     const { data: sessions = [], isLoading } = useQuery({ queryKey: ['sessions'], queryFn: listSessions });
     const revoke = useMutation({
         mutationFn: (id: string) => revokeSession(id),
-        onSuccess: () => qc.invalidateQueries({ queryKey: ['sessions'] }),
+        onSuccess: () => {
+            setToast({ tone: 'success', message: 'Session revoked successfully.' });
+            qc.invalidateQueries({ queryKey: ['sessions'] });
+        },
+        onError: (err) => setToast({ tone: 'error', message: toApiError(err).message || 'Failed to revoke session.' }),
     });
 
     return (
         <div className="space-y-6">
-            <ChangePasswordCard />
+            <Toast toast={toast} onClose={() => setToast(null)} />
+
+            <ChangePasswordCard onToast={(t) => setToast(t)} />
 
             <Card>
                 <div className="px-5 py-4">
@@ -53,7 +62,7 @@ export function SessionsPanel() {
     );
 }
 
-function ChangePasswordCard() {
+function ChangePasswordCard({ onToast }: { onToast: (toast: ToastState) => void }) {
     const { refresh } = useAuth();
     const [form, setForm] = useState({ current_password: '', password: '', password_confirmation: '' });
     const [errors, setErrors] = useState<Record<string, string[]>>({});
@@ -61,8 +70,19 @@ function ChangePasswordCard() {
 
     const save = useMutation({
         mutationFn: () => changePassword(form),
-        onSuccess: () => { setForm({ current_password: '', password: '', password_confirmation: '' }); setError(null); setErrors({}); refresh(); },
-        onError: (e) => { const a = toApiError(e); setError(a.errors ? null : a.message); setErrors(a.errors ?? {}); },
+        onSuccess: () => {
+            setForm({ current_password: '', password: '', password_confirmation: '' });
+            setError(null);
+            setErrors({});
+            onToast({ tone: 'success', message: 'Password updated successfully.' });
+            refresh();
+        },
+        onError: (e) => {
+            const a = toApiError(e);
+            setError(a.errors ? null : a.message);
+            setErrors(a.errors ?? {});
+            onToast({ tone: 'error', message: a.message || 'Failed to update password.' });
+        },
     });
 
     const inputCls = (hasError: boolean) => cn(

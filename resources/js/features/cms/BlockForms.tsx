@@ -27,12 +27,24 @@ function Area({ label, value, onChange, row }: { label: string; value: unknown; 
         </div>
     );
 }
-function Select({ label, value, options, onChange }: { label: string; value: unknown; options: string[]; onChange: (v: string) => void }) {
+function formatOptionLabel(s: string): string {
+    if (!s) return '';
+    return s
+        .split('_')
+        .map((w) => (w ? w.charAt(0).toUpperCase() + w.slice(1).toLowerCase() : ''))
+        .join(' ');
+}
+
+function Select({ label, value, options, onChange }: { label: string; value: unknown; options: Array<string | { label: string; value: string }>; onChange: (v: string) => void }) {
     return (
         <div>
             <label className={labelCls}>{label}</label>
             <select className={inputCls} value={(value as string) ?? ''} onChange={(e) => onChange(e.target.value)}>
-                {options.map((o) => <option key={o} value={o}>{o}</option>)}
+                {options.map((o) => {
+                    const val = typeof o === 'string' ? o : o.value;
+                    const lbl = typeof o === 'string' ? formatOptionLabel(o) : o.label;
+                    return <option key={val} value={val}>{lbl}</option>;
+                })}
             </select>
         </div>
     );
@@ -128,75 +140,7 @@ export function BlockFields({ type, payload, onChange, blockTypes, depth = 0 }: 
                 </div>
             );
         case 'cta':
-            return (
-                <div className="space-y-4">
-                    <Text label="Subtitle" value={payload.subtitle} onChange={(v) => set({ subtitle: v })} />
-                    <Text
-                        label="Title"
-                        value={payload.title ?? payload.heading}
-                        onChange={(v) => set({ title: v, heading: v })}
-                    />
-                    <Area
-                        label="Description"
-                        value={payload.description ?? payload.text}
-                        onChange={(v) => set({ description: v, text: v })}
-                    />
-                    <div className="space-y-2 rounded-xl border border-border p-3">
-                        <label className={cn(labelCls, 'font-semibold text-fg')}>CTA Primary</label>
-                        <div className="grid grid-cols-2 gap-3">
-                            <Text
-                                label="Label"
-                                value={payload.cta_primary_label ?? payload.button_label}
-                                onChange={(v) => set({ cta_primary_label: v, button_label: v })}
-                            />
-                            <Text
-                                label="URL"
-                                value={payload.cta_primary_url ?? payload.button_url}
-                                onChange={(v) => set({ cta_primary_url: v, button_url: v })}
-                            />
-                            <Select
-                                label="Style"
-                                value={payload.cta_primary_variant ?? payload.style ?? 'primary'}
-                                options={['primary', 'secondary', 'outline', 'ghost']}
-                                onChange={(v) => set({ cta_primary_variant: v, style: v })}
-                            />
-                            <Select
-                                label="Target"
-                                value={payload.cta_primary_target ?? payload.button_target ?? 'self'}
-                                options={['self', 'blank']}
-                                onChange={(v) => set({ cta_primary_target: v, button_target: v })}
-                            />
-                        </div>
-                    </div>
-                    <div className="space-y-2 rounded-xl border border-border p-3">
-                        <label className={cn(labelCls, 'font-semibold text-fg')}>CTA Secondary</label>
-                        <div className="grid grid-cols-2 gap-3">
-                            <Text
-                                label="Label"
-                                value={payload.cta_secondary_label}
-                                onChange={(v) => set({ cta_secondary_label: v })}
-                            />
-                            <Text
-                                label="URL"
-                                value={payload.cta_secondary_url}
-                                onChange={(v) => set({ cta_secondary_url: v })}
-                            />
-                            <Select
-                                label="Style"
-                                value={payload.cta_secondary_variant ?? 'secondary'}
-                                options={['primary', 'secondary', 'outline', 'ghost']}
-                                onChange={(v) => set({ cta_secondary_variant: v })}
-                            />
-                            <Select
-                                label="Target"
-                                value={payload.cta_secondary_target ?? 'self'}
-                                options={['self', 'blank']}
-                                onChange={(v) => set({ cta_secondary_target: v })}
-                            />
-                        </div>
-                    </div>
-                </div>
-            );
+            return <CtaFields payload={payload} onChange={onChange} />;
         case 'about':
             return <AboutFields payload={payload} onChange={onChange} />;
         case 'milestones_timeline':
@@ -437,9 +381,14 @@ function CardListFields({ payload, onChange }: Props) {
     const [tab, setTab] = useState<'content' | 'style'>('content');
     const set = (patch: Payload) => onChange({ ...payload, ...patch });
 
+    const variation = (payload.variation as string) ?? (payload.layout as string) ?? 'variation_one';
+    const isVariationFour = variation === 'variation_four' || variation === 'variation_4';
+    const isVariationFive = variation === 'variation_five' || variation === 'variation_5';
+
     const items = (payload.items as {
         icon_asset_id?: number | null;
         icon_asset_id_preview?: AssetPayload;
+        year?: string;
         title?: string;
         description?: string;
         cta_label?: string;
@@ -472,31 +421,44 @@ function CardListFields({ payload, onChange }: Props) {
                                         <Trash2 size={14} />
                                     </button>
                                 </div>
-                                <div className="grid grid-cols-2 gap-3">
-                                    <IconAssetField
-                                        label="Icon"
-                                        item={it}
-                                        index={i}
-                                        items={items}
-                                        onChange={setItems}
-                                    />
-                                    <Text label="Count" value={it.count} onChange={(v) => setItems(items.map((x, xi) => xi === i ? { ...x, count: v } : x))} placeholder="e.g., 50+" />
-                                </div>
-                                <Text label="Title" value={it.title} onChange={(v) => setItems(items.map((x, xi) => xi === i ? { ...x, title: v } : x))} />
-                                <Area label="Description" value={it.description} onChange={(v) => setItems(items.map((x, xi) => xi === i ? { ...x, description: v } : x))} row={2} />
-                                <div className="grid grid-cols-2 gap-3">
-                                    <Text label="CTA Label" value={it.cta_label} onChange={(v) => setItems(items.map((x, xi) => xi === i ? { ...x, cta_label: v } : x))} />
-                                    <Text label="CTA URL" value={it.cta_url} onChange={(v) => setItems(items.map((x, xi) => xi === i ? { ...x, cta_url: v } : x))} />
-                                </div>
-                                <Select
-                                    label="CTA Target"
-                                    value={it.cta_target ?? 'self'}
-                                    options={['self', 'blank']}
-                                    onChange={(v) => setItems(items.map((x, xi) => xi === i ? { ...x, cta_target: v } : x))}
-                                />
+                                {isVariationFive ? (
+                                    <>
+                                        <Text label="Count" value={it.count} onChange={(v) => setItems(items.map((x, xi) => xi === i ? { ...x, count: v } : x))} placeholder="e.g., 50+" />
+                                        <Text label="Title" value={it.title} onChange={(v) => setItems(items.map((x, xi) => xi === i ? { ...x, title: v } : x))} />
+                                        <Area label="Description" value={it.description} onChange={(v) => setItems(items.map((x, xi) => xi === i ? { ...x, description: v } : x))} row={2} />
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <IconAssetField
+                                                label="Icon"
+                                                item={it}
+                                                index={i}
+                                                items={items}
+                                                onChange={setItems}
+                                            />
+                                            <Text label="Count" value={it.count} onChange={(v) => setItems(items.map((x, xi) => xi === i ? { ...x, count: v } : x))} placeholder="e.g., 50+" />
+                                        </div>
+                                        {isVariationFour && (
+                                            <Text label="Year" value={it.year} onChange={(v) => setItems(items.map((x, xi) => xi === i ? { ...x, year: v } : x))} placeholder="e.g., 2024" />
+                                        )}
+                                        <Text label="Title" value={it.title} onChange={(v) => setItems(items.map((x, xi) => xi === i ? { ...x, title: v } : x))} />
+                                        <Area label="Description" value={it.description} onChange={(v) => setItems(items.map((x, xi) => xi === i ? { ...x, description: v } : x))} row={2} />
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <Text label="CTA Label" value={it.cta_label} onChange={(v) => setItems(items.map((x, xi) => xi === i ? { ...x, cta_label: v } : x))} />
+                                            <Text label="CTA URL" value={it.cta_url} onChange={(v) => setItems(items.map((x, xi) => xi === i ? { ...x, cta_url: v } : x))} />
+                                        </div>
+                                        <Select
+                                            label="CTA Target"
+                                            value={it.cta_target ?? 'self'}
+                                            options={['self', 'blank']}
+                                            onChange={(v) => setItems(items.map((x, xi) => xi === i ? { ...x, cta_target: v } : x))}
+                                        />
+                                    </>
+                                )}
                             </div>
                         ))}
-                        <Button variant="outline" size="sm" type="button" onClick={() => setItems([...items, { icon_asset_id: null, icon_asset_id_preview: undefined, title: '', description: '', cta_label: '', cta_url: '', cta_target: 'self', count: '' }])}>
+                        <Button variant="outline" size="sm" type="button" onClick={() => setItems([...items, { icon_asset_id: null, icon_asset_id_preview: undefined, year: '', title: '', description: '', cta_label: '', cta_url: '', cta_target: 'self', count: '' }])}>
                             <Plus size={15} /> Add card
                         </Button>
                     </div>
@@ -518,10 +480,10 @@ function CardListFields({ payload, onChange }: Props) {
                         />
                     </div>
                     <Select
-                        label="Layout"
-                        value={payload.layout ?? 'layout_one'}
-                        options={['layout_one', 'layout_two', 'layout_three']}
-                        onChange={(v) => set({ layout: v })}
+                        label="Variation"
+                        value={variation}
+                        options={['variation_one', 'variation_two', 'variation_three', 'variation_four', 'variation_five']}
+                        onChange={(v) => set({ variation: v, layout: v })}
                     />
                 </div>
             )}
@@ -695,47 +657,112 @@ function TeachersFields({ payload, onChange }: Props) {
 }
 
 function AboutFields({ payload, onChange }: Props) {
+    const [tab, setTab] = useState<'content' | 'settings'>('content');
     const set = (patch: Payload) => onChange({ ...payload, ...patch });
+    const variation = (payload.variation as string) ?? 'variation_one';
+    const isVariationThree = variation === 'variation_three' || variation === 'variation_3';
+
     const items = (payload.items as { label: string; value: string }[]) ?? [];
     const setItems = (next: typeof items) => set({ items: next });
 
     return (
         <div className="space-y-4">
-            <Text label="Subtitle" value={payload.subtitle} onChange={(v) => set({ subtitle: v })} />
-            <Text
-                label="Title"
-                value={payload.title ?? payload.heading}
-                onChange={(v) => set({ title: v, heading: v })}
+            <Tabs
+                tabs={[{ key: 'content', label: 'Content' }, { key: 'settings', label: 'Settings' }]}
+                active={tab}
+                onChange={(k) => setTab(k as 'content' | 'settings')}
             />
-            <div>
-                <label className={labelCls}>Content</label>
-                <RichTextEditor
-                    value={(payload.content as string) ?? ''}
-                    onChange={(html) => set({ content: html })}
-                />
-            </div>
-            <AssetField label="Image" payload={payload} idKey="image_asset_id" previewKey="image_asset_id_preview" onChange={onChange} />
-            <Text label="Image Caption" value={payload.image_caption} onChange={(v) => set({ image_caption: v })} />
+            {tab === 'content' ? (
+                <div className="space-y-4">
+                    <Text label="Subtitle" value={payload.subtitle} onChange={(v) => set({ subtitle: v })} />
+                    <Text
+                        label="Title"
+                        value={payload.title ?? payload.heading}
+                        onChange={(v) => set({ title: v, heading: v })}
+                    />
+                    <div>
+                        <label className={labelCls}>Content</label>
+                        <RichTextEditor
+                            value={(payload.content as string) ?? ''}
+                            onChange={(html) => set({ content: html })}
+                        />
+                    </div>
 
-            <div className="space-y-3 rounded-xl border border-border p-3">
-                <Text label="Repeater Title" value={payload.repeater_title} onChange={(v) => set({ repeater_title: v })} />
-                <div className="space-y-2">
-                    <label className={labelCls}>Repeater Items</label>
-                    {items.map((it, i) => (
-                        <div key={i} className="space-y-2 rounded-xl border border-border bg-surface-2/30 p-2.5">
-                            <div className="flex items-center justify-between">
-                                <span className="text-[12px] font-medium text-muted">Item {i + 1}</span>
-                                <button type="button" onClick={() => setItems(items.filter((_, x) => x !== i))} className="text-faint hover:text-rose-500"><Trash2 size={14} /></button>
-                            </div>
-                            <div className="grid grid-cols-2 gap-2">
-                                <input className={inputCls} placeholder="Label" value={it.label ?? ''} onChange={(e) => setItems(items.map((x, xi) => xi === i ? { ...x, label: e.target.value } : x))} />
-                                <input className={inputCls} placeholder="Value" value={it.value ?? ''} onChange={(e) => setItems(items.map((x, xi) => xi === i ? { ...x, value: e.target.value } : x))} />
+                    {isVariationThree ? (
+                        <div className="space-y-3 rounded-xl border border-border p-3">
+                            <label className={cn(labelCls, 'font-semibold text-fg')}>Quote Section</label>
+                            <Text label="Quote Subtitle" value={payload.quote_subtitle} onChange={(v) => set({ quote_subtitle: v })} />
+                            <Area label="Quote Message" value={payload.quote_message} onChange={(v) => set({ quote_message: v })} row={3} />
+                            <div className="grid grid-cols-2 gap-3">
+                                <Text label="Author" value={payload.author} onChange={(v) => set({ author: v })} />
+                                <Text label="Designation" value={payload.designation} onChange={(v) => set({ designation: v })} />
                             </div>
                         </div>
-                    ))}
-                    <Button variant="outline" size="sm" type="button" onClick={() => setItems([...items, { label: '', value: '' }])}><Plus size={15} /> Add item</Button>
+                    ) : (
+                        <>
+                            <AssetField label="Image" payload={payload} idKey="image_asset_id" previewKey="image_asset_id_preview" onChange={onChange} />
+                            <Text label="Image Caption" value={payload.image_caption} onChange={(v) => set({ image_caption: v })} />
+
+                            <div className="space-y-3 rounded-xl border border-border p-3">
+                                <Text label="Repeater Title" value={payload.repeater_title} onChange={(v) => set({ repeater_title: v })} />
+                                <div className="space-y-2">
+                                    <label className={labelCls}>Repeater Items</label>
+                                    {items.map((it, i) => (
+                                        <div key={i} className="space-y-2 rounded-xl border border-border bg-surface-2/30 p-2.5">
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-[12px] font-medium text-muted">Item {i + 1}</span>
+                                                <button type="button" onClick={() => setItems(items.filter((_, x) => x !== i))} className="text-faint hover:text-rose-500"><Trash2 size={14} /></button>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <input className={inputCls} placeholder="Label" value={it.label ?? ''} onChange={(e) => setItems(items.map((x, xi) => xi === i ? { ...x, label: e.target.value } : x))} />
+                                                <input className={inputCls} placeholder="Value" value={it.value ?? ''} onChange={(e) => setItems(items.map((x, xi) => xi === i ? { ...x, value: e.target.value } : x))} />
+                                            </div>
+                                        </div>
+                                    ))}
+                                    <Button variant="outline" size="sm" type="button" onClick={() => setItems([...items, { label: '', value: '' }])}><Plus size={15} /> Add item</Button>
+                                </div>
+                            </div>
+                        </>
+                    )}
+
+                    <div className="space-y-2 rounded-xl border border-border p-3">
+                        <label className={cn(labelCls, 'font-semibold text-fg')}>Call to Action (CTA)</label>
+                        <div className="grid grid-cols-2 gap-3">
+                            <Text
+                                label="Label"
+                                value={payload.cta_label}
+                                onChange={(v) => set({ cta_label: v })}
+                            />
+                            <Text
+                                label="URL"
+                                value={payload.cta_url}
+                                onChange={(v) => set({ cta_url: v })}
+                            />
+                            <Select
+                                label="Style"
+                                value={payload.cta_variant ?? 'primary'}
+                                options={['primary', 'secondary', 'outline', 'ghost']}
+                                onChange={(v) => set({ cta_variant: v })}
+                            />
+                            <Select
+                                label="Target"
+                                value={payload.cta_target ?? 'self'}
+                                options={['self', 'blank']}
+                                onChange={(v) => set({ cta_target: v })}
+                            />
+                        </div>
+                    </div>
                 </div>
-            </div>
+            ) : (
+                <div className="space-y-3">
+                    <Select
+                        label="Variation"
+                        value={variation}
+                        options={['variation_one', 'variation_two', 'variation_three']}
+                        onChange={(v) => set({ variation: v })}
+                    />
+                </div>
+            )}
         </div>
     );
 }
@@ -820,6 +847,193 @@ function MilestonesTimelineFields({ payload, onChange }: Props) {
                         value={payload.content_align ?? 'center'}
                         options={['left', 'center', 'right']}
                         onChange={(v) => set({ content_align: v })}
+                    />
+                </div>
+            )}
+        </div>
+    );
+}
+
+function CtaFields({ payload, onChange }: Props) {
+    const [tab, setTab] = useState<'content' | 'settings'>('content');
+    const set = (patch: Payload) => onChange({ ...payload, ...patch });
+    const variation = (payload.variation as string) ?? 'variation_one';
+    const isVariationTwo = variation === 'variation_two' || variation === 'variation_2';
+    const isVariationThree = variation === 'variation_three' || variation === 'variation_3';
+
+    const items = (payload.items as { year: string; title: string }[]) ?? [];
+    const setItems = (next: typeof items) => set({ items: next });
+
+    return (
+        <div className="space-y-4">
+            <Tabs
+                tabs={[{ key: 'content', label: 'Content' }, { key: 'settings', label: 'Settings' }]}
+                active={tab}
+                onChange={(k) => setTab(k as 'content' | 'settings')}
+            />
+            {tab === 'content' ? (
+                <div className="space-y-4">
+                    <Text label="Subtitle" value={payload.subtitle} onChange={(v) => set({ subtitle: v })} />
+                    <Text
+                        label="Title"
+                        value={payload.title ?? payload.heading}
+                        onChange={(v) => set({ title: v, heading: v })}
+                    />
+                    <Area
+                        label="Description"
+                        value={payload.description ?? payload.text}
+                        onChange={(v) => set({ description: v, text: v })}
+                    />
+
+                    {isVariationThree ? (
+                        <div className="space-y-3 rounded-xl border border-border p-3">
+                            <label className={cn(labelCls, 'font-semibold text-fg')}>Quote & Author</label>
+                            <Area
+                                label="Quote Message"
+                                value={payload.quote_message}
+                                onChange={(v) => set({ quote_message: v })}
+                                row={3}
+                            />
+                            <AssetField
+                                label="Author Image"
+                                payload={payload}
+                                idKey="author_image_asset_id"
+                                previewKey="author_image_asset_id_preview"
+                                onChange={onChange}
+                            />
+                            <div className="grid grid-cols-2 gap-3">
+                                <Text
+                                    label="Author Name"
+                                    value={payload.author_name ?? payload.name}
+                                    onChange={(v) => set({ author_name: v, name: v })}
+                                />
+                                <Text
+                                    label="Designation"
+                                    value={payload.author_designation ?? payload.designation}
+                                    onChange={(v) => set({ author_designation: v, designation: v })}
+                                />
+                            </div>
+                            <Area
+                                label="Disclaimer"
+                                value={payload.disclaimer}
+                                onChange={(v) => set({ disclaimer: v })}
+                                row={2}
+                            />
+                        </div>
+                    ) : isVariationTwo ? (
+                        <div className="space-y-2">
+                            <label className={labelCls}>Timeline Repeater</label>
+                            {items.map((it, i) => (
+                                <div key={i} className="space-y-2 rounded-xl border border-border bg-surface-2/30 p-3">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-[12px] font-medium text-muted">Item {i + 1}</span>
+                                        <button
+                                            type="button"
+                                            onClick={() => setItems(items.filter((_, x) => x !== i))}
+                                            className="text-faint hover:text-rose-500"
+                                        >
+                                            <Trash2 size={14} />
+                                        </button>
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        <div className="col-span-1">
+                                            <input
+                                                className={inputCls}
+                                                placeholder="Year (e.g. 2020)"
+                                                value={it.year ?? ''}
+                                                onChange={(e) => setItems(items.map((x, xi) => xi === i ? { ...x, year: e.target.value } : x))}
+                                            />
+                                        </div>
+                                        <div className="col-span-2">
+                                            <input
+                                                className={inputCls}
+                                                placeholder="Title"
+                                                value={it.title ?? ''}
+                                                onChange={(e) => setItems(items.map((x, xi) => xi === i ? { ...x, title: e.target.value } : x))}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                type="button"
+                                onClick={() => setItems([...items, { year: '', title: '' }])}
+                            >
+                                <Plus size={15} /> Add item
+                            </Button>
+                        </div>
+                    ) : (
+                        <>
+                            <div className="space-y-2 rounded-xl border border-border p-3">
+                                <label className={cn(labelCls, 'font-semibold text-fg')}>CTA Primary</label>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <Text
+                                        label="Label"
+                                        value={payload.cta_primary_label ?? payload.button_label}
+                                        onChange={(v) => set({ cta_primary_label: v, button_label: v })}
+                                    />
+                                    <Text
+                                        label="URL"
+                                        value={payload.cta_primary_url ?? payload.button_url}
+                                        onChange={(v) => set({ cta_primary_url: v, button_url: v })}
+                                    />
+                                    <Select
+                                        label="Style"
+                                        value={payload.cta_primary_variant ?? payload.style ?? 'primary'}
+                                        options={['primary', 'secondary', 'outline', 'ghost']}
+                                        onChange={(v) => set({ cta_primary_variant: v, style: v })}
+                                    />
+                                    <Select
+                                        label="Target"
+                                        value={payload.cta_primary_target ?? payload.button_target ?? 'self'}
+                                        options={['self', 'blank']}
+                                        onChange={(v) => set({ cta_primary_target: v, button_target: v })}
+                                    />
+                                </div>
+                            </div>
+                            <div className="space-y-2 rounded-xl border border-border p-3">
+                                <label className={cn(labelCls, 'font-semibold text-fg')}>CTA Secondary</label>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <Text
+                                        label="Label"
+                                        value={payload.cta_secondary_label}
+                                        onChange={(v) => set({ cta_secondary_label: v })}
+                                    />
+                                    <Text
+                                        label="URL"
+                                        value={payload.cta_secondary_url}
+                                        onChange={(v) => set({ cta_secondary_url: v })}
+                                    />
+                                    <Select
+                                        label="Style"
+                                        value={payload.cta_secondary_variant ?? 'secondary'}
+                                        options={['primary', 'secondary', 'outline', 'ghost']}
+                                        onChange={(v) => set({ cta_secondary_variant: v })}
+                                    />
+                                    <Select
+                                        label="Target"
+                                        value={payload.cta_secondary_target ?? 'self'}
+                                        options={['self', 'blank']}
+                                        onChange={(v) => set({ cta_secondary_target: v })}
+                                    />
+                                </div>
+                            </div>
+                        </>
+                    )}
+                </div>
+            ) : (
+                <div className="space-y-3">
+                    <Select
+                        label="Variation"
+                        value={variation}
+                        options={[
+                            { label: 'Variation One', value: 'variation_one' },
+                            { label: 'Variation Two', value: 'variation_two' },
+                            { label: 'Variation Three', value: 'variation_three' },
+                        ]}
+                        onChange={(v) => set({ variation: v })}
                     />
                 </div>
             )}
