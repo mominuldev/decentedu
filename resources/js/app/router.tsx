@@ -22,6 +22,10 @@ import AccountingPage from '@/features/accounting/AccountingPage';
 import MessagingPage from '@/features/messaging/MessagingPage';
 import CredentialsPage from '@/features/credentials/CredentialsPage';
 import CmsPage from '@/features/cms/CmsPage';
+import PageFormPage from '@/features/cms/PageFormPage';
+import PostFormPage from '@/features/cms/PostFormPage';
+import NoticeFormPage from '@/features/cms/NoticeFormPage';
+import EventFormPage from '@/features/cms/EventFormPage';
 import UsersPage from '@/features/users/UsersPage';
 import AuditLogPage from '@/features/audit/AuditLogPage';
 import PrintClassRoutinePage from '@/features/routines/PrintClassRoutinePage';
@@ -60,7 +64,15 @@ export const router = createBrowserRouter([
     { path: '/accounting', element: page(<AccountingPage />) },
     { path: '/messaging', element: page(<MessagingPage />) },
     { path: '/credentials', element: page(<CredentialsPage />) },
-    { path: '/website', element: page(<CmsPage />) },
+    { path: '/cms', element: page(<CmsPage />) },
+    { path: '/cms/pages/new', element: page(<PageFormPage />) },
+    { path: '/cms/pages/:id/edit', element: page(<PageFormPage />) },
+    { path: '/cms/posts/new', element: page(<PostFormPage />) },
+    { path: '/cms/posts/:id/edit', element: page(<PostFormPage />) },
+    { path: '/cms/notices/new', element: page(<NoticeFormPage />) },
+    { path: '/cms/notices/:id/edit', element: page(<NoticeFormPage />) },
+    { path: '/cms/events/new', element: page(<EventFormPage />) },
+    { path: '/cms/events/:id/edit', element: page(<EventFormPage />) },
     { path: '/users', element: page(<UsersPage />) },
     { path: '/audit-log', element: page(<AuditLogPage />) },
     { path: '/print/routine/:classConfigId', element: <ProtectedRoute><PrintClassRoutinePage /></ProtectedRoute> },

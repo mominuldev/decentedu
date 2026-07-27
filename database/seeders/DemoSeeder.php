@@ -98,6 +98,9 @@ class DemoSeeder extends Seeder
         // Sample communications, credentials & CMS data (SMS, templates, certificates, website).
         $this->call(CommsCredentialsCmsSeeder::class);
 
+        // Public marketing-site pages + header menu mirroring the Next.js frontend routes.
+        $this->call(PublicSitePagesSeeder::class);
+
         $this->command?->info('Seeded demo org, '.$branches->count().' branches, and demo@decentedu.test / password');
     }
 

@@ -1,0 +1,558 @@
+{
+  "info": {
+    "name": "DecentEdu API (v1)",
+    "description": "Laravel 13 API for the Safe Eduman rebuild — multi-branch school/college ERP.\n\n## Auth\nSanctum SPA **cookie session** (not bearer tokens). Flow:\n1. `Auth > Get CSRF Cookie` — sets the `XSRF-TOKEN` cookie in Postman's cookie jar.\n2. `Auth > Login` — creates the session cookie.\n\nA collection-level pre-request script reads the `XSRF-TOKEN` cookie and sends it back as the `X-XSRF-TOKEN` header on every request (matching `resources/js/lib/api.ts`). Keep the Postman cookie jar enabled.\n\n## Branch context\nAll authenticated `v1` routes run behind `auth:sanctum` + `branch` middleware. The active branch comes from the session (falling back to the user's default branch). Use `Auth > Switch Branch` to change it.\n\n## Variables\n- `base_url` — API host, default `http://localhost:8000`\n- `email` / `password` — login credentials\n- resource id vars (`page_id`, `post_id`, …) for path params.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Sanctum only treats a request as a stateful (cookie-session) request when its",
+          "// Origin/Referer matches SANCTUM_STATEFUL_DOMAINS. Browsers send Origin automatically;",
+          "// Postman does not, so set it here or every request comes back Unauthenticated.",
+          "const base = pm.variables.get('base_url');",
+          "if (base) {",
+          "  pm.request.headers.upsert({ key: 'Origin', value: base });",
+          "  pm.request.headers.upsert({ key: 'Referer', value: base });",
+          "}",
+          "",
+          "// Attach the XSRF-TOKEN cookie as the X-XSRF-TOKEN header (mirrors the SPA axios client).",
+          "// If the cookie is missing (or you never ran 'Get CSRF Cookie'), fetch one first so you",
+          "// never get a 419 CSRF mismatch on login. Runs async — Postman waits for the callbacks.",
+          "const host = (base || '').replace(/^https?:\\/\\//, '').split('/')[0].split(':')[0];",
+          "const jar = pm.cookies.jar();",
+          "",
+          "function attach (token) {",
+          "  if (token) pm.request.headers.upsert({ key: 'X-XSRF-TOKEN', value: decodeURIComponent(token) });",
+          "}",
+          "",
+          "jar.get(host, 'XSRF-TOKEN', function (err, token) {",
+          "  if (token) { attach(token); return; }",
+          "  // No CSRF cookie yet — grab one, then read it back.",
+          "  pm.sendRequest({ url: base + '/sanctum/csrf-cookie', method: 'GET', header: { Origin: base, Referer: base } }, function () {",
+          "    jar.get(host, 'XSRF-TOKEN', function (e, t) { attach(t); });",
+          "  });",
+          "});"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000" },
+    { "key": "email", "value": "demo@decentedu.test" },
+    { "key": "password", "value": "password" },
+    { "key": "id", "value": "1" },
+    { "key": "resource", "value": "classes" },
+    { "key": "page_id", "value": "1" },
+    { "key": "post_id", "value": "1" },
+    { "key": "taxonomy_id", "value": "1" },
+    { "key": "term_id", "value": "1" },
+    { "key": "menu_id", "value": "1" },
+    { "key": "notice_id", "value": "1" },
+    { "key": "event_id", "value": "1" },
+    { "key": "asset_id", "value": "1" },
+    { "key": "folder_id", "value": "1" },
+    { "key": "redirect_id", "value": "1" },
+    { "key": "student_id", "value": "1" },
+    { "key": "employee_id", "value": "1" },
+    { "key": "class_config_id", "value": "1" },
+    { "key": "taxonomy", "value": "category" },
+    { "key": "slug", "value": "sample-post" },
+    { "key": "menu_key", "value": "main" },
+    { "key": "path", "value": "about-us" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Get CSRF Cookie",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/sanctum/csrf-cookie", "host": ["{{base_url}}"], "path": ["sanctum", "csrf-cookie"] }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}" },
+            "url": { "raw": "{{base_url}}/api/v1/auth/login", "host": ["{{base_url}}"], "path": ["api", "v1", "auth", "login"] }
+          }
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/v1/auth/me", "host": ["{{base_url}}"], "path": ["api", "v1", "auth", "me"] }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/v1/auth/logout", "host": ["{{base_url}}"], "path": ["api", "v1", "auth", "logout"] }
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"current_password\": \"password\",\n  \"password\": \"new-password\",\n  \"password_confirmation\": \"new-password\"\n}" },
+            "url": { "raw": "{{base_url}}/api/v1/auth/change-password", "host": ["{{base_url}}"], "path": ["api", "v1", "auth", "change-password"] }
+          }
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{email}}\"\n}" },
+            "url": { "raw": "{{base_url}}/api/v1/auth/forgot-password", "host": ["{{base_url}}"], "path": ["api", "v1", "auth", "forgot-password"] }
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"token\": \"\",\n  \"email\": \"{{email}}\",\n  \"password\": \"new-password\",\n  \"password_confirmation\": \"new-password\"\n}" },
+            "url": { "raw": "{{base_url}}/api/v1/auth/reset-password", "host": ["{{base_url}}"], "path": ["api", "v1", "auth", "reset-password"] }
+          }
+        },
+        {
+          "name": "Sessions",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/v1/auth/sessions", "host": ["{{base_url}}"], "path": ["api", "v1", "auth", "sessions"] }
+          }
+        },
+        {
+          "name": "Revoke Session",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/v1/auth/sessions/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "auth", "sessions", "{{id}}"] }
+          }
+        },
+        {
+          "name": "Switch Branch",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"branch_id\": 1\n}" },
+            "url": { "raw": "{{base_url}}/api/v1/branch/switch", "host": ["{{base_url}}"], "path": ["api", "v1", "branch", "switch"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "CMS",
+      "item": [
+        {
+          "name": "Pages",
+          "item": [
+            { "name": "List Pages", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/cms/pages", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "pages"] } } },
+            { "name": "Page Meta", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/cms/pages/meta", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "pages", "meta"] } } },
+            { "name": "Create Page", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"title\": \"About Us\",\n  \"slug\": \"about-us\",\n  \"status\": \"draft\",\n  \"blocks\": []\n}" }, "url": { "raw": "{{base_url}}/api/v1/cms/pages", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "pages"] } } },
+            { "name": "Show Page", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/cms/pages/{{page_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "pages", "{{page_id}}"] } } },
+            { "name": "Update Page", "request": { "method": "PUT", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"title\": \"About Us (updated)\",\n  \"status\": \"published\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/cms/pages/{{page_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "pages", "{{page_id}}"] } } },
+            { "name": "Delete Page", "request": { "method": "DELETE", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/cms/pages/{{page_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "pages", "{{page_id}}"] } } },
+            { "name": "Restore Page", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/cms/pages/{{page_id}}/restore", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "pages", "{{page_id}}", "restore"] } } }
+          ]
+        },
+        {
+          "name": "Posts",
+          "item": [
+            { "name": "List Posts", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/cms/posts", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "posts"] } } },
+            { "name": "Post Meta", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/cms/posts/meta", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "posts", "meta"] } } },
+            { "name": "Create Post", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"title\": \"Sample Post\",\n  \"slug\": \"sample-post\",\n  \"status\": \"draft\",\n  \"body\": \"\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/cms/posts", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "posts"] } } },
+            { "name": "Show Post", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/cms/posts/{{post_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "posts", "{{post_id}}"] } } },
+            { "name": "Update Post", "request": { "method": "PUT", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"title\": \"Sample Post (updated)\",\n  \"status\": \"published\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/cms/posts/{{post_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "posts", "{{post_id}}"] } } },
+            { "name": "Delete Post", "request": { "method": "DELETE", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/cms/posts/{{post_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "posts", "{{post_id}}"] } } },
+            { "name": "Restore Post", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/cms/posts/{{post_id}}/restore", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "posts", "{{post_id}}", "restore"] } } }
+          ]
+        },
+        {
+          "name": "Taxonomies & Terms",
+          "item": [
+            { "name": "List Taxonomies", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/cms/taxonomies", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "taxonomies"] } } },
+            { "name": "Create Taxonomy", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Category\",\n  \"slug\": \"category\",\n  \"hierarchical\": true\n}" }, "url": { "raw": "{{base_url}}/api/v1/cms/taxonomies", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "taxonomies"] } } },
+            { "name": "Show Taxonomy", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/cms/taxonomies/{{taxonomy_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "taxonomies", "{{taxonomy_id}}"] } } },
+            { "name": "Update Taxonomy", "request": { "method": "PUT", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Category (updated)\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/cms/taxonomies/{{taxonomy_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "taxonomies", "{{taxonomy_id}}"] } } },
+            { "name": "Delete Taxonomy", "request": { "method": "DELETE", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/cms/taxonomies/{{taxonomy_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "taxonomies", "{{taxonomy_id}}"] } } },
+            { "name": "Create Term", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"taxonomy_id\": 1,\n  \"name\": \"News\",\n  \"slug\": \"news\",\n  \"parent_id\": null\n}" }, "url": { "raw": "{{base_url}}/api/v1/cms/terms", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "terms"] } } },
+            { "name": "Update Term", "request": { "method": "PUT", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"News (updated)\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/cms/terms/{{term_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "terms", "{{term_id}}"] } } },
+            { "name": "Delete Term", "request": { "method": "DELETE", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/cms/terms/{{term_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "terms", "{{term_id}}"] } } }
+          ]
+        },
+        {
+          "name": "Media",
+          "item": [
+            { "name": "List Media", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/cms/media", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "media"] } } },
+            { "name": "Media Picker", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/cms/media/picker", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "media", "picker"] } } },
+            { "name": "Upload Media", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }], "body": { "mode": "formdata", "formdata": [{ "key": "file", "type": "file", "src": [] }, { "key": "folder_id", "value": "", "type": "text" }] }, "url": { "raw": "{{base_url}}/api/v1/cms/media", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "media"] } } },
+            { "name": "Bulk Destroy Media", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"ids\": [1, 2, 3]\n}" }, "url": { "raw": "{{base_url}}/api/v1/cms/media/bulk-destroy", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "media", "bulk-destroy"] } } },
+            { "name": "Update Media", "request": { "method": "PUT", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"alt\": \"Alt text\",\n  \"title\": \"Title\",\n  \"folder_id\": null\n}" }, "url": { "raw": "{{base_url}}/api/v1/cms/media/{{asset_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "media", "{{asset_id}}"] } } },
+            { "name": "Delete Media", "request": { "method": "DELETE", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/cms/media/{{asset_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "media", "{{asset_id}}"] } } },
+            { "name": "List Media Folders", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/cms/media-folders", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "media-folders"] } } },
+            { "name": "Create Media Folder", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Uploads\",\n  \"parent_id\": null\n}" }, "url": { "raw": "{{base_url}}/api/v1/cms/media-folders", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "media-folders"] } } },
+            { "name": "Update Media Folder", "request": { "method": "PUT", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Uploads (renamed)\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/cms/media-folders/{{folder_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "media-folders", "{{folder_id}}"] } } },
+            { "name": "Delete Media Folder", "request": { "method": "DELETE", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/cms/media-folders/{{folder_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "media-folders", "{{folder_id}}"] } } }
+          ]
+        },
+        {
+          "name": "Menus",
+          "item": [
+            { "name": "List Menus", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/cms/menus", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "menus"] } } },
+            { "name": "Create Menu", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Main Menu\",\n  \"key\": \"main\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/cms/menus", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "menus"] } } },
+            { "name": "Show Menu", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/cms/menus/{{menu_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "menus", "{{menu_id}}"] } } },
+            { "name": "Update Menu", "request": { "method": "PUT", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Main Menu (updated)\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/cms/menus/{{menu_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "menus", "{{menu_id}}"] } } },
+            { "name": "Update Menu Tree", "request": { "method": "PUT", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"items\": [\n    { \"label\": \"Home\", \"url\": \"/\", \"children\": [] }\n  ]\n}" }, "url": { "raw": "{{base_url}}/api/v1/cms/menus/{{menu_id}}/tree", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "menus", "{{menu_id}}", "tree"] } } },
+            { "name": "Delete Menu", "request": { "method": "DELETE", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/cms/menus/{{menu_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "menus", "{{menu_id}}"] } } }
+          ]
+        },
+        {
+          "name": "Notices",
+          "item": [
+            { "name": "List Notices", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/cms/notices", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "notices"] } } },
+            { "name": "Notice Meta", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/cms/notices/meta", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "notices", "meta"] } } },
+            { "name": "Create Notice", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"title\": \"Holiday Notice\",\n  \"slug\": \"holiday-notice\",\n  \"status\": \"draft\",\n  \"body\": \"\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/cms/notices", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "notices"] } } },
+            { "name": "Show Notice", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/cms/notices/{{notice_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "notices", "{{notice_id}}"] } } },
+            { "name": "Update Notice", "request": { "method": "PUT", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"status\": \"published\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/cms/notices/{{notice_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "notices", "{{notice_id}}"] } } },
+            { "name": "Delete Notice", "request": { "method": "DELETE", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/cms/notices/{{notice_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "notices", "{{notice_id}}"] } } },
+            { "name": "Restore Notice", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/cms/notices/{{notice_id}}/restore", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "notices", "{{notice_id}}", "restore"] } } }
+          ]
+        },
+        {
+          "name": "Events",
+          "item": [
+            { "name": "List Events", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/cms/events", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "events"] } } },
+            { "name": "Event Meta", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/cms/events/meta", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "events", "meta"] } } },
+            { "name": "Create Event", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"title\": \"Annual Sports Day\",\n  \"slug\": \"annual-sports-day\",\n  \"status\": \"draft\",\n  \"start_at\": \"2026-08-01 09:00:00\",\n  \"end_at\": \"2026-08-01 17:00:00\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/cms/events", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "events"] } } },
+            { "name": "Show Event", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/cms/events/{{event_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "events", "{{event_id}}"] } } },
+            { "name": "Update Event", "request": { "method": "PUT", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"status\": \"published\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/cms/events/{{event_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "events", "{{event_id}}"] } } },
+            { "name": "Delete Event", "request": { "method": "DELETE", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/cms/events/{{event_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "events", "{{event_id}}"] } } },
+            { "name": "Restore Event", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/cms/events/{{event_id}}/restore", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "events", "{{event_id}}", "restore"] } } }
+          ]
+        },
+        {
+          "name": "Redirects",
+          "item": [
+            { "name": "List Redirects", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/cms/redirects", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "redirects"] } } },
+            { "name": "Create Redirect", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"from\": \"/old-path\",\n  \"to\": \"/new-path\",\n  \"status_code\": 301\n}" }, "url": { "raw": "{{base_url}}/api/v1/cms/redirects", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "redirects"] } } },
+            { "name": "Update Redirect", "request": { "method": "PUT", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"to\": \"/another-path\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/cms/redirects/{{redirect_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "redirects", "{{redirect_id}}"] } } },
+            { "name": "Delete Redirect", "request": { "method": "DELETE", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/cms/redirects/{{redirect_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "redirects", "{{redirect_id}}"] } } }
+          ]
+        },
+        {
+          "name": "Public (in-app preview)",
+          "item": [
+            { "name": "List Pages", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/cms/public/pages", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "public", "pages"] } } },
+            { "name": "Show Page (by path)", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/cms/public/pages/{{path}}", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "public", "pages", "{{path}}"] } } },
+            { "name": "List Posts", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/cms/public/posts", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "public", "posts"] } } },
+            { "name": "Show Post", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/cms/public/posts/{{slug}}", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "public", "posts", "{{slug}}"] } } },
+            { "name": "Taxonomy Terms", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/cms/public/taxonomies/{{taxonomy}}/terms", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "public", "taxonomies", "{{taxonomy}}", "terms"] } } },
+            { "name": "Show Term", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/cms/public/terms/{{taxonomy}}/{{slug}}", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "public", "terms", "{{taxonomy}}", "{{slug}}"] } } },
+            { "name": "List Notices", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/cms/public/notices", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "public", "notices"] } } },
+            { "name": "Show Notice", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/cms/public/notices/{{slug}}", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "public", "notices", "{{slug}}"] } } },
+            { "name": "List Events", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/cms/public/events", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "public", "events"] } } },
+            { "name": "Show Event", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/cms/public/events/{{slug}}", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "public", "events", "{{slug}}"] } } },
+            { "name": "Show Menu", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/cms/public/menus/{{menu_key}}", "host": ["{{base_url}}"], "path": ["api", "v1", "cms", "public", "menus", "{{menu_key}}"] } } }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Site (public, unauthenticated)",
+      "item": [
+        { "name": "List Pages", "request": { "auth": { "type": "noauth" }, "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/site/pages", "host": ["{{base_url}}"], "path": ["api", "v1", "site", "pages"] } } },
+        { "name": "Show Page (by path)", "request": { "auth": { "type": "noauth" }, "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/site/pages/{{path}}", "host": ["{{base_url}}"], "path": ["api", "v1", "site", "pages", "{{path}}"] } } },
+        { "name": "List Posts", "request": { "auth": { "type": "noauth" }, "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/site/posts", "host": ["{{base_url}}"], "path": ["api", "v1", "site", "posts"] } } },
+        { "name": "Show Post", "request": { "auth": { "type": "noauth" }, "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/site/posts/{{slug}}", "host": ["{{base_url}}"], "path": ["api", "v1", "site", "posts", "{{slug}}"] } } },
+        { "name": "Taxonomy Terms", "request": { "auth": { "type": "noauth" }, "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/site/taxonomies/{{taxonomy}}/terms", "host": ["{{base_url}}"], "path": ["api", "v1", "site", "taxonomies", "{{taxonomy}}", "terms"] } } },
+        { "name": "Show Term", "request": { "auth": { "type": "noauth" }, "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/site/terms/{{taxonomy}}/{{slug}}", "host": ["{{base_url}}"], "path": ["api", "v1", "site", "terms", "{{taxonomy}}", "{{slug}}"] } } },
+        { "name": "List Notices", "request": { "auth": { "type": "noauth" }, "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/site/notices", "host": ["{{base_url}}"], "path": ["api", "v1", "site", "notices"] } } },
+        { "name": "Show Notice", "request": { "auth": { "type": "noauth" }, "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/site/notices/{{slug}}", "host": ["{{base_url}}"], "path": ["api", "v1", "site", "notices", "{{slug}}"] } } },
+        { "name": "List Events", "request": { "auth": { "type": "noauth" }, "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/site/events", "host": ["{{base_url}}"], "path": ["api", "v1", "site", "events"] } } },
+        { "name": "Show Event", "request": { "auth": { "type": "noauth" }, "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/site/events/{{slug}}", "host": ["{{base_url}}"], "path": ["api", "v1", "site", "events", "{{slug}}"] } } },
+        { "name": "Show Menu", "request": { "auth": { "type": "noauth" }, "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/site/menus/{{menu_key}}", "host": ["{{base_url}}"], "path": ["api", "v1", "site", "menus", "{{menu_key}}"] } } }
+      ]
+    },
+    {
+      "name": "Users & Roles",
+      "item": [
+        { "name": "List Users", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/users", "host": ["{{base_url}}"], "path": ["api", "v1", "users"] } } },
+        { "name": "Show User", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/users/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "users", "{{id}}"] } } },
+        { "name": "Create User", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"New User\",\n  \"email\": \"new@example.com\",\n  \"password\": \"password\",\n  \"roles\": []\n}" }, "url": { "raw": "{{base_url}}/api/v1/users", "host": ["{{base_url}}"], "path": ["api", "v1", "users"] } } },
+        { "name": "Update User", "request": { "method": "PUT", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Updated Name\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/users/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "users", "{{id}}"] } } },
+        { "name": "Deactivate User", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/users/{{id}}/deactivate", "host": ["{{base_url}}"], "path": ["api", "v1", "users", "{{id}}", "deactivate"] } } },
+        { "name": "Force Reset User", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/users/{{id}}/force-reset", "host": ["{{base_url}}"], "path": ["api", "v1", "users", "{{id}}", "force-reset"] } } },
+        { "name": "List Roles", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/roles", "host": ["{{base_url}}"], "path": ["api", "v1", "roles"] } } },
+        { "name": "List Permissions", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/roles/permissions", "host": ["{{base_url}}"], "path": ["api", "v1", "roles", "permissions"] } } },
+        { "name": "Update Role Permissions", "request": { "method": "PUT", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"permissions\": [\"cms.manage\"]\n}" }, "url": { "raw": "{{base_url}}/api/v1/roles/{{id}}/permissions", "host": ["{{base_url}}"], "path": ["api", "v1", "roles", "{{id}}", "permissions"] } } },
+        { "name": "Audit Logs", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/audit-logs", "host": ["{{base_url}}"], "path": ["api", "v1", "audit-logs"] } } },
+        { "name": "Dashboard", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/dashboard", "host": ["{{base_url}}"], "path": ["api", "v1", "dashboard"] } } },
+        { "name": "Upload File", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }], "body": { "mode": "formdata", "formdata": [{ "key": "file", "type": "file", "src": [] }] }, "url": { "raw": "{{base_url}}/api/v1/uploads", "host": ["{{base_url}}"], "path": ["api", "v1", "uploads"] } } }
+      ]
+    },
+    {
+      "name": "Academic",
+      "item": [
+        { "name": "Class Config Options", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/academic/class-configs/options", "host": ["{{base_url}}"], "path": ["api", "v1", "academic", "class-configs", "options"] } } },
+        { "name": "List Class Configs", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/academic/class-configs", "host": ["{{base_url}}"], "path": ["api", "v1", "academic", "class-configs"] } } },
+        { "name": "Create Class Config", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"class_id\": 1,\n  \"shift_id\": 1,\n  \"section_id\": 1\n}" }, "url": { "raw": "{{base_url}}/api/v1/academic/class-configs", "host": ["{{base_url}}"], "path": ["api", "v1", "academic", "class-configs"] } } },
+        { "name": "Update Class Config", "request": { "method": "PUT", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"section_id\": 2\n}" }, "url": { "raw": "{{base_url}}/api/v1/academic/class-configs/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "academic", "class-configs", "{{id}}"] } } },
+        { "name": "Delete Class Config", "request": { "method": "DELETE", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/academic/class-configs/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "academic", "class-configs", "{{id}}"] } } },
+        { "name": "List Setup Resource", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/academic/{{resource}}", "host": ["{{base_url}}"], "path": ["api", "v1", "academic", "{{resource}}"], "description": "resource ∈ academic-years|classes|shifts|sections|groups|categories|subjects" } } },
+        { "name": "Create Setup Resource", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Example\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/academic/{{resource}}", "host": ["{{base_url}}"], "path": ["api", "v1", "academic", "{{resource}}"] } } },
+        { "name": "Show Setup Resource", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/academic/{{resource}}/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "academic", "{{resource}}", "{{id}}"] } } },
+        { "name": "Update Setup Resource", "request": { "method": "PUT", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Example (updated)\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/academic/{{resource}}/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "academic", "{{resource}}", "{{id}}"] } } },
+        { "name": "Delete Setup Resource", "request": { "method": "DELETE", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/academic/{{resource}}/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "academic", "{{resource}}", "{{id}}"] } } }
+      ]
+    },
+    {
+      "name": "Students",
+      "item": [
+        { "name": "List Students", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/students", "host": ["{{base_url}}"], "path": ["api", "v1", "students"] } } },
+        { "name": "Create Student", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Student Name\",\n  \"class_config_id\": 1\n}" }, "url": { "raw": "{{base_url}}/api/v1/students", "host": ["{{base_url}}"], "path": ["api", "v1", "students"] } } },
+        { "name": "Bulk Register", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"students\": []\n}" }, "url": { "raw": "{{base_url}}/api/v1/students/bulk-register", "host": ["{{base_url}}"], "path": ["api", "v1", "students", "bulk-register"] } } },
+        { "name": "Migrate Students", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"student_ids\": [],\n  \"to_class_config_id\": 1\n}" }, "url": { "raw": "{{base_url}}/api/v1/students/migrate", "host": ["{{base_url}}"], "path": ["api", "v1", "students", "migrate"] } } },
+        { "name": "Show Student", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/students/{{student_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "students", "{{student_id}}"] } } },
+        { "name": "Update Student", "request": { "method": "PUT", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Updated Name\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/students/{{student_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "students", "{{student_id}}"] } } },
+        { "name": "Delete Student", "request": { "method": "DELETE", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/students/{{student_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "students", "{{student_id}}"] } } }
+      ]
+    },
+    {
+      "name": "Admissions",
+      "item": [
+        { "name": "List Years", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/admissions/years", "host": ["{{base_url}}"], "path": ["api", "v1", "admissions", "years"] } } },
+        { "name": "Create Year", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"2026 Admission\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/admissions/years", "host": ["{{base_url}}"], "path": ["api", "v1", "admissions", "years"] } } },
+        { "name": "Update Year", "request": { "method": "PUT", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"2026 Admission (updated)\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/admissions/years/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "admissions", "years", "{{id}}"] } } },
+        { "name": "Delete Year", "request": { "method": "DELETE", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/admissions/years/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "admissions", "years", "{{id}}"] } } },
+        { "name": "List Quotas", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/admissions/quotas", "host": ["{{base_url}}"], "path": ["api", "v1", "admissions", "quotas"] } } },
+        { "name": "Create Quota", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"General\",\n  \"seats\": 100\n}" }, "url": { "raw": "{{base_url}}/api/v1/admissions/quotas", "host": ["{{base_url}}"], "path": ["api", "v1", "admissions", "quotas"] } } },
+        { "name": "Update Quota", "request": { "method": "PUT", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"seats\": 120\n}" }, "url": { "raw": "{{base_url}}/api/v1/admissions/quotas/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "admissions", "quotas", "{{id}}"] } } },
+        { "name": "Delete Quota", "request": { "method": "DELETE", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/admissions/quotas/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "admissions", "quotas", "{{id}}"] } } },
+        { "name": "Applications Stats", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/admissions/applications/stats", "host": ["{{base_url}}"], "path": ["api", "v1", "admissions", "applications", "stats"] } } },
+        { "name": "List Applications", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/admissions/applications", "host": ["{{base_url}}"], "path": ["api", "v1", "admissions", "applications"] } } },
+        { "name": "Create Application", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Applicant Name\",\n  \"admission_year_id\": 1\n}" }, "url": { "raw": "{{base_url}}/api/v1/admissions/applications", "host": ["{{base_url}}"], "path": ["api", "v1", "admissions", "applications"] } } },
+        { "name": "Show Application", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/admissions/applications/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "admissions", "applications", "{{id}}"] } } },
+        { "name": "Update Application", "request": { "method": "PUT", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Applicant (updated)\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/admissions/applications/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "admissions", "applications", "{{id}}"] } } },
+        { "name": "Update Application Status", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"status\": \"selected\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/admissions/applications/{{id}}/status", "host": ["{{base_url}}"], "path": ["api", "v1", "admissions", "applications", "{{id}}", "status"] } } },
+        { "name": "Convert Application", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/admissions/applications/{{id}}/convert", "host": ["{{base_url}}"], "path": ["api", "v1", "admissions", "applications", "{{id}}", "convert"] } } },
+        { "name": "Delete Application", "request": { "method": "DELETE", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/admissions/applications/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "admissions", "applications", "{{id}}"] } } }
+      ]
+    },
+    {
+      "name": "HR",
+      "item": [
+        { "name": "List Setup Resource", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/hr/{{resource}}", "host": ["{{base_url}}"], "path": ["api", "v1", "hr", "{{resource}}"], "description": "resource ∈ designations|hr-sections" } } },
+        { "name": "Create Setup Resource", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Example\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/hr/{{resource}}", "host": ["{{base_url}}"], "path": ["api", "v1", "hr", "{{resource}}"] } } },
+        { "name": "Show Setup Resource", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/hr/{{resource}}/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "hr", "{{resource}}", "{{id}}"] } } },
+        { "name": "Update Setup Resource", "request": { "method": "PUT", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Example (updated)\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/hr/{{resource}}/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "hr", "{{resource}}", "{{id}}"] } } },
+        { "name": "Delete Setup Resource", "request": { "method": "DELETE", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/hr/{{resource}}/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "hr", "{{resource}}", "{{id}}"] } } },
+        { "name": "List Employees", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/hr/employees", "host": ["{{base_url}}"], "path": ["api", "v1", "hr", "employees"] } } },
+        { "name": "Create Employee", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Employee Name\",\n  \"designation_id\": 1\n}" }, "url": { "raw": "{{base_url}}/api/v1/hr/employees", "host": ["{{base_url}}"], "path": ["api", "v1", "hr", "employees"] } } },
+        { "name": "Show Employee", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/hr/employees/{{employee_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "hr", "employees", "{{employee_id}}"] } } },
+        { "name": "Update Employee", "request": { "method": "PUT", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Updated Name\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/hr/employees/{{employee_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "hr", "employees", "{{employee_id}}"] } } },
+        { "name": "Delete Employee", "request": { "method": "DELETE", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/hr/employees/{{employee_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "hr", "employees", "{{employee_id}}"] } } },
+        { "name": "Assign Subject", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"subject_id\": 1,\n  \"class_config_id\": 1\n}" }, "url": { "raw": "{{base_url}}/api/v1/hr/employees/{{employee_id}}/assign-subject", "host": ["{{base_url}}"], "path": ["api", "v1", "hr", "employees", "{{employee_id}}", "assign-subject"] } } },
+        { "name": "Remove Subject Assignment", "request": { "method": "DELETE", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/hr/employees/{{employee_id}}/subject-assignments/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "hr", "employees", "{{employee_id}}", "subject-assignments", "{{id}}"] } } }
+      ]
+    },
+    {
+      "name": "Routines",
+      "item": [
+        { "name": "List Periods", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/routines/periods", "host": ["{{base_url}}"], "path": ["api", "v1", "routines", "periods"] } } },
+        { "name": "Create Period", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Period 1\",\n  \"start_time\": \"09:00\",\n  \"end_time\": \"09:45\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/routines/periods", "host": ["{{base_url}}"], "path": ["api", "v1", "routines", "periods"] } } },
+        { "name": "Update Period", "request": { "method": "PUT", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Period 1 (updated)\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/routines/periods/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "routines", "periods", "{{id}}"] } } },
+        { "name": "Delete Period", "request": { "method": "DELETE", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/routines/periods/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "routines", "periods", "{{id}}"] } } },
+        { "name": "Class Config Routine Options", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/routines/class-configs/{{class_config_id}}/options", "host": ["{{base_url}}"], "path": ["api", "v1", "routines", "class-configs", "{{class_config_id}}", "options"] } } },
+        { "name": "Routine for Class Config", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/routines/class-configs/{{class_config_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "routines", "class-configs", "{{class_config_id}}"] } } },
+        { "name": "Routine for Teacher", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/routines/teachers/{{employee_id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "routines", "teachers", "{{employee_id}}"] } } },
+        { "name": "Create Routine Entry", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"class_config_id\": 1,\n  \"period_id\": 1,\n  \"day\": \"sunday\",\n  \"subject_id\": 1,\n  \"employee_id\": 1\n}" }, "url": { "raw": "{{base_url}}/api/v1/routines", "host": ["{{base_url}}"], "path": ["api", "v1", "routines"] } } },
+        { "name": "Update Routine Entry", "request": { "method": "PUT", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"subject_id\": 2\n}" }, "url": { "raw": "{{base_url}}/api/v1/routines/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "routines", "{{id}}"] } } },
+        { "name": "Delete Routine Entry", "request": { "method": "DELETE", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/routines/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "routines", "{{id}}"] } } }
+      ]
+    },
+    {
+      "name": "Attendance",
+      "item": [
+        { "name": "List Holidays", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/attendance/holidays", "host": ["{{base_url}}"], "path": ["api", "v1", "attendance", "holidays"] } } },
+        { "name": "Create Holiday", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Eid\",\n  \"date\": \"2026-08-15\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/attendance/holidays", "host": ["{{base_url}}"], "path": ["api", "v1", "attendance", "holidays"] } } },
+        { "name": "Update Holiday", "request": { "method": "PUT", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Eid (updated)\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/attendance/holidays/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "attendance", "holidays", "{{id}}"] } } },
+        { "name": "Delete Holiday", "request": { "method": "DELETE", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/attendance/holidays/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "attendance", "holidays", "{{id}}"] } } },
+        { "name": "List Devices", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/attendance/devices", "host": ["{{base_url}}"], "path": ["api", "v1", "attendance", "devices"] } } },
+        { "name": "Create Device", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Gate Device\",\n  \"serial\": \"ABC123\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/attendance/devices", "host": ["{{base_url}}"], "path": ["api", "v1", "attendance", "devices"] } } },
+        { "name": "Update Device", "request": { "method": "PUT", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Gate Device (updated)\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/attendance/devices/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "attendance", "devices", "{{id}}"] } } },
+        { "name": "Delete Device", "request": { "method": "DELETE", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/attendance/devices/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "attendance", "devices", "{{id}}"] } } },
+        { "name": "List Device Maps", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/attendance/device-maps", "host": ["{{base_url}}"], "path": ["api", "v1", "attendance", "device-maps"] } } },
+        { "name": "Create Device Map", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"device_id\": 1,\n  \"student_id\": 1,\n  \"device_user_id\": \"1001\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/attendance/device-maps", "host": ["{{base_url}}"], "path": ["api", "v1", "attendance", "device-maps"] } } },
+        { "name": "Delete Device Map", "request": { "method": "DELETE", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/attendance/device-maps/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "attendance", "device-maps", "{{id}}"] } } },
+        { "name": "List Time Configs", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/attendance/time-configs", "host": ["{{base_url}}"], "path": ["api", "v1", "attendance", "time-configs"] } } },
+        { "name": "Create Time Config", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"in_time\": \"08:00\",\n  \"late_after\": \"08:15\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/attendance/time-configs", "host": ["{{base_url}}"], "path": ["api", "v1", "attendance", "time-configs"] } } },
+        { "name": "Update Time Config", "request": { "method": "PUT", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"late_after\": \"08:20\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/attendance/time-configs/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "attendance", "time-configs", "{{id}}"] } } },
+        { "name": "Delete Time Config", "request": { "method": "DELETE", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/attendance/time-configs/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "attendance", "time-configs", "{{id}}"] } } },
+        { "name": "Store Punches", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"punches\": []\n}" }, "url": { "raw": "{{base_url}}/api/v1/attendance/punches", "host": ["{{base_url}}"], "path": ["api", "v1", "attendance", "punches"] } } },
+        { "name": "Process Punches", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"date\": \"2026-07-26\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/attendance/punches/process", "host": ["{{base_url}}"], "path": ["api", "v1", "attendance", "punches", "process"] } } },
+        { "name": "Student Attendance - Index", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/attendance/students", "host": ["{{base_url}}"], "path": ["api", "v1", "attendance", "students"] } } },
+        { "name": "Student Attendance - Take", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"class_config_id\": 1,\n  \"date\": \"2026-07-26\",\n  \"records\": []\n}" }, "url": { "raw": "{{base_url}}/api/v1/attendance/students/take", "host": ["{{base_url}}"], "path": ["api", "v1", "attendance", "students", "take"] } } },
+        { "name": "Student Attendance - Report", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/attendance/students/report", "host": ["{{base_url}}"], "path": ["api", "v1", "attendance", "students", "report"] } } },
+        { "name": "Student Attendance - Update", "request": { "method": "PUT", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"status\": \"present\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/attendance/students/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "attendance", "students", "{{id}}"] } } },
+        { "name": "Employee Attendance - Index", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/attendance/employees", "host": ["{{base_url}}"], "path": ["api", "v1", "attendance", "employees"] } } },
+        { "name": "Employee Attendance - Take", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"date\": \"2026-07-26\",\n  \"records\": []\n}" }, "url": { "raw": "{{base_url}}/api/v1/attendance/employees/take", "host": ["{{base_url}}"], "path": ["api", "v1", "attendance", "employees", "take"] } } },
+        { "name": "Employee Attendance - Report", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/attendance/employees/report", "host": ["{{base_url}}"], "path": ["api", "v1", "attendance", "employees", "report"] } } },
+        { "name": "Employee Attendance - Update", "request": { "method": "PUT", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"status\": \"present\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/attendance/employees/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "attendance", "employees", "{{id}}"] } } }
+      ]
+    },
+    {
+      "name": "Examinations",
+      "item": [
+        { "name": "List Setup Resource", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/examinations/{{resource}}", "host": ["{{base_url}}"], "path": ["api", "v1", "examinations", "{{resource}}"], "description": "resource ∈ exams|short-codes" } } },
+        { "name": "Create Setup Resource", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Half Yearly\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/examinations/{{resource}}", "host": ["{{base_url}}"], "path": ["api", "v1", "examinations", "{{resource}}"] } } },
+        { "name": "Show Setup Resource", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/examinations/{{resource}}/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "examinations", "{{resource}}", "{{id}}"] } } },
+        { "name": "Update Setup Resource", "request": { "method": "PUT", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Half Yearly (updated)\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/examinations/{{resource}}/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "examinations", "{{resource}}", "{{id}}"] } } },
+        { "name": "Delete Setup Resource", "request": { "method": "DELETE", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/examinations/{{resource}}/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "examinations", "{{resource}}", "{{id}}"] } } },
+        { "name": "List Grades", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/examinations/grades", "host": ["{{base_url}}"], "path": ["api", "v1", "examinations", "grades"] } } },
+        { "name": "Create Grade", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"class_id\": 1,\n  \"letter\": \"A+\",\n  \"point\": 5.0,\n  \"min\": 80,\n  \"max\": 100\n}" }, "url": { "raw": "{{base_url}}/api/v1/examinations/grades", "host": ["{{base_url}}"], "path": ["api", "v1", "examinations", "grades"] } } },
+        { "name": "Update Grade", "request": { "method": "PUT", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"point\": 5.0\n}" }, "url": { "raw": "{{base_url}}/api/v1/examinations/grades/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "examinations", "grades", "{{id}}"] } } },
+        { "name": "Delete Grade", "request": { "method": "DELETE", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/examinations/grades/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "examinations", "grades", "{{id}}"] } } },
+        { "name": "List Exam Configs", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/examinations/exam-configs", "host": ["{{base_url}}"], "path": ["api", "v1", "examinations", "exam-configs"] } } },
+        { "name": "Create Exam Config", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"exam_id\": 1,\n  \"class_config_id\": 1\n}" }, "url": { "raw": "{{base_url}}/api/v1/examinations/exam-configs", "host": ["{{base_url}}"], "path": ["api", "v1", "examinations", "exam-configs"] } } },
+        { "name": "Update Exam Config", "request": { "method": "PUT", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{}" }, "url": { "raw": "{{base_url}}/api/v1/examinations/exam-configs/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "examinations", "exam-configs", "{{id}}"] } } },
+        { "name": "Delete Exam Config", "request": { "method": "DELETE", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/examinations/exam-configs/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "examinations", "exam-configs", "{{id}}"] } } },
+        { "name": "Mark Config Options", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/examinations/mark-configs/options", "host": ["{{base_url}}"], "path": ["api", "v1", "examinations", "mark-configs", "options"] } } },
+        { "name": "List Mark Configs", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/examinations/mark-configs", "host": ["{{base_url}}"], "path": ["api", "v1", "examinations", "mark-configs"] } } },
+        { "name": "Save Mark Config", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"exam_config_id\": 1,\n  \"subject_id\": 1,\n  \"marks\": []\n}" }, "url": { "raw": "{{base_url}}/api/v1/examinations/mark-configs", "host": ["{{base_url}}"], "path": ["api", "v1", "examinations", "mark-configs"] } } },
+        { "name": "Delete Mark Config", "request": { "method": "DELETE", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/examinations/mark-configs/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "examinations", "mark-configs", "{{id}}"] } } },
+        { "name": "List Fourth Subjects", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/examinations/fourth-subjects", "host": ["{{base_url}}"], "path": ["api", "v1", "examinations", "fourth-subjects"] } } },
+        { "name": "Save Fourth Subjects", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"assignments\": []\n}" }, "url": { "raw": "{{base_url}}/api/v1/examinations/fourth-subjects", "host": ["{{base_url}}"], "path": ["api", "v1", "examinations", "fourth-subjects"] } } },
+        { "name": "List Class Teacher Configs", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/examinations/class-teacher-configs", "host": ["{{base_url}}"], "path": ["api", "v1", "examinations", "class-teacher-configs"] } } },
+        { "name": "Create Class Teacher Config", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"class_config_id\": 1,\n  \"employee_id\": 1\n}" }, "url": { "raw": "{{base_url}}/api/v1/examinations/class-teacher-configs", "host": ["{{base_url}}"], "path": ["api", "v1", "examinations", "class-teacher-configs"] } } },
+        { "name": "Delete Class Teacher Config", "request": { "method": "DELETE", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/examinations/class-teacher-configs/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "examinations", "class-teacher-configs", "{{id}}"] } } },
+        { "name": "List Signatures", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/examinations/signatures", "host": ["{{base_url}}"], "path": ["api", "v1", "examinations", "signatures"] } } },
+        { "name": "Create Signature", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"title\": \"Principal\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/examinations/signatures", "host": ["{{base_url}}"], "path": ["api", "v1", "examinations", "signatures"] } } },
+        { "name": "Update Signature", "request": { "method": "PUT", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"title\": \"Head Teacher\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/examinations/signatures/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "examinations", "signatures", "{{id}}"] } } },
+        { "name": "Delete Signature", "request": { "method": "DELETE", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/examinations/signatures/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "examinations", "signatures", "{{id}}"] } } },
+        { "name": "Show Admit Instructions", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/examinations/admit-instructions", "host": ["{{base_url}}"], "path": ["api", "v1", "examinations", "admit-instructions"] } } },
+        { "name": "Update Admit Instructions", "request": { "method": "PUT", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"instructions\": \"\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/examinations/admit-instructions", "host": ["{{base_url}}"], "path": ["api", "v1", "examinations", "admit-instructions"] } } },
+        { "name": "Exam Routine Options", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/examinations/exam-routine/options", "host": ["{{base_url}}"], "path": ["api", "v1", "examinations", "exam-routine", "options"] } } },
+        { "name": "List Exam Routine", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/examinations/exam-routine", "host": ["{{base_url}}"], "path": ["api", "v1", "examinations", "exam-routine"] } } },
+        { "name": "Create Exam Routine", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"exam_config_id\": 1,\n  \"subject_id\": 1,\n  \"date\": \"2026-08-01\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/examinations/exam-routine", "host": ["{{base_url}}"], "path": ["api", "v1", "examinations", "exam-routine"] } } },
+        { "name": "Update Exam Routine", "request": { "method": "PUT", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"date\": \"2026-08-02\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/examinations/exam-routine/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "examinations", "exam-routine", "{{id}}"] } } },
+        { "name": "Delete Exam Routine", "request": { "method": "DELETE", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/examinations/exam-routine/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "examinations", "exam-routine", "{{id}}"] } } },
+        { "name": "Marks Grid", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/examinations/marks/grid", "host": ["{{base_url}}"], "path": ["api", "v1", "examinations", "marks", "grid"] } } },
+        { "name": "Save Marks", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"exam_config_id\": 1,\n  \"subject_id\": 1,\n  \"marks\": []\n}" }, "url": { "raw": "{{base_url}}/api/v1/examinations/marks", "host": ["{{base_url}}"], "path": ["api", "v1", "examinations", "marks"] } } },
+        { "name": "Results - General Process", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"exam_config_id\": 1\n}" }, "url": { "raw": "{{base_url}}/api/v1/examinations/results/general-process", "host": ["{{base_url}}"], "path": ["api", "v1", "examinations", "results", "general-process"] } } },
+        { "name": "Results - Final Process", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"class_config_id\": 1\n}" }, "url": { "raw": "{{base_url}}/api/v1/examinations/results/final-process", "host": ["{{base_url}}"], "path": ["api", "v1", "examinations", "results", "final-process"] } } },
+        { "name": "Results - Merit Process", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"class_config_id\": 1\n}" }, "url": { "raw": "{{base_url}}/api/v1/examinations/results/merit-process", "host": ["{{base_url}}"], "path": ["api", "v1", "examinations", "results", "merit-process"] } } },
+        { "name": "Results - Marksheet", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/examinations/results/marksheet", "host": ["{{base_url}}"], "path": ["api", "v1", "examinations", "results", "marksheet"] } } },
+        { "name": "Results - Tabulation Sheet", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/examinations/results/tabulation-sheet", "host": ["{{base_url}}"], "path": ["api", "v1", "examinations", "results", "tabulation-sheet"] } } },
+        { "name": "Results - Merit List", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/examinations/results/merit-list", "host": ["{{base_url}}"], "path": ["api", "v1", "examinations", "results", "merit-list"] } } },
+        { "name": "Results - Fail List", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/examinations/results/fail-list", "host": ["{{base_url}}"], "path": ["api", "v1", "examinations", "results", "fail-list"] } } },
+        { "name": "Admit Card", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/examinations/admit/card", "host": ["{{base_url}}"], "path": ["api", "v1", "examinations", "admit", "card"] } } },
+        { "name": "Seat Plan", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"exam_id\": 1\n}" }, "url": { "raw": "{{base_url}}/api/v1/examinations/admit/seat-plan", "host": ["{{base_url}}"], "path": ["api", "v1", "examinations", "admit", "seat-plan"] } } },
+        { "name": "Attendance Sheet", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/examinations/admit/attendance-sheet", "host": ["{{base_url}}"], "path": ["api", "v1", "examinations", "admit", "attendance-sheet"] } } }
+      ]
+    },
+    {
+      "name": "Fees",
+      "item": [
+        { "name": "List Setup Resource", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/fees/{{resource}}", "host": ["{{base_url}}"], "path": ["api", "v1", "fees", "{{resource}}"], "description": "resource ∈ heads|sub-heads|waivers" } } },
+        { "name": "Create Setup Resource", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Tuition\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/fees/{{resource}}", "host": ["{{base_url}}"], "path": ["api", "v1", "fees", "{{resource}}"] } } },
+        { "name": "Show Setup Resource", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/fees/{{resource}}/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "fees", "{{resource}}", "{{id}}"] } } },
+        { "name": "Update Setup Resource", "request": { "method": "PUT", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Tuition (updated)\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/fees/{{resource}}/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "fees", "{{resource}}", "{{id}}"] } } },
+        { "name": "Delete Setup Resource", "request": { "method": "DELETE", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/fees/{{resource}}/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "fees", "{{resource}}", "{{id}}"] } } },
+        { "name": "List Fee Configs", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/fees/configs", "host": ["{{base_url}}"], "path": ["api", "v1", "fees", "configs"] } } },
+        { "name": "Save Fee Config", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"class_config_id\": 1,\n  \"academic_year_id\": 1,\n  \"items\": []\n}" }, "url": { "raw": "{{base_url}}/api/v1/fees/configs", "host": ["{{base_url}}"], "path": ["api", "v1", "fees", "configs"] } } },
+        { "name": "Assess Fees", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"class_config_id\": 1,\n  \"academic_year_id\": 1\n}" }, "url": { "raw": "{{base_url}}/api/v1/fees/configs/assess", "host": ["{{base_url}}"], "path": ["api", "v1", "fees", "configs", "assess"] } } },
+        { "name": "List Fee Time Configs", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/fees/time-configs", "host": ["{{base_url}}"], "path": ["api", "v1", "fees", "time-configs"] } } },
+        { "name": "Save Fee Time Config", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"academic_year_id\": 1,\n  \"items\": []\n}" }, "url": { "raw": "{{base_url}}/api/v1/fees/time-configs", "host": ["{{base_url}}"], "path": ["api", "v1", "fees", "time-configs"] } } },
+        { "name": "List Waiver Configs", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/fees/waiver-configs", "host": ["{{base_url}}"], "path": ["api", "v1", "fees", "waiver-configs"] } } },
+        { "name": "Create Waiver Config", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"student_id\": 1,\n  \"waiver_id\": 1\n}" }, "url": { "raw": "{{base_url}}/api/v1/fees/waiver-configs", "host": ["{{base_url}}"], "path": ["api", "v1", "fees", "waiver-configs"] } } },
+        { "name": "Delete Waiver Config", "request": { "method": "DELETE", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/fees/waiver-configs/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "fees", "waiver-configs", "{{id}}"] } } },
+        { "name": "Student Dues", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/fees/students/{{student_id}}/dues", "host": ["{{base_url}}"], "path": ["api", "v1", "fees", "students", "{{student_id}}", "dues"] } } },
+        { "name": "List Collections", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/fees/collections", "host": ["{{base_url}}"], "path": ["api", "v1", "fees", "collections"] } } },
+        { "name": "Create Collection", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"student_id\": 1,\n  \"items\": []\n}" }, "url": { "raw": "{{base_url}}/api/v1/fees/collections", "host": ["{{base_url}}"], "path": ["api", "v1", "fees", "collections"] } } },
+        { "name": "Show Collection", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/fees/collections/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "fees", "collections", "{{id}}"] } } },
+        { "name": "Fee Report", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/fees/reports/daily-collection", "host": ["{{base_url}}"], "path": ["api", "v1", "fees", "reports", "daily-collection"], "description": "type ∈ daily-collection|dues-summary" } } }
+      ]
+    },
+    {
+      "name": "Accounting",
+      "item": [
+        { "name": "List Ledgers", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/accounting/ledgers", "host": ["{{base_url}}"], "path": ["api", "v1", "accounting", "ledgers"] } } },
+        { "name": "Create Ledger", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Cash\",\n  \"type\": \"asset\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/accounting/ledgers", "host": ["{{base_url}}"], "path": ["api", "v1", "accounting", "ledgers"] } } },
+        { "name": "Update Ledger", "request": { "method": "PUT", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Cash (updated)\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/accounting/ledgers/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "accounting", "ledgers", "{{id}}"] } } },
+        { "name": "Delete Ledger", "request": { "method": "DELETE", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/accounting/ledgers/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "accounting", "ledgers", "{{id}}"] } } },
+        { "name": "List Vouchers", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/accounting/vouchers", "host": ["{{base_url}}"], "path": ["api", "v1", "accounting", "vouchers"] } } },
+        { "name": "Create Voucher", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"date\": \"2026-07-26\",\n  \"type\": \"payment\",\n  \"entries\": []\n}" }, "url": { "raw": "{{base_url}}/api/v1/accounting/vouchers", "host": ["{{base_url}}"], "path": ["api", "v1", "accounting", "vouchers"] } } },
+        { "name": "Show Voucher", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/accounting/vouchers/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "accounting", "vouchers", "{{id}}"] } } },
+        { "name": "Accounting Report", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/accounting/reports/trial-balance", "host": ["{{base_url}}"], "path": ["api", "v1", "accounting", "reports", "trial-balance"], "description": "type ∈ trial-balance|income-statement" } } }
+      ]
+    },
+    {
+      "name": "Messaging",
+      "item": [
+        { "name": "List Templates", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/messaging/templates", "host": ["{{base_url}}"], "path": ["api", "v1", "messaging", "templates"] } } },
+        { "name": "Create Template", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Result Published\",\n  \"body\": \"Your result is ready.\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/messaging/templates", "host": ["{{base_url}}"], "path": ["api", "v1", "messaging", "templates"] } } },
+        { "name": "Update Template", "request": { "method": "PUT", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"body\": \"Updated body\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/messaging/templates/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "messaging", "templates", "{{id}}"] } } },
+        { "name": "Delete Template", "request": { "method": "DELETE", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/messaging/templates/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "messaging", "templates", "{{id}}"] } } },
+        { "name": "List Contacts", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/messaging/contacts", "host": ["{{base_url}}"], "path": ["api", "v1", "messaging", "contacts"] } } },
+        { "name": "Create Contact", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Contact\",\n  \"phone\": \"01700000000\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/messaging/contacts", "host": ["{{base_url}}"], "path": ["api", "v1", "messaging", "contacts"] } } },
+        { "name": "Update Contact", "request": { "method": "PUT", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Updated\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/messaging/contacts/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "messaging", "contacts", "{{id}}"] } } },
+        { "name": "Delete Contact", "request": { "method": "DELETE", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/messaging/contacts/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "messaging", "contacts", "{{id}}"] } } },
+        { "name": "Send Message", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"recipients\": [],\n  \"message\": \"\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/messaging/send", "host": ["{{base_url}}"], "path": ["api", "v1", "messaging", "send"] } } },
+        { "name": "List Batches", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/messaging/batches", "host": ["{{base_url}}"], "path": ["api", "v1", "messaging", "batches"] } } },
+        { "name": "Show Batch", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/messaging/batches/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "messaging", "batches", "{{id}}"] } } },
+        { "name": "Balance", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/messaging/balance", "host": ["{{base_url}}"], "path": ["api", "v1", "messaging", "balance"] } } },
+        { "name": "Topup Balance", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"amount\": 100\n}" }, "url": { "raw": "{{base_url}}/api/v1/messaging/balance/topup", "host": ["{{base_url}}"], "path": ["api", "v1", "messaging", "balance", "topup"] } } }
+      ]
+    },
+    {
+      "name": "Credentials",
+      "item": [
+        { "name": "List Transfer Certificates", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/credentials/transfer-certificates", "host": ["{{base_url}}"], "path": ["api", "v1", "credentials", "transfer-certificates"] } } },
+        { "name": "Create Transfer Certificate", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"student_id\": 1\n}" }, "url": { "raw": "{{base_url}}/api/v1/credentials/transfer-certificates", "host": ["{{base_url}}"], "path": ["api", "v1", "credentials", "transfer-certificates"] } } },
+        { "name": "Show Transfer Certificate", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/credentials/transfer-certificates/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "credentials", "transfer-certificates", "{{id}}"] } } },
+        { "name": "List Testimonials", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/credentials/testimonials", "host": ["{{base_url}}"], "path": ["api", "v1", "credentials", "testimonials"] } } },
+        { "name": "Create Testimonial", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"student_id\": 1\n}" }, "url": { "raw": "{{base_url}}/api/v1/credentials/testimonials", "host": ["{{base_url}}"], "path": ["api", "v1", "credentials", "testimonials"] } } },
+        { "name": "Show Testimonial", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/credentials/testimonials/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "credentials", "testimonials", "{{id}}"] } } },
+        { "name": "Update Testimonial", "request": { "method": "PUT", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{}" }, "url": { "raw": "{{base_url}}/api/v1/credentials/testimonials/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "credentials", "testimonials", "{{id}}"] } } },
+        { "name": "Delete Testimonial", "request": { "method": "DELETE", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/credentials/testimonials/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "credentials", "testimonials", "{{id}}"] } } },
+        { "name": "List Certificates", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/credentials/certificates", "host": ["{{base_url}}"], "path": ["api", "v1", "credentials", "certificates"] } } },
+        { "name": "Create Certificate", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"student_id\": 1\n}" }, "url": { "raw": "{{base_url}}/api/v1/credentials/certificates", "host": ["{{base_url}}"], "path": ["api", "v1", "credentials", "certificates"] } } },
+        { "name": "Show Certificate", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/credentials/certificates/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "credentials", "certificates", "{{id}}"] } } },
+        { "name": "Update Certificate", "request": { "method": "PUT", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{}" }, "url": { "raw": "{{base_url}}/api/v1/credentials/certificates/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "credentials", "certificates", "{{id}}"] } } },
+        { "name": "Delete Certificate", "request": { "method": "DELETE", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/credentials/certificates/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "credentials", "certificates", "{{id}}"] } } },
+        { "name": "List ID Card Templates", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/credentials/id-card-templates", "host": ["{{base_url}}"], "path": ["api", "v1", "credentials", "id-card-templates"] } } },
+        { "name": "Create ID Card Template", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Default\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/credentials/id-card-templates", "host": ["{{base_url}}"], "path": ["api", "v1", "credentials", "id-card-templates"] } } },
+        { "name": "Update ID Card Template", "request": { "method": "PUT", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Default (updated)\"\n}" }, "url": { "raw": "{{base_url}}/api/v1/credentials/id-card-templates/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "credentials", "id-card-templates", "{{id}}"] } } },
+        { "name": "Delete ID Card Template", "request": { "method": "DELETE", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/credentials/id-card-templates/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "credentials", "id-card-templates", "{{id}}"] } } },
+        { "name": "Generate ID Cards", "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"template_id\": 1,\n  \"student_ids\": []\n}" }, "url": { "raw": "{{base_url}}/api/v1/credentials/id-cards/generate", "host": ["{{base_url}}"], "path": ["api", "v1", "credentials", "id-cards", "generate"] } } }
+      ]
+    },
+    {
+      "name": "Reports",
+      "item": [
+        { "name": "Report PDF", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/reports/{{report}}/pdf", "host": ["{{base_url}}"], "path": ["api", "v1", "reports", "{{report}}", "pdf"], "description": "report ∈ ReportRegistry::keys()" } } },
+        { "name": "Report Excel", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/reports/{{report}}/excel", "host": ["{{base_url}}"], "path": ["api", "v1", "reports", "{{report}}", "excel"] } } },
+        { "name": "Artifact Status", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/reports/artifacts/{{id}}", "host": ["{{base_url}}"], "path": ["api", "v1", "reports", "artifacts", "{{id}}"] } } },
+        { "name": "Download Artifact", "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{base_url}}/api/v1/reports/artifacts/{{id}}/download", "host": ["{{base_url}}"], "path": ["api", "v1", "reports", "artifacts", "{{id}}", "download"] } } }
+      ]
+    }
+  ]
+}

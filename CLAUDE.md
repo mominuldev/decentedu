@@ -88,6 +88,13 @@ There is no JS test runner or linter configured yet (no `test`/`lint` script in 
   `createBrowserRouter`. Every real page is wrapped via the `page()` helper (`ProtectedRoute` +
   `DashboardLayout`); unbuilt routes use `stub()` → `features/misc/Placeholder` labeled with its phase.
   When building a new module's UI, add its route here rather than leaving it orphaned.
+- **Create/edit records on their own routed page, not in a modal.** The established pattern is a
+  `<Module>FormPage` component mounted at `/<module>/new` and `/<module>/:id/edit` (see
+  `students/StudentFormPage`, `admissions/ApplicationFormPage`, `cms/PageFormPage`, `cms/PostFormPage`);
+  the list panel navigates to it with `useNavigate()` and the form navigates back on save/cancel.
+  Reserve modals (`components/Modal`) for lightweight confirmations and small single-purpose dialogs.
+  When a list panel is a tab inside a hub page (e.g. `CmsPage`), keep the active tab in a `?tab=` search
+  param so the form page can return the user to the tab they came from.
 - Feature-first layout under `resources/js/features/<module>/` (auth, dashboard, academic, students, hr,
   routines, attendance, examinations) — one folder per backend module, mirroring the API side.
 - Path alias `@/*` → `resources/js/*` (configured in both `vite.config.js` and `tsconfig.json`).

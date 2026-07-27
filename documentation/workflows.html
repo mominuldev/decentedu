@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Key Workflows — DecentEdu Docs</title>
+<meta name="description" content="End-to-end DecentEdu workflows that span modules: admission to enrolment, daily attendance, the exam lifecycle, fee collection, and year-end promotion.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<main class="content">
+    <div class="breadcrumb"><a href="index.html">Home</a><span class="sep">/</span><span>Key Workflows</span></div>
+    <h1>Key Workflows</h1>
+    <p class="lead">Most real tasks cross several modules. These end-to-end walkthroughs show how the pieces connect —
+    from an applicant becoming a student, to a term of exams turning into published results, to a fee turning into a
+    ledger entry.</p>
+
+    <h2 id="admission-to-enrolment">1 · Admission → Enrolled student</h2>
+    <p>Turning an applicant into an active student on the roll.</p>
+    <ol class="steps">
+        <li><strong>Open an admission drive</strong><div class="s-body">Create an admission year and define seat <em>quotas</em> (general, and reserved categories). — <a href="module-admissions.html">Admissions</a></div></li>
+        <li><strong>Collect applications</strong><div class="s-body">Applicants are entered with their details; each has a status (pending → selected/rejected/waiting).</div></li>
+        <li><strong>Select applicants</strong><div class="s-body">Move applications to <em>selected</em> within the quota.</div></li>
+        <li><strong>Convert to student</strong><div class="s-body">One click converts a selected application into a student record and a first-year enrolment into a class config. — <a href="module-students.html">Students</a></div></li>
+        <li><strong>Assess fees</strong><div class="s-body">The new enrolment picks up the class's fee structure, ready for collection. — <a href="module-fees.html">Fees</a></div></li>
+    </ol>
+
+    <h2 id="daily-attendance">2 · Daily attendance → Absentee SMS</h2>
+    <p>The everyday teacher/office loop.</p>
+    <div class="flow">
+        <span class="node">Take attendance</span><span class="arw">→</span>
+        <span class="node">Mark present / absent / late / leave</span><span class="arw">→</span>
+        <span class="node">Save</span><span class="arw">→</span>
+        <span class="node">Absentee SMS to guardians</span>
+    </div>
+    <ul>
+        <li>Attendance is taken per class config for a date — manually, or ingested from <strong>biometric device punches</strong>.</li>
+        <li>Holidays and time configs decide what counts as late.</li>
+        <li>Guardians of absent students can be notified using an SMS template (subject to SMS balance). — <a href="module-messaging.html">Messaging</a></li>
+    </ul>
+
+    <h2 id="exam-lifecycle">3 · The exam lifecycle</h2>
+    <p>From setting up a term exam to printing marksheets — the system's most involved flow.</p>
+    <ol class="steps">
+        <li><strong>Set up the exam</strong><div class="s-body">Create the exam, grade scale (per class), short-codes and configure which subjects &amp; components apply. — <a href="module-examinations.html">Examinations</a></div></li>
+        <li><strong>Configure marks</strong><div class="s-body">Define each subject's components and pass marks (mark configs), plus 4th subjects, class teachers and signatures.</div></li>
+        <li><strong>Enter marks</strong><div class="s-body">Teachers fill the mark grid per subject — component marks or <em>absent</em>.</div></li>
+        <li><strong>Process results</strong><div class="s-body">General process (per-subject grades) → optional Final process (combine terms) → Merit process (GPA + class/section positions).</div></li>
+        <li><strong>Print &amp; publish</strong><div class="s-body">Generate marksheets, tabulation sheets, merit &amp; fail lists, and admit cards / seat plans. — <a href="module-reporting.html">Reports</a></div></li>
+    </ol>
+    <div class="callout info"><span class="cico">🎯</span><p>GPA uses the Bangladesh-board rule: compulsory subjects average their grade points, and the 4th subject adds a bonus of <code>max(0, gradePoint − 2)</code>. Failing any subject makes the result a fail. Full detail on the <a href="module-examinations.html#processing">Exams</a> page.</p></div>
+
+    <h2 id="fee-collection">4 · Fee collection → General ledger</h2>
+    <p>Money in, correctly accounted.</p>
+    <ol class="steps">
+        <li><strong>Define the fee structure</strong><div class="s-body">Heads &amp; sub-heads, amounts per class config, due dates and fines, and any per-student waivers. — <a href="module-fees.html">Fees</a></div></li>
+        <li><strong>Assess dues</strong><div class="s-body">Payable amounts are assigned to students (payable − waiver, + fine if overdue).</div></li>
+        <li><strong>Collect a payment</strong><div class="s-body">Open a student's dues, take payment against sub-heads, and print the receipt.</div></li>
+        <li><strong>Auto-post to the ledger</strong><div class="s-body">A <code>FeeCollected</code> event raises a receive voucher in Accounting — the GL always matches collections. — <a href="module-accounting.html">Accounting</a></div></li>
+    </ol>
+
+    <h2 id="year-end">5 · Year-end promotion (migration)</h2>
+    <p>Rolling a whole cohort into the next session without losing history.</p>
+    <div class="flow">
+        <span class="node">Add new academic year</span><span class="arw">→</span>
+        <span class="node">Mark it current</span><span class="arw">→</span>
+        <span class="node">Migrate students (promote)</span><span class="arw">→</span>
+        <span class="node">New enrolments; old ones preserved</span>
+    </div>
+    <p>Migration supports <strong>promote</strong> (advance to the next class), <strong>general</strong> (re-enrol in
+    the same class) and <strong>push-back</strong> (reverse a promotion). Because placement is stored per year, last
+    year's results and fees remain intact. — <a href="module-students.html#migration">Students · Migration</a></p>
+
+    <h2 id="leaving">6 · A student leaves (transfer certificate)</h2>
+    <ol class="steps">
+        <li><strong>Issue the document</strong><div class="s-body">Create a Transfer Certificate (or Testimonial / Certificate) for the student. — <a href="module-credentials.html">Credentials</a></div></li>
+        <li><strong>Print it</strong><div class="s-body">Render the official printable document with school branding and signatures.</div></li>
+        <li><strong>Update status</strong><div class="s-body">The student's status reflects that they've left/transferred; they drop off active rolls but stay in history.</div></li>
+    </ol>
+
+    <div class="page-nav">
+        <a href="data-model.html"><span class="dir">← Previous</span><span class="ttl">Data Model</span></a>
+        <a class="next" href="module-academic.html"><span class="dir">Next →</span><span class="ttl">Academic Setup</span></a>
+    </div>
+    <p class="footer-note">DecentEdu School Management System — documentation.</p>
+</main>
+<script>window.PAGE = { title: 'Key Workflows' };</script>
+<script src="assets/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>System Architecture — DecentEdu Docs</title>
+<meta name="description" content="How DecentEdu is built: modular monolith, Laravel API + React SPA, multi-branch row-level isolation, RBAC, events, queues and reporting.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<main class="content">
+    <div class="breadcrumb"><a href="index.html">Home</a><span class="sep">/</span><span>System Architecture</span></div>
+    <h1>System Architecture</h1>
+    <p class="lead">A high-level tour of how DecentEdu is put together — the technology stack, how the front end talks to
+    the back end, how branches are kept isolated, and how heavy jobs like result processing and PDF reports run without
+    slowing the app down. Written to be useful to both non-technical stakeholders and developers.</p>
+
+    <h2 id="big-picture">The big picture</h2>
+    <p>DecentEdu is a <strong>modular monolith</strong>: one application and one database, cleanly split into feature
+    modules (Academic, Students, Fees, Examinations, …). It exposes a versioned <strong>REST API</strong> that a
+    <strong>React single-page application (SPA)</strong> consumes. There is no page reload as you move around — the SPA
+    fetches JSON and renders instantly.</p>
+
+    <div class="flow">
+        <span class="node">React SPA (browser)</span><span class="arw">→</span>
+        <span class="node">REST API <code>/api/v1</code></span><span class="arw">→</span>
+        <span class="node">Module logic</span><span class="arw">→</span>
+        <span class="node">MySQL (one DB)</span>
+    </div>
+    <p>Slow or bulk work (report PDFs, bulk imports, SMS sending, attendance ingestion) is pushed onto a
+    <strong>queue</strong> and processed by background workers, so the interface stays responsive.</p>
+
+    <div class="callout info"><span class="cico">🧩</span><p><span class="ct">Why one app, not microservices?</span> The domain is densely relational — a single marksheet touches student, enrolment, class-config, subject, grade scale, exam config and branch; a fee receipt posts to the general ledger. These are transactional, same-request joins. One database with ACID transactions is simpler, cheaper and more correct than a distributed system at this scale.</p></div>
+
+    <h2 id="stack">Technology stack</h2>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Layer</th><th>Technology</th><th>Role</th></tr></thead>
+            <tbody>
+                <tr><td>Backend framework</td><td>Laravel 13 (PHP 8.3+)</td><td>API, business logic, ORM, queues</td></tr>
+                <tr><td>Database</td><td>MySQL 8 (InnoDB, utf8mb4)</td><td>Single relational store for all branches</td></tr>
+                <tr><td>Auth</td><td>Laravel Sanctum</td><td>SPA cookie sessions (CSRF-protected)</td></tr>
+                <tr><td>Access control</td><td>spatie/laravel-permission</td><td>Branch-scoped roles &amp; permissions</td></tr>
+                <tr><td>Background jobs</td><td>Laravel Queue + Horizon</td><td>Reports, imports, SMS, ingestion</td></tr>
+                <tr><td>PDF / Excel</td><td>dompdf, Laravel Excel</td><td>Marksheets, admit cards, statements</td></tr>
+                <tr><td>Media</td><td>spatie/media-library</td><td>Photos, CMS assets, ID templates</td></tr>
+                <tr><td>Frontend</td><td>React 19 + TypeScript</td><td>Single-page application</td></tr>
+                <tr><td>Styling</td><td>Tailwind CSS v4</td><td>Design system / UI</td></tr>
+                <tr><td>Server state</td><td>TanStack Query</td><td>Caching, refetch, invalidation</td></tr>
+                <tr><td>Forms</td><td>React Hook Form + Zod</td><td>Typed, validated forms</td></tr>
+                <tr><td>Routing</td><td>React Router</td><td>Client-side navigation</td></tr>
+                <tr><td>Rich text / editors</td><td>TipTap, dnd-kit, Recharts</td><td>CMS editor, drag-drop, charts</td></tr>
+                <tr><td>Monitoring</td><td>Sentry</td><td>Error tracking (API + SPA)</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2 id="request-lifecycle">A request, end to end</h2>
+    <p>Every authenticated API call passes through the same pipeline. Using bulk mark entry as an example:</p>
+    <ol class="steps">
+        <li><strong>The SPA sends the request</strong><div class="s-body">With the session cookie and an XSRF token — e.g. <code>POST /api/v1/examinations/marks</code>.</div></li>
+        <li><strong>Authentication</strong><div class="s-body"><code>auth:sanctum</code> confirms a valid session.</div></li>
+        <li><strong>Branch context</strong><div class="s-body">The <code>branch</code> middleware resolves your active branch, checks you're a member, and sets it as the tenancy + permission “team”.</div></li>
+        <li><strong>Permission check</strong><div class="s-body">The route requires a permission (here <code>examinations.manage</code>); it's rejected if you lack it.</div></li>
+        <li><strong>Validation</strong><div class="s-body">A Form Request validates the payload (mark ≤ total, absent XOR mark, roll ownership).</div></li>
+        <li><strong>Business logic</strong><div class="s-body">An Action/Service performs the write inside a database transaction and may fire domain events.</div></li>
+        <li><strong>Response envelope</strong><div class="s-body">A consistent JSON shape is returned (see below) and the SPA updates its cache.</div></li>
+    </ol>
+
+    <h3 id="api-envelope">Consistent API envelope</h3>
+    <p>Every endpoint answers with the same structure, so the front end handles success and failure uniformly.</p>
+<pre><code>// Success
+{ "success": true,  "message": "Fee collected.", "data": { … }, "meta": { … } }
+
+// Failure
+{ "success": false, "message": "Validation failed",
+  "error_code": "VALIDATION", "errors": { "amount": ["Amount exceeds the due balance."] } }</code></pre>
+
+    <h2 id="multi-branch">Multi-branch isolation</h2>
+    <p>DecentEdu supports many schools under one deployment using <strong>row-level tenancy</strong>: every business
+    record carries a <code>branch_id</code>, and the system automatically filters every query to the active branch.</p>
+    <p>The hierarchy is two levels:</p>
+    <div class="flow">
+        <span class="node">Organization</span><span class="arw">→</span>
+        <span class="node">Branch (campus)</span><span class="arw">→</span>
+        <span class="node">Everything else</span>
+    </div>
+    <p>Isolation is enforced in <strong>three layers</strong> (defence in depth):</p>
+    <ol>
+        <li><strong>Middleware</strong> resolves and verifies the active branch on every request.</li>
+        <li><strong>A global query scope</strong> adds <code>WHERE branch_id = &lt;active&gt;</code> to every read and stamps it on every write — a developer cannot forget it.</li>
+        <li><strong>Policies &amp; route binding</strong> re-check a loaded record's branch before any action, guarding against ID guessing (IDOR).</li>
+    </ol>
+    <p>Cross-branch reporting is possible only through explicit, permission-gated aggregation that opts out of the
+    scope deliberately — never by accident.</p>
+
+    <div class="callout tip"><span class="cico">✅</span><p><span class="ct">Practical effect.</span> While “Demo College” is active, requesting a “Demo School” student by ID returns <em>not found</em> — the row is simply invisible. There is no way to leak data across branches through the normal API.</p></div>
+
+    <h2 id="modules">How modules are organized</h2>
+    <p>Code is <strong>feature-first</strong>, not layer-first. Controllers live under <code>app/Http/Controllers/Api/&lt;Module&gt;/</code>
+    and models under <code>app/Models/&lt;Module&gt;/</code>, and the React side mirrors this exactly under
+    <code>resources/js/features/&lt;module&gt;/</code>. A developer works one vertical slice end-to-end.</p>
+    <p>Two patterns keep things DRY:</p>
+    <ul>
+        <li><strong>Generic Setup controllers.</strong> Dozens of near-identical “reference table” resources (classes, shifts, sections, designations, fee heads, exams…) are served by one <code>SetupController</code> per module behind a whitelisted <code>{resource}</code> slug, instead of one controller each.</li>
+        <li><strong>A report registry.</strong> All PDF/Excel reports are reached through one endpoint whose slug is validated against a registry — adding a report means registering a class, not adding a route.</li>
+    </ul>
+
+    <h2 id="events">Events &amp; cross-module side-effects</h2>
+    <p>Modules stay decoupled by communicating through <strong>domain events</strong> rather than reaching into each
+    other. The clearest example: collecting a fee raises a <code>FeeCollected</code> event, and an Accounting listener
+    posts the matching receive voucher to the general ledger. Fees never needs to know how Accounting works.</p>
+    <div class="flow">
+        <span class="node">Fee collected</span><span class="arw">→</span>
+        <span class="node"><code>FeeCollected</code> event</span><span class="arw">→</span>
+        <span class="node">Accounting listener</span><span class="arw">→</span>
+        <span class="node">Receive voucher in GL</span>
+    </div>
+
+    <h2 id="performance">Performance &amp; reliability</h2>
+    <div class="dl">
+        <div class="row"><dt>Queues</dt><dd>Result processing, report generation, bulk import, SMS send and attendance ingestion run as background jobs so requests stay fast.</dd></div>
+        <div class="row"><dt>Caching</dt><dd>Hot, rarely-changing data — permission maps, branch settings, reference lists, dashboard counters — is cached with short TTLs.</dd></div>
+        <div class="row"><dt>Idempotency &amp; transactions</dt><dd>Multi-row writes (bulk registration, mark save, result process, fee collection) are wrapped in a single DB transaction; sensitive endpoints are safe to retry.</dd></div>
+        <div class="row"><dt>Audit trail</dt><dd>Sensitive operations (mark edits, fee collection, user/permission changes) are recorded to an audit log for dispute resolution.</dd></div>
+        <div class="row"><dt>Throttling</dt><dd>Bulk import, SMS send and report endpoints are rate-limited to protect the system and paid resources.</dd></div>
+    </div>
+
+    <div class="page-nav">
+        <a href="getting-started.html"><span class="dir">← Previous</span><span class="ttl">Getting Started</span></a>
+        <a class="next" href="roles-permissions.html"><span class="dir">Next →</span><span class="ttl">Roles &amp; Permissions</span></a>
+    </div>
+    <p class="footer-note">DecentEdu School Management System — documentation.</p>
+</main>
+<script>window.PAGE = { title: 'System Architecture' };</script>
+<script src="assets/app.js"></script>
+</body>
+</html>

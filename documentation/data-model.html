@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data Model — DecentEdu Docs</title>
+<meta name="description" content="The DecentEdu data model: the class-config and enrolment backbone, entity groups, key tables and relationships.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<main class="content">
+    <div class="breadcrumb"><a href="index.html">Home</a><span class="sep">/</span><span>Data Model</span></div>
+    <h1>Data Model</h1>
+    <p class="lead">How DecentEdu's information is structured. This page explains the two ideas that hold the whole
+    schema together — the <strong>class-config</strong> and the <strong>per-year enrolment</strong> — then walks the
+    entity groups and their relationships.</p>
+
+    <h2 id="conventions">Conventions</h2>
+    <p>Every business table follows the same rules:</p>
+    <ul>
+        <li><strong><code>branch_id</code></strong> on every tenant-owned row — the isolation backbone.</li>
+        <li><strong>Bilingual + ordering</strong> on reference tables: <code>name</code>, <code>name_bn</code>, <code>serial</code>, <code>status</code>.</li>
+        <li><strong>Soft deletes</strong> on masters and financial/academic records — deletions are reversible.</li>
+        <li><strong>Audit stamps</strong>: <code>created_by</code>, <code>updated_by</code>, timestamps.</li>
+        <li><strong>Money</strong> as <code>DECIMAL(12,2)</code>, <strong>marks</strong> as <code>DECIMAL(6,2)</code>.</li>
+    </ul>
+
+    <h2 id="backbone">The join backbone</h2>
+    <p>Two structures make everything else correct:</p>
+    <h3 id="class-config">Class Config — the shared teaching unit</h3>
+    <p>A <strong>class config</strong> is a concrete section of teaching: the combination of
+    <em>(branch, class, shift, section)</em>. It is the hub that attendance, class routines, exam configuration, fee
+    structures and subject-teacher assignments all point at — so a “section” is one row everyone shares.</p>
+    <div class="flow">
+        <span class="node">Class (e.g. Nine)</span><span class="arw">×</span>
+        <span class="node">Shift (Day)</span><span class="arw">×</span>
+        <span class="node">Section (A)</span><span class="arw">=</span>
+        <span class="node">Class Config</span>
+    </div>
+
+    <h3 id="enrolment">Enrolment — placement per academic year</h3>
+    <p>A student's identity is permanent, but their class, section and roll change every year. So DecentEdu separates
+    <strong>identity</strong> (the <code>students</code> table) from <strong>placement</strong> (a
+    <code>student_enrollments</code> row per academic year). This is what makes year-end promotion, historical
+    results and multi-year reporting correct — nothing is destructively overwritten.</p>
+<pre><code>students (identity)  1───∞  student_enrollments  ∞───1  class_configs  ∞───1  academic_years
+                                     │                        ├──1 classes
+                            roll, group_id,                   ├──1 shifts
+                            category_id, is_current           └──1 sections</code></pre>
+    <div class="callout tip"><span class="cico">🔑</span><p>Uniqueness rules enforced here: one placement per student per year, and a roll is unique within a class-config for a given year.</p></div>
+
+    <h2 id="groups">Entity groups</h2>
+    <p>The schema is organized into the same modules you see in the menu.</p>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Group</th><th>Key tables</th></tr></thead>
+            <tbody>
+                <tr><td><strong>Identity &amp; tenancy</strong></td><td><code>organizations</code>, <code>branches</code>, <code>users</code>, <code>branch_user</code>, roles &amp; permissions, <code>audit_logs</code></td></tr>
+                <tr><td><strong>Academic</strong></td><td><code>academic_years</code>, <code>classes</code>, <code>shifts</code>, <code>sections</code>, <code>groups</code>, <code>categories</code>, <code>subjects</code>, <code>class_configs</code>, <code>group_configs</code></td></tr>
+                <tr><td><strong>Admissions</strong></td><td><code>admission_years</code>, <code>quotas</code>, <code>admission_applications</code></td></tr>
+                <tr><td><strong>Students</strong></td><td><code>students</code>, <code>student_enrollments</code>, <code>guardians</code>, <code>student_documents</code>, <code>transfer_certificates</code>, <code>testimonials</code>, <code>certificates</code></td></tr>
+                <tr><td><strong>HR</strong></td><td><code>designations</code>, <code>hr_sections</code>, <code>employees</code>, <code>subject_teacher</code></td></tr>
+                <tr><td><strong>Attendance</strong></td><td><code>attendance_devices</code>, <code>attendance_device_maps</code>, <code>attendance_time_configs</code>, <code>attendance_punches</code>, <code>student_attendances</code>, <code>employee_attendances</code>, <code>holidays</code></td></tr>
+                <tr><td><strong>Routines</strong></td><td><code>periods</code>, <code>class_routines</code>, <code>exam_routines</code></td></tr>
+                <tr><td><strong>Examinations</strong></td><td><code>exams</code>, <code>short_codes</code>, <code>grades</code>, <code>exam_configs</code>, <code>mark_configs</code>, <code>marks</code>, <code>student_exam_results</code>, <code>student_exam_summaries</code>, <code>student_fourth_subjects</code></td></tr>
+                <tr><td><strong>Fees</strong></td><td><code>fee_heads</code>, <code>fee_sub_heads</code>, <code>fee_configs</code>, <code>fee_waivers</code>, <code>fee_waiver_configs</code>, <code>fee_time_configs</code>, <code>student_fees</code>, <code>fee_collections</code>, <code>fee_collection_items</code></td></tr>
+                <tr><td><strong>Accounting</strong></td><td><code>ledger_accounts</code>, <code>vouchers</code>, <code>voucher_entries</code></td></tr>
+                <tr><td><strong>Messaging</strong></td><td><code>sms_templates</code>, <code>contacts</code>, <code>sms_batches</code>, <code>sms_messages</code>, <code>sms_balances</code></td></tr>
+                <tr><td><strong>CMS</strong></td><td><code>pages</code>, <code>posts</code>, <code>taxonomies</code>, <code>terms</code>, <code>blocks</code>, <code>menus</code>, <code>menu_items</code>, <code>notices</code>, <code>events</code>, <code>redirects</code>, <code>seo</code>, <code>media</code></td></tr>
+                <tr><td><strong>Shared</strong></td><td><code>id_card_templates</code>, <code>report_artifacts</code>, <code>media_folders</code>, jobs &amp; notifications</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2 id="relationships">Key relationships</h2>
+    <div class="dl">
+        <div class="row"><dt>Org → Branch → everything</dt><dd>Two-level tenancy; all business rows carry <code>branch_id</code>.</dd></div>
+        <div class="row"><dt>Student vs Enrolment</dt><dd>Identity is permanent; placement is per session — clean promotion history and correct historical fees/results.</dd></div>
+        <div class="row"><dt>Class Config as hub</dt><dd>Attendance, routines, exam config, fee config and subject-teacher all reference the same class-config row.</dd></div>
+        <div class="row"><dt>Fees → Accounting</dt><dd>A fee collection raises a voucher (via an event) so the general ledger is the single source of financial truth.</dd></div>
+        <div class="row"><dt>Exam chain</dt><dd><code>exam_config → mark_config → marks → results → summary (GPA + position)</code>, with per-class <code>grades</code> and the 4th-subject feeding GPA.</dd></div>
+        <div class="row"><dt>CMS content</dt><dd>Pages/Posts/Notices/Events carry SEO + drag-ordered content blocks; taxonomies &amp; terms categorize them; menus link them.</dd></div>
+    </div>
+
+    <h2 id="er">Core relationships at a glance</h2>
+<pre><code>ORGANIZATION ──&lt; BRANCH ──&lt; (all module data)
+BRANCH ──&lt; USER (via branch_user, role per branch)
+
+CLASS ─┐
+SHIFT ─┼─&gt; CLASS_CONFIG ──&lt; STUDENT_ENROLLMENT &gt;── STUDENT
+SECTION┘         │  │  │
+                 │  │  └──&lt; SUBJECT_TEACHER &gt;── EMPLOYEE, SUBJECT
+                 │  └─────&lt; CLASS_ROUTINE, EXAM_CONFIG, FEE_CONFIG
+                 └────────&lt; STUDENT_ATTENDANCE
+
+EXAM ─&lt; EXAM_CONFIG ─&lt; MARK_CONFIG ─&lt; MARK &gt;── STUDENT
+EXAM ─&lt; STUDENT_EXAM_RESULT ─&gt; STUDENT_EXAM_SUMMARY (GPA, position)
+CLASS ─&lt; GRADE (grade scale)
+
+FEE_HEAD ─&lt; FEE_SUB_HEAD ─&lt; FEE_CONFIG ─&gt; STUDENT_FEE
+STUDENT ─&lt; FEE_COLLECTION ─&lt; FEE_COLLECTION_ITEM
+FEE_COLLECTION ─&gt; VOUCHER ─&lt; VOUCHER_ENTRY &gt;── LEDGER_ACCOUNT</code></pre>
+
+    <div class="callout info"><span class="cico">🧱</span><p><span class="ct">Integrity by design.</span> Foreign keys prevent orphan marks/fees; a voucher must balance (debits = credits); marks can't exceed the total; a student can't have two placements in one year. These invariants are enforced in code <em>and</em> as database constraints.</p></div>
+
+    <div class="page-nav">
+        <a href="roles-permissions.html"><span class="dir">← Previous</span><span class="ttl">Roles &amp; Permissions</span></a>
+        <a class="next" href="workflows.html"><span class="dir">Next →</span><span class="ttl">Key Workflows</span></a>
+    </div>
+    <p class="footer-note">DecentEdu School Management System — documentation.</p>
+</main>
+<script>window.PAGE = { title: 'Data Model' };</script>
+<script src="assets/app.js"></script>
+</body>
+</html>

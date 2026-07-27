@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Routines — DecentEdu Docs</title>
+<meta name="description" content="Routines module: class periods, class timetables, teacher routines and conflict-aware scheduling.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<main class="content">
+    <div class="breadcrumb"><a href="index.html">Home</a><span class="sep">/</span><span>Routines</span></div>
+    <h1>Routines</h1>
+    <p class="lead">Routines are the school's timetables. You define the <strong>periods</strong> of the day, then build
+    a <strong>class routine</strong> — which subject and teacher occupies each period for a class — and view the same
+    data as a <strong>teacher routine</strong> for any staff member.</p>
+
+    <div class="tag-row" style="margin-bottom:22px">
+        <span class="badge brand">Menu: Routines</span>
+        <span class="badge">Permission: <code>routines.manage</code></span>
+        <span class="badge info">Typical user: Admin / Teacher</span>
+    </div>
+
+    <h2 id="periods">Periods</h2>
+    <p>A <strong>period</strong> is a time slot in the school day (e.g. 1st period 09:00–09:45). Define the periods once
+    per branch/shift; the routine grid then has a column for each.</p>
+
+    <h2 id="class-routine">Class routine</h2>
+    <p>For a chosen <strong>class config</strong>, the routine is a grid of <em>day × period</em>. Each cell holds a
+    subject, the assigned teacher and (optionally) a room. Building it uses the <a href="module-hr.html#subject-teacher">subject-teacher</a>
+    assignments so you pick from valid teacher/subject combinations.</p>
+    <div class="flow">
+        <span class="node">Day (Sun–Thu)</span><span class="arw">×</span>
+        <span class="node">Period</span><span class="arw">→</span>
+        <span class="node">Subject + Teacher + Room</span>
+    </div>
+    <div class="callout info"><span class="cico">🧭</span><p>Because both class and teacher routines read the same slots, DecentEdu can surface clashes — the same teacher booked in two places at once — helping avoid double-booking.</p></div>
+
+    <h2 id="teacher-routine">Teacher routine</h2>
+    <p>Flip the same data around to see a single teacher's week: every class and subject they teach, period by period.
+    This is what teachers get as their personal timetable.</p>
+
+    <h2 id="printing">Printing</h2>
+    <p>Both class and teacher routines render to a clean, branded <strong>print page</strong> suitable for handing out
+    or posting on the noticeboard.</p>
+
+    <h2 id="exam-routine">Exam routines</h2>
+    <p>Exam schedules (date, time and room per subject) are managed in the <a href="module-examinations.html#exam-routine">Examinations</a>
+    module, since they belong to a specific exam rather than the weekly class timetable.</p>
+
+    <h2 id="api">At the API level</h2>
+<pre><code>GET/POST/PUT/DELETE  /api/v1/routines/periods
+GET   /api/v1/routines/class-configs/{id}/options   # valid subjects/teachers for the grid
+GET   /api/v1/routines/class-configs/{id}           # the class routine grid
+GET   /api/v1/routines/teachers/{employeeId}        # a teacher's routine
+POST  /api/v1/routines                              # add a slot
+PUT   /api/v1/routines/{id}   DELETE /api/v1/routines/{id}</code></pre>
+
+    <div class="page-nav">
+        <a href="module-attendance.html"><span class="dir">← Previous</span><span class="ttl">Attendance</span></a>
+        <a class="next" href="module-examinations.html"><span class="dir">Next →</span><span class="ttl">Exams &amp; Results</span></a>
+    </div>
+    <p class="footer-note">DecentEdu School Management System — documentation.</p>
+</main>
+<script>window.PAGE = { title: 'Routines' };</script>
+<script src="assets/app.js"></script>
+</body>
+</html>

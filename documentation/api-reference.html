@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>API Reference — DecentEdu Docs</title>
+<meta name="description" content="Full DecentEdu REST API surface: authentication, conventions, the response envelope, and every module's endpoints.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<main class="content">
+    <div class="breadcrumb"><a href="index.html">Home</a><span class="sep">/</span><span>API Reference</span></div>
+    <h1>API Reference</h1>
+    <p class="lead">A developer's map of the DecentEdu REST API. Everything is under <code>/api/v1</code>, uses cookie
+    (Sanctum) sessions, runs behind the active-branch context, and returns the same JSON envelope.</p>
+
+    <h2 id="auth">Authentication</h2>
+    <p>The SPA authenticates with <strong>Sanctum cookie sessions</strong> (not bearer tokens). The flow:</p>
+    <ol>
+        <li><code>GET /sanctum/csrf-cookie</code> — obtain the XSRF cookie.</li>
+        <li><code>POST /api/v1/auth/login</code> — with credentials; a session cookie is set.</li>
+        <li>All later requests send the session cookie + <code>X-XSRF-TOKEN</code> header automatically.</li>
+    </ol>
+    <div class="table-wrap"><table>
+        <thead><tr><th>Method</th><th>Endpoint</th><th>Purpose</th></tr></thead>
+        <tbody>
+            <tr><td><span class="method post">POST</span></td><td><code>/auth/login</code></td><td>Sign in (public)</td></tr>
+            <tr><td><span class="method post">POST</span></td><td><code>/auth/forgot-password</code></td><td>Request reset link (public)</td></tr>
+            <tr><td><span class="method post">POST</span></td><td><code>/auth/reset-password</code></td><td>Set new password (public)</td></tr>
+            <tr><td><span class="method get">GET</span></td><td><code>/auth/me</code></td><td>Current user + branch + permissions</td></tr>
+            <tr><td><span class="method post">POST</span></td><td><code>/auth/logout</code></td><td>Sign out</td></tr>
+            <tr><td><span class="method post">POST</span></td><td><code>/auth/change-password</code></td><td>Change own password</td></tr>
+            <tr><td><span class="method get">GET</span></td><td><code>/auth/sessions</code></td><td>List active sessions</td></tr>
+            <tr><td><span class="method delete">DEL</span></td><td><code>/auth/sessions/{id}</code></td><td>Revoke a session</td></tr>
+            <tr><td><span class="method post">POST</span></td><td><code>/branch/switch</code></td><td>Change active branch</td></tr>
+        </tbody>
+    </table></div>
+
+    <h2 id="conventions">Conventions</h2>
+    <div class="dl">
+        <div class="row"><dt>Base path</dt><dd>All endpoints are prefixed <code>/api/v1</code>.</dd></div>
+        <div class="row"><dt>Middleware</dt><dd>Authenticated routes run behind <code>auth:sanctum</code> + <code>branch</code> (active-branch context).</dd></div>
+        <div class="row"><dt>Permissions</dt><dd>Each module group requires its <code>*.manage</code> (or <code>*.view</code>) permission.</dd></div>
+        <div class="row"><dt>Setup resources</dt><dd>Reference tables share a generic <code>{resource}</code> endpoint constrained to a slug whitelist.</dd></div>
+        <div class="row"><dt>Throttling</dt><dd>Bulk import, SMS send and report endpoints are rate-limited.</dd></div>
+    </div>
+
+    <h3 id="envelope">Response envelope</h3>
+<pre><code>// Success
+{ "success": true, "message": "…", "data": { … }, "meta": { … } }
+// Error
+{ "success": false, "message": "…", "error_code": "…", "errors": { "field": ["…"] } }</code></pre>
+
+    <h2 id="core">Core</h2>
+<pre><code><span class="method get">GET</span>  /dashboard                       # branch summary counters
+<span class="method post">POST</span> /uploads    <span class="method get">GET</span> /uploads/{path}   # generic file upload / fetch
+<span class="method get">GET</span>  /audit-logs                      # (audit.view)
+<span class="method get">GET</span>  /users   <span class="method post">POST</span> /users   <span class="method put">PUT</span> /users/{id}   (users.manage for writes)
+<span class="method post">POST</span> /users/{id}/deactivate | force-reset
+<span class="method get">GET</span>  /roles | /roles/permissions      <span class="method put">PUT</span> /roles/{id}/permissions</code></pre>
+
+    <h2 id="academic">Academic · <code>academic.manage</code></h2>
+<pre><code><span class="method get">GET</span> /academic/class-configs[/options]   <span class="method post">POST</span> /academic/class-configs   <span class="method put">PUT</span>/<span class="method delete">DEL</span> …/{id}
+{resource} = academic-years | classes | shifts | sections | groups | categories | subjects
+<span class="method get">GET</span>/<span class="method post">POST</span>/<span class="method put">PUT</span>/<span class="method delete">DEL</span>  /academic/{resource}[/{id}]</code></pre>
+
+    <h2 id="admissions">Admissions · <code>admissions.manage</code></h2>
+<pre><code><span class="method get">GET</span>/<span class="method post">POST</span>/<span class="method put">PUT</span>/<span class="method delete">DEL</span>  /admissions/years | quotas
+<span class="method get">GET</span>  /admissions/applications[/stats|/{id}]   <span class="method post">POST</span> /admissions/applications
+<span class="method post">POST</span> /admissions/applications/{id}/status | convert</code></pre>
+
+    <h2 id="students">Students · <code>students.manage</code></h2>
+<pre><code><span class="method get">GET</span> /students   <span class="method post">POST</span> /students   <span class="method get">GET</span>/<span class="method put">PUT</span>/<span class="method delete">DEL</span> /students/{id}
+<span class="method post">POST</span> /students/bulk-register   (throttled)      <span class="method post">POST</span> /students/migrate</code></pre>
+
+    <h2 id="hr">HR · <code>hr.manage</code></h2>
+<pre><code>{resource} = designations | hr-sections
+<span class="method get">GET</span>/<span class="method post">POST</span>/<span class="method put">PUT</span>/<span class="method delete">DEL</span>  /hr/{resource}[/{id}]
+<span class="method get">GET</span> /hr/employees   <span class="method post">POST</span> /hr/employees   <span class="method get">GET</span>/<span class="method put">PUT</span>/<span class="method delete">DEL</span> /hr/employees/{id}
+<span class="method post">POST</span> /hr/employees/{id}/assign-subject   <span class="method delete">DEL</span> …/subject-assignments/{id}</code></pre>
+
+    <h2 id="attendance">Attendance · <code>attendance.manage</code></h2>
+<pre><code><span class="method get">GET</span>/<span class="method post">POST</span>/<span class="method put">PUT</span>/<span class="method delete">DEL</span>  /attendance/holidays | devices | time-configs
+<span class="method get">GET</span>/<span class="method post">POST</span>/<span class="method delete">DEL</span>       /attendance/device-maps
+<span class="method post">POST</span> /attendance/punches | punches/process
+<span class="method get">GET</span> /attendance/students[/report]   <span class="method post">POST</span> /attendance/students/take   <span class="method put">PUT</span> …/{id}
+<span class="method get">GET</span> /attendance/employees[/report]  <span class="method post">POST</span> /attendance/employees/take  <span class="method put">PUT</span> …/{id}</code></pre>
+
+    <h2 id="routines">Routines · <code>routines.manage</code></h2>
+<pre><code><span class="method get">GET</span>/<span class="method post">POST</span>/<span class="method put">PUT</span>/<span class="method delete">DEL</span>  /routines/periods
+<span class="method get">GET</span> /routines/class-configs/{id}[/options]   <span class="method get">GET</span> /routines/teachers/{employeeId}
+<span class="method post">POST</span> /routines   <span class="method put">PUT</span>/<span class="method delete">DEL</span> /routines/{id}</code></pre>
+
+    <h2 id="exams">Examinations · <code>examinations.manage</code></h2>
+<pre><code>{resource} = exams | short-codes
+<span class="method get">GET</span>/<span class="method post">POST</span>/<span class="method put">PUT</span>/<span class="method delete">DEL</span>  /examinations/{resource} | grades | exam-configs | signatures
+…mark-configs[/options], fourth-subjects, class-teacher-configs, admit-instructions, exam-routine[/options]
+<span class="method get">GET</span> /examinations/marks/grid   <span class="method post">POST</span> /examinations/marks
+<span class="method post">POST</span> /examinations/results/general-process | final-process | merit-process
+<span class="method get">GET</span> /examinations/results/marksheet | tabulation-sheet | merit-list | fail-list
+<span class="method get">GET</span> /examinations/admit/card | attendance-sheet   <span class="method post">POST</span> /examinations/admit/seat-plan</code></pre>
+
+    <h2 id="fees">Fees · <code>fees.manage</code></h2>
+<pre><code>{resource} = heads | sub-heads | waivers
+<span class="method get">GET</span>/<span class="method post">POST</span>/<span class="method put">PUT</span>/<span class="method delete">DEL</span>  /fees/{resource}[/{id}]
+<span class="method get">GET</span>/<span class="method post">POST</span> /fees/configs   <span class="method post">POST</span> /fees/configs/assess   <span class="method get">GET</span>/<span class="method post">POST</span> /fees/time-configs
+<span class="method get">GET</span>/<span class="method post">POST</span>/<span class="method delete">DEL</span> /fees/waiver-configs
+<span class="method get">GET</span> /fees/students/{id}/dues   <span class="method get">GET</span>/<span class="method post">POST</span> /fees/collections[/{id}]
+<span class="method get">GET</span> /fees/reports/daily-collection | dues-summary</code></pre>
+
+    <h2 id="accounting">Accounting · <code>accounting.manage</code></h2>
+<pre><code><span class="method get">GET</span>/<span class="method post">POST</span>/<span class="method put">PUT</span>/<span class="method delete">DEL</span>  /accounting/ledgers
+<span class="method get">GET</span>/<span class="method post">POST</span> /accounting/vouchers   <span class="method get">GET</span> /accounting/vouchers/{id}
+<span class="method get">GET</span> /accounting/reports/trial-balance | income-statement</code></pre>
+
+    <h2 id="messaging">Messaging · <code>messaging.manage</code></h2>
+<pre><code><span class="method get">GET</span>/<span class="method post">POST</span>/<span class="method put">PUT</span>/<span class="method delete">DEL</span>  /messaging/templates | contacts
+<span class="method post">POST</span> /messaging/send   (throttled)   <span class="method get">GET</span> /messaging/batches[/{id}]
+<span class="method get">GET</span> /messaging/balance   <span class="method post">POST</span> /messaging/balance/topup</code></pre>
+
+    <h2 id="credentials">Credentials · <code>credentials.manage</code></h2>
+<pre><code><span class="method get">GET</span>/<span class="method post">POST</span> /credentials/transfer-certificates[/{id}]
+<span class="method get">GET</span>/<span class="method post">POST</span>/<span class="method put">PUT</span>/<span class="method delete">DEL</span>  /credentials/testimonials | certificates | id-card-templates
+<span class="method post">POST</span> /credentials/id-cards/generate</code></pre>
+
+    <h2 id="cms">CMS · <code>cms.manage</code> (+ public read)</h2>
+<pre><code><span class="method get">GET</span>/<span class="method post">POST</span>/<span class="method put">PUT</span>/<span class="method delete">DEL</span>  /cms/pages | posts | taxonomies | terms | media
+                          | media-folders | menus | notices | events | redirects
+<span class="method post">POST</span> /cms/{pages|posts|notices|events}/{id}/restore
+# Public (no cms.manage): /cms/public/pages | posts | notices | events | menus/{key} | …</code></pre>
+
+    <h2 id="reports">Reporting · <code>reports.view</code></h2>
+<pre><code><span class="method get">GET</span> /reports/{report}/pdf | /reports/{report}/excel     (throttled)
+<span class="method get">GET</span> /reports/artifacts/{id}   <span class="method get">GET</span> /reports/artifacts/{id}/download</code></pre>
+
+    <div class="page-nav">
+        <a href="module-administration.html"><span class="dir">← Previous</span><span class="ttl">Administration &amp; Audit</span></a>
+        <a class="next" href="glossary.html"><span class="dir">Next →</span><span class="ttl">Glossary</span></a>
+    </div>
+    <p class="footer-note">DecentEdu School Management System — documentation.</p>
+</main>
+<script>window.PAGE = { title: 'API Reference' };</script>
+<script src="assets/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Roles &amp; Permissions — DecentEdu Docs</title>
+<meta name="description" content="DecentEdu roles (Super Admin, Admin, Accountant, Exam Controller, Teacher), the permission catalog, and the role → permission matrix.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<main class="content">
+    <div class="breadcrumb"><a href="index.html">Home</a><span class="sep">/</span><span>Roles &amp; Permissions</span></div>
+    <h1>Roles &amp; Permissions</h1>
+    <p class="lead">DecentEdu controls who can do what with <strong>roles</strong> and <strong>permissions</strong>, scoped
+    to a branch. This page lists the built-in roles, the permission catalog, and exactly which permissions each role
+    receives out of the box.</p>
+
+    <h2 id="how-it-works">How access control works</h2>
+    <ul>
+        <li>A <strong>permission</strong> is a single capability, named <code>module.action</code> — for example <code>fees.manage</code> or <code>audit.view</code>.</li>
+        <li>A <strong>role</strong> is a bundle of permissions (Admin, Accountant, Teacher, …).</li>
+        <li>A user is assigned a role <strong>per branch</strong>, so the same person can be an Admin in one campus and, say, an Accountant in another.</li>
+        <li>Permissions can also be granted directly to an individual user, on top of their role, for fine-grained exceptions.</li>
+    </ul>
+    <p>Checks happen in two places: the <strong>API</strong> (the real security boundary — every module route requires
+    its permission) and the <strong>interface</strong> (menu items and buttons you can't use are simply hidden). Never
+    trusting the client, the server always re-verifies.</p>
+
+    <div class="callout info"><span class="cico">🛡️</span><p><span class="ct">Super Admin bypass.</span> The <strong>Super Admin</strong> role passes all permission checks automatically (a gate “before” hook), but is still bound by the active-branch context when viewing data.</p></div>
+
+    <h2 id="roles">Built-in roles</h2>
+    <div class="grid cols-2">
+        <div class="card"><h3>Super Admin</h3><p>Platform / organization owner. Full access across modules and branches, user &amp; role management, and cross-branch reporting.</p></div>
+        <div class="card"><h3>Admin</h3><p>Full access <em>within a branch</em> — every module and action for their campus. The everyday “school administrator”.</p></div>
+        <div class="card"><h3>Accountant</h3><p>Finance only: Fees, Accounting and Reports. No academic, exam or student-management access.</p></div>
+        <div class="card"><h3>Exam Controller</h3><p>Examinations and Reports: exam setup, mark entry, result processing and printouts.</p></div>
+        <div class="card"><h3>Teacher</h3><p>Classroom-facing: Attendance, Routines and Examinations (mark entry for their classes).</p></div>
+    </div>
+
+    <h2 id="catalog">Permission catalog</h2>
+    <p>Each module is gated by a single <code>*.manage</code> permission, plus two cross-cutting view permissions.</p>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Permission</th><th>Unlocks</th></tr></thead>
+            <tbody>
+                <tr><td><code>academic.manage</code></td><td>Academic Setup — years, classes, shifts, sections, groups, subjects, class configs</td></tr>
+                <tr><td><code>admissions.manage</code></td><td>Admission drives, quotas, applications, conversion</td></tr>
+                <tr><td><code>students.manage</code></td><td>Students — registration, profiles, bulk tools, migration</td></tr>
+                <tr><td><code>hr.manage</code></td><td>Employees, designations, departments, subject-teacher assignments</td></tr>
+                <tr><td><code>routines.manage</code></td><td>Class &amp; teacher routines, periods</td></tr>
+                <tr><td><code>attendance.manage</code></td><td>Student &amp; staff attendance, devices, holidays</td></tr>
+                <tr><td><code>examinations.manage</code></td><td>Exams, marks, result processing, admit cards</td></tr>
+                <tr><td><code>fees.manage</code></td><td>Fee setup, structures, waivers, collection</td></tr>
+                <tr><td><code>accounting.manage</code></td><td>Ledgers, vouchers, financial statements</td></tr>
+                <tr><td><code>messaging.manage</code></td><td>SMS templates, contacts, sending, balance</td></tr>
+                <tr><td><code>credentials.manage</code></td><td>Transfer certificates, testimonials, certificates, ID cards</td></tr>
+                <tr><td><code>cms.manage</code></td><td>Website CMS — pages, posts, media, menus, notices, events</td></tr>
+                <tr><td><code>reports.view</code></td><td>Generate PDF / Excel reports across modules</td></tr>
+                <tr><td><code>users.manage</code></td><td>Create / edit users, assign roles &amp; permissions</td></tr>
+                <tr><td><code>audit.view</code></td><td>Read the audit log</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2 id="matrix">Role → permission matrix</h2>
+    <p>What each built-in role receives by default. Admin receives every permission; Super Admin bypasses checks entirely.</p>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Permission</th><th class="center">Admin</th><th class="center">Accountant</th><th class="center">Exam Controller</th><th class="center">Teacher</th></tr></thead>
+            <tbody>
+                <tr><td><code>academic.manage</code></td><td class="center">✅</td><td class="center">—</td><td class="center">—</td><td class="center">—</td></tr>
+                <tr><td><code>admissions.manage</code></td><td class="center">✅</td><td class="center">—</td><td class="center">—</td><td class="center">—</td></tr>
+                <tr><td><code>students.manage</code></td><td class="center">✅</td><td class="center">—</td><td class="center">—</td><td class="center">—</td></tr>
+                <tr><td><code>hr.manage</code></td><td class="center">✅</td><td class="center">—</td><td class="center">—</td><td class="center">—</td></tr>
+                <tr><td><code>routines.manage</code></td><td class="center">✅</td><td class="center">—</td><td class="center">—</td><td class="center">✅</td></tr>
+                <tr><td><code>attendance.manage</code></td><td class="center">✅</td><td class="center">—</td><td class="center">—</td><td class="center">✅</td></tr>
+                <tr><td><code>examinations.manage</code></td><td class="center">✅</td><td class="center">—</td><td class="center">✅</td><td class="center">✅</td></tr>
+                <tr><td><code>fees.manage</code></td><td class="center">✅</td><td class="center">✅</td><td class="center">—</td><td class="center">—</td></tr>
+                <tr><td><code>accounting.manage</code></td><td class="center">✅</td><td class="center">✅</td><td class="center">—</td><td class="center">—</td></tr>
+                <tr><td><code>messaging.manage</code></td><td class="center">✅</td><td class="center">—</td><td class="center">—</td><td class="center">—</td></tr>
+                <tr><td><code>credentials.manage</code></td><td class="center">✅</td><td class="center">—</td><td class="center">—</td><td class="center">—</td></tr>
+                <tr><td><code>cms.manage</code></td><td class="center">✅</td><td class="center">—</td><td class="center">—</td><td class="center">—</td></tr>
+                <tr><td><code>reports.view</code></td><td class="center">✅</td><td class="center">✅</td><td class="center">✅</td><td class="center">—</td></tr>
+                <tr><td><code>users.manage</code></td><td class="center">✅</td><td class="center">—</td><td class="center">—</td><td class="center">—</td></tr>
+                <tr><td><code>audit.view</code></td><td class="center">✅</td><td class="center">—</td><td class="center">—</td><td class="center">—</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="callout tip"><span class="cico">🧩</span><p>Because permissions are granular, administrators can build <strong>custom roles</strong> for their school (e.g. “Front Desk” with admissions + students + credentials) — the matrix above is just the seeded default.</p></div>
+
+    <h2 id="managing">Managing users &amp; roles</h2>
+    <p>Users with <code>users.manage</code> handle this from <a href="module-administration.html">Administration</a>:
+    create users, assign a role per branch, grant extra permissions, deactivate accounts, and force a password reset.
+    Role → permission edits are also made there.</p>
+
+    <div class="page-nav">
+        <a href="architecture.html"><span class="dir">← Previous</span><span class="ttl">System Architecture</span></a>
+        <a class="next" href="data-model.html"><span class="dir">Next →</span><span class="ttl">Data Model</span></a>
+    </div>
+    <p class="footer-note">DecentEdu School Management System — documentation.</p>
+</main>
+<script>window.PAGE = { title: 'Roles & Permissions' };</script>
+<script src="assets/app.js"></script>
+</body>
+</html>

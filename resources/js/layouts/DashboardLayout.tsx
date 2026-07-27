@@ -51,7 +51,7 @@ const nav: Group[] = [
         items: [
             { to: '/messaging', label: 'SMS & Notices', icon: MessageSquare },
             { to: '/credentials', label: 'Credentials', icon: IdCard },
-            { to: '/website', label: 'Website', icon: Globe },
+            { to: '/cms', label: 'CMS', icon: Globe },
         ],
     },
     {

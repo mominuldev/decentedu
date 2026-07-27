@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Academic Setup — DecentEdu Docs</title>
+<meta name="description" content="Academic Setup module: academic years, classes, shifts, sections, groups, categories, subjects and the class-config backbone.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<main class="content">
+    <div class="breadcrumb"><a href="index.html">Home</a><span class="sep">/</span><span>Academic Setup</span></div>
+    <h1>Academic Setup</h1>
+    <p class="lead">Academic Setup is where a school defines its <strong>structure</strong> — the academic years it runs
+    and the classes, shifts, sections, groups, categories and subjects that every other module builds on. Get this
+    right first: students, attendance, routines, exams and fees all reference it.</p>
+
+    <div class="tag-row" style="margin-bottom:22px">
+        <span class="badge brand">Menu: Academic Setup</span>
+        <span class="badge">Permission: <code>academic.manage</code></span>
+        <span class="badge info">Typical user: Admin</span>
+    </div>
+
+    <h2 id="overview">What's in the module</h2>
+    <p>The module is a single page with a tab per resource. Every resource is a simple bilingual reference list
+    (English + Bangla name, a sort order, active/inactive status), except the two <em>config</em> tabs which combine
+    resources into teaching units.</p>
+
+    <div class="grid cols-3">
+        <div class="card"><h4>Academic Years</h4><p>Sessions such as 2025, 2026. One is marked <em>current</em>.</p></div>
+        <div class="card"><h4>Classes</h4><p>Six, Seven, … Ten, or college classes.</p></div>
+        <div class="card"><h4>Shifts</h4><p>Morning, Day, etc.</p></div>
+        <div class="card"><h4>Sections</h4><p>A, B, C within a class.</p></div>
+        <div class="card"><h4>Groups</h4><p>Science, Business Studies, Humanities (senior classes).</p></div>
+        <div class="card"><h4>Categories</h4><p>General, Residential and similar student categories.</p></div>
+        <div class="card"><h4>Subjects</h4><p>Bangla 1st/2nd, English, Mathematics, ICT, Religion…</p></div>
+        <div class="card"><h4>Class Configs</h4><p>Class × Shift × Section — the concrete teaching unit.</p></div>
+        <div class="card"><h4>Group Configs</h4><p>Which groups are offered in which class.</p></div>
+    </div>
+
+    <h2 id="academic-year">Academic years (sessions)</h2>
+    <p>An academic year frames the whole system. Records like enrolment, attendance, exams and fees are tied to a
+    year, and exactly one year per branch is the <strong>current</strong> session. When a new year begins you add it,
+    mark it current, and promote students into it via <a href="module-students.html#migration">Student Migration</a> —
+    you don't edit last year's data.</p>
+    <div class="callout tip"><span class="cico">💡</span><p>Keep old years active for historical reporting (past results, past fee ledgers). Marking a new year current doesn't delete anything.</p></div>
+
+    <h2 id="reference">Reference lists</h2>
+    <p>Classes, shifts, sections, groups, categories and subjects all share the same simple editor:</p>
+    <div class="dl">
+        <div class="row"><dt>Name / Name (Bangla)</dt><dd>Bilingual label shown across the app and on printouts.</dd></div>
+        <div class="row"><dt>Serial</dt><dd>Sort order — controls how items appear in dropdowns and reports (e.g. Class Six before Seven).</dd></div>
+        <div class="row"><dt>Status</dt><dd>Active or inactive. Inactive items are hidden from new selections but preserved on old records.</dd></div>
+    </div>
+
+    <h2 id="class-config">Class Config — the most important step</h2>
+    <p>A <strong>Class Config</strong> is the combination of a class, a shift and a section — the actual unit students
+    are placed into and that everything else references. Instead of repeating “Class Nine, Day, Section A” everywhere,
+    the whole system points at one class-config row.</p>
+    <div class="flow">
+        <span class="node">Nine</span><span class="arw">×</span>
+        <span class="node">Day</span><span class="arw">×</span>
+        <span class="node">A</span><span class="arw">=</span>
+        <span class="node">“Nine · Day · A” class config</span>
+    </div>
+    <p>Create one class config for each real section you teach. From then on:</p>
+    <ul>
+        <li><strong>Students</strong> enrol into a class config (per year).</li>
+        <li><strong>Attendance</strong> and <strong>class routines</strong> are taken against it.</li>
+        <li><strong>Exam configuration</strong> and <strong>fee structures</strong> are defined per class config.</li>
+        <li><strong>Subject-teacher</strong> assignments link a teacher and subject to it.</li>
+    </ul>
+
+    <h3 id="group-config">Group configs</h3>
+    <p>For senior classes that split into streams, group configs record which groups (Science, Business Studies,
+    Humanities) a class offers, so a student's enrolment can carry the right group.</p>
+
+    <h2 id="workflow">Recommended setup order</h2>
+    <ol class="steps">
+        <li><strong>Add the academic year</strong> and mark it current.<div class="s-body">Everything downstream attaches to it.</div></li>
+        <li><strong>Add classes, shifts, sections</strong><div class="s-body">The three ingredients of a class config.</div></li>
+        <li><strong>Add groups, categories, subjects</strong><div class="s-body">Groups &amp; categories for enrolment; subjects for routines and exams.</div></li>
+        <li><strong>Create class configs</strong><div class="s-body">One per real section. This unlocks Students, Attendance, Routines, Exams and Fees.</div></li>
+        <li><strong>Create group configs</strong> where classes stream into groups.</li>
+    </ol>
+
+    <div class="callout warn"><span class="cico">⚠️</span><p>Reference items are referenced by live records. You can deactivate an item to retire it, but deleting one that's already in use is prevented to protect historical data.</p></div>
+
+    <h2 id="api">At the API level</h2>
+    <p>Reference resources are served by one generic setup endpoint per module; class configs have dedicated routes.</p>
+<pre><code>GET/POST/PUT/DELETE  /api/v1/academic/{resource}      # classes|shifts|sections|groups|categories|subjects|academic-years
+GET   /api/v1/academic/class-configs/options          # dropdown data
+GET   /api/v1/academic/class-configs                  # list
+POST  /api/v1/academic/class-configs                  # create
+PUT   /api/v1/academic/class-configs/{id}             # update
+DELETE /api/v1/academic/class-configs/{id}            # remove</code></pre>
+
+    <div class="page-nav">
+        <a href="workflows.html"><span class="dir">← Previous</span><span class="ttl">Key Workflows</span></a>
+        <a class="next" href="module-admissions.html"><span class="dir">Next →</span><span class="ttl">Admissions</span></a>
+    </div>
+    <p class="footer-note">DecentEdu School Management System — documentation.</p>
+</main>
+<script>window.PAGE = { title: 'Academic Setup' };</script>
+<script src="assets/app.js"></script>
+</body>
+</html>

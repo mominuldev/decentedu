@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CMS &amp; Website — DecentEdu Docs</title>
+<meta name="description" content="CMS module: pages with content blocks, posts, taxonomies, media library, menus, notices, events, SEO and redirects that power the school's public website.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<main class="content">
+    <div class="breadcrumb"><a href="index.html">Home</a><span class="sep">/</span><span>CMS &amp; Website</span></div>
+    <h1>CMS &amp; Website</h1>
+    <p class="lead">A full content-management system for the school's public website — build <strong>pages</strong> from
+    reusable <strong>content blocks</strong>, publish <strong>posts</strong>, <strong>notices</strong> and
+    <strong>events</strong>, organize a <strong>media library</strong>, manage <strong>menus</strong>, and control
+    <strong>SEO</strong> and <strong>redirects</strong>.</p>
+
+    <div class="tag-row" style="margin-bottom:22px">
+        <span class="badge brand">Menu: CMS</span>
+        <span class="badge">Permission: <code>cms.manage</code></span>
+        <span class="badge info">Typical user: Admin / Content editor</span>
+    </div>
+
+    <h2 id="overview">What the CMS manages</h2>
+    <div class="grid cols-3">
+        <div class="card"><h4>Pages</h4><p>Structured pages built from content blocks, arranged in a path hierarchy.</p></div>
+        <div class="card"><h4>Posts</h4><p>Blog/news-style articles categorized by taxonomies.</p></div>
+        <div class="card"><h4>Taxonomies &amp; Terms</h4><p>Categories and tags that organize posts.</p></div>
+        <div class="card"><h4>Media library</h4><p>Images and files, organized in folders, reusable everywhere.</p></div>
+        <div class="card"><h4>Menus</h4><p>Drag-and-drop navigation trees for the public site.</p></div>
+        <div class="card"><h4>Notices &amp; Events</h4><p>Time-sensitive announcements and calendar events.</p></div>
+        <div class="card"><h4>SEO</h4><p>Meta title/description and social fields per content item.</p></div>
+        <div class="card"><h4>Redirects</h4><p>Old URL → new URL rules so links never break.</p></div>
+    </div>
+
+    <h2 id="pages">Pages &amp; content blocks</h2>
+    <p>Pages aren't a single blob of HTML — they're assembled from <strong>blocks</strong> you stack and reorder by
+    drag-and-drop. Each block is a purpose-built section:</p>
+    <div class="tag-row" style="margin-bottom:16px">
+        <span class="badge">Hero</span><span class="badge">Page header</span><span class="badge">Rich text</span>
+        <span class="badge">Image</span><span class="badge">Gallery</span><span class="badge">Video embed</span>
+        <span class="badge">CTA</span><span class="badge">FAQ</span><span class="badge">Section</span>
+        <span class="badge">Posts list</span><span class="badge">Divider</span><span class="badge">HTML</span>
+    </div>
+    <p>Editors get a live block editor with a rich-text editor (TipTap) for prose; a page can pull media from the
+    library via a picker. Pages live in a <strong>path hierarchy</strong> (e.g. <code>/about/history</code>) and use
+    templates (Default, Home, Landing, Full-width) as a rendering hint.</p>
+
+    <h3 id="publishing">Publishing &amp; safety</h3>
+    <div class="dl">
+        <div class="row"><dt>Draft → Published</dt><dd>Content has a status and a publish date; only published items appear on the public site.</dd></div>
+        <div class="row"><dt>Soft delete &amp; restore</dt><dd>Deleting a page/post/notice/event is reversible — restore it if removed by mistake.</dd></div>
+        <div class="row"><dt>SEO fields</dt><dd>Every content item carries meta title, description and social preview fields.</dd></div>
+    </div>
+
+    <h2 id="posts">Posts, taxonomies &amp; terms</h2>
+    <p>Posts are article-style content (news, articles). <strong>Taxonomies</strong> (e.g. Category, Tag) and their
+    <strong>terms</strong> classify posts so the public site can list them by topic. Posts also support blocks, SEO and
+    soft-delete/restore.</p>
+
+    <h2 id="media">Media library</h2>
+    <p>Upload once, reuse anywhere. Media is organized into <strong>folders</strong>, browsable through a picker inside
+    editors, and supports bulk actions. Uploads are validated for type and size.</p>
+
+    <h2 id="menus">Menus</h2>
+    <p>Build the site's navigation as a <strong>tree</strong>: add items, nest them, and reorder by dragging. Menus are
+    addressed by a key so the public front end can request a specific menu (e.g. <code>main</code>, <code>footer</code>).</p>
+
+    <h2 id="notices-events">Notices &amp; events</h2>
+    <p><strong>Notices</strong> are announcements (often with a publish window); <strong>Events</strong> are calendar
+    entries with dates. Both are first-class, SEO-enabled, restorable content types the public site can list and open
+    by slug.</p>
+
+    <h2 id="redirects">Redirects</h2>
+    <p>When a page's URL changes, add a redirect so old links (from search engines, bookmarks or printed material)
+    still land in the right place.</p>
+
+    <h2 id="public">Public (rendered-site) API</h2>
+    <p>The CMS exposes a separate set of <strong>read-only public endpoints</strong> that the rendered website consumes.
+    These return only <em>published</em> content and don't require the <code>cms.manage</code> permission — they're the
+    boundary between the admin CMS and the visitor-facing site.</p>
+<pre><code># Admin (requires cms.manage)
+GET/POST/PUT/DELETE  /api/v1/cms/pages | posts | taxonomies | terms | media
+                     | media-folders | menus | notices | events | redirects
+POST  /api/v1/cms/pages/{id}/restore     # and posts/notices/events
+
+# Public (published content, read-only)
+GET  /api/v1/cms/public/pages            GET /api/v1/cms/public/pages/{path}
+GET  /api/v1/cms/public/posts            GET /api/v1/cms/public/posts/{slug}
+GET  /api/v1/cms/public/notices | events | menus/{key}
+GET  /api/v1/cms/public/taxonomies/{taxonomy}/terms</code></pre>
+
+    <div class="page-nav">
+        <a href="module-credentials.html"><span class="dir">← Previous</span><span class="ttl">Credentials &amp; ID</span></a>
+        <a class="next" href="module-reporting.html"><span class="dir">Next →</span><span class="ttl">Dashboard &amp; Reports</span></a>
+    </div>
+    <p class="footer-note">DecentEdu School Management System — documentation.</p>
+</main>
+<script>window.PAGE = { title: 'CMS & Website' };</script>
+<script src="assets/app.js"></script>
+</body>
+</html>

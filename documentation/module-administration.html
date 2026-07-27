@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Administration &amp; Audit — DecentEdu Docs</title>
+<meta name="description" content="Administration: user management, role & permission assignment, sessions, password resets, the audit log and branch settings.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<main class="content">
+    <div class="breadcrumb"><a href="index.html">Home</a><span class="sep">/</span><span>Administration &amp; Audit</span></div>
+    <h1>Administration &amp; Audit</h1>
+    <p class="lead">The control room: manage <strong>users</strong> and their <strong>roles &amp; permissions</strong>,
+    handle sessions and password resets, review the <strong>audit log</strong> of sensitive actions, and configure
+    branch <strong>settings</strong>.</p>
+
+    <div class="tag-row" style="margin-bottom:22px">
+        <span class="badge brand">Menu: Users &amp; Roles · Audit Log · Settings</span>
+        <span class="badge">Permissions: <code>users.manage</code>, <code>audit.view</code></span>
+        <span class="badge info">Typical user: Admin / Super Admin</span>
+    </div>
+
+    <h2 id="users">User management</h2>
+    <p>Create and maintain the people who log in. Any authenticated user can read role/permission names (the app needs
+    them to build its own menu), but only users with <code>users.manage</code> can make changes.</p>
+    <ol class="steps">
+        <li><strong>Create a user</strong><div class="s-body">Name, email and initial password; attach them to one or more branches.</div></li>
+        <li><strong>Assign a role per branch</strong><div class="s-body">Admin, Accountant, Exam Controller, Teacher — or a custom role.</div></li>
+        <li><strong>Fine-tune permissions</strong><div class="s-body">Grant extra permissions on top of the role for exceptions.</div></li>
+        <li><strong>Lifecycle actions</strong><div class="s-body">Deactivate an account, or force a password reset on next login.</div></li>
+    </ol>
+
+    <h2 id="roles">Roles &amp; permissions</h2>
+    <p>View the roles, see the full permission catalog, and update which permissions a role carries. See
+    <a href="roles-permissions.html">Roles &amp; Permissions</a> for the complete matrix and how checks are enforced.</p>
+
+    <h2 id="sessions">Sessions &amp; account security</h2>
+    <div class="dl">
+        <div class="row"><dt>Change password</dt><dd>Any signed-in user can change their own password.</dd></div>
+        <div class="row"><dt>Active sessions</dt><dd>View your active sessions and revoke one you don't recognize.</dd></div>
+        <div class="row"><dt>Forced reset</dt><dd>Admins can flag an account so the user must set a new password before continuing.</dd></div>
+        <div class="row"><dt>Forgot / reset password</dt><dd>Self-service reset via emailed link from the login screen.</dd></div>
+    </div>
+
+    <h2 id="audit">Audit log</h2>
+    <p>Sensitive operations are recorded to an <strong>audit log</strong> for accountability and dispute resolution —
+    who did what, when, and in which branch. Typical audited events include mark edits, result processing, fee
+    collection and user/permission changes. Reading the log requires <code>audit.view</code>.</p>
+    <div class="callout tip"><span class="cico">🔎</span><p>When a parent disputes a mark or a receipt, the audit log is the record of exactly what changed and who changed it.</p></div>
+
+    <h2 id="settings">Branch settings</h2>
+    <p>Per-branch configuration — branch identity (name, code, logo, contact), the current academic year default, and
+    module toggles such as SMS sender ID and grading options — frames how that branch behaves.</p>
+
+    <h2 id="branch-switching">Branch switching</h2>
+    <p>Users who belong to several branches switch the active branch from the top bar. Switching re-scopes all data and
+    swaps in that branch's role/permissions and current academic year.</p>
+
+    <h2 id="api">At the API level</h2>
+<pre><code>GET   /api/v1/users        POST /api/v1/users        PUT /api/v1/users/{id}
+POST  /api/v1/users/{id}/deactivate     POST /api/v1/users/{id}/force-reset
+GET   /api/v1/roles        GET /api/v1/roles/permissions
+PUT   /api/v1/roles/{id}/permissions
+GET   /api/v1/audit-logs                              # requires audit.view
+POST  /api/v1/branch/switch                           # change active branch
+GET   /api/v1/auth/me | sessions   POST /api/v1/auth/change-password | logout</code></pre>
+
+    <div class="page-nav">
+        <a href="module-reporting.html"><span class="dir">← Previous</span><span class="ttl">Dashboard &amp; Reports</span></a>
+        <a class="next" href="api-reference.html"><span class="dir">Next →</span><span class="ttl">API Reference</span></a>
+    </div>
+    <p class="footer-note">DecentEdu School Management System — documentation.</p>
+</main>
+<script>window.PAGE = { title: 'Administration & Audit' };</script>
+<script src="assets/app.js"></script>
+</body>
+</html>

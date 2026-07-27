@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Glossary — DecentEdu Docs</title>
+<meta name="description" content="Definitions of DecentEdu and Bangladeshi-education terms used throughout the system: class config, GPA, 4th subject, TC, voucher, taxonomy and more.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<main class="content">
+    <div class="breadcrumb"><a href="index.html">Home</a><span class="sep">/</span><span>Glossary</span></div>
+    <h1>Glossary</h1>
+    <p class="lead">Plain-language definitions of the terms used across DecentEdu — both system concepts and
+    Bangladeshi-education vocabulary.</p>
+
+    <h2 id="structure">Academic structure</h2>
+    <div class="dl">
+        <div class="row"><dt>Organization</dt><dd>The top-level entity that owns one or more branches (e.g. a school group).</dd></div>
+        <div class="row"><dt>Branch</dt><dd>A single campus/school. All operational data is isolated per branch.</dd></div>
+        <div class="row"><dt>Academic Year / Session</dt><dd>A school year (e.g. 2026). One per branch is the <em>current</em> session; enrolment, exams and fees are scoped to it.</dd></div>
+        <div class="row"><dt>Class</dt><dd>A grade level (Six … Ten, or college classes).</dd></div>
+        <div class="row"><dt>Shift</dt><dd>A daily time band such as Morning or Day.</dd></div>
+        <div class="row"><dt>Section</dt><dd>A division within a class (A, B, C).</dd></div>
+        <div class="row"><dt>Group</dt><dd>A senior-class stream — Science, Business Studies, Humanities.</dd></div>
+        <div class="row"><dt>Category</dt><dd>A student classification such as General or Residential.</dd></div>
+        <div class="row"><dt>Subject</dt><dd>A taught subject (Bangla, English, Mathematics, ICT…).</dd></div>
+        <div class="row"><dt>Class Config</dt><dd>The concrete teaching unit = Class × Shift × Section. The hub everything references.</dd></div>
+        <div class="row"><dt>Enrolment</dt><dd>A student's placement (class config + roll) for a specific academic year.</dd></div>
+        <div class="row"><dt>Roll</dt><dd>A student's class roll number, unique within a class config for a year.</dd></div>
+    </div>
+
+    <h2 id="exam">Examinations</h2>
+    <div class="dl">
+        <div class="row"><dt>Short Code</dt><dd>A label for a mark component (CQ, MCQ, Practical…).</dd></div>
+        <div class="row"><dt>Mark Config</dt><dd>A subject's components, their totals and pass marks for an exam.</dd></div>
+        <div class="row"><dt>Grade Scale</dt><dd>The mark-range → letter grade → grade point table, defined per class.</dd></div>
+        <div class="row"><dt>Grade Point</dt><dd>The numeric value of a letter grade (e.g. A+ = 5.0).</dd></div>
+        <div class="row"><dt>GPA</dt><dd>Grade Point Average across a student's compulsory subjects, plus the 4th-subject bonus.</dd></div>
+        <div class="row"><dt>4th Subject</dt><dd>An optional subject that can only help: it adds <code>max(0, gradePoint − 2)</code> to the GPA total but isn't counted in the divisor.</dd></div>
+        <div class="row"><dt>Merit Process</dt><dd>The step that computes GPA and assigns class/section positions.</dd></div>
+        <div class="row"><dt>Sequential / Non-sequential</dt><dd>How tied positions are ranked — advance the next rank vs. skip it.</dd></div>
+        <div class="row"><dt>Marksheet</dt><dd>An individual student's result document.</dd></div>
+        <div class="row"><dt>Tabulation Sheet</dt><dd>The whole class's results in one grid.</dd></div>
+        <div class="row"><dt>Admit Card</dt><dd>A student's exam entry pass, with instructions and signatures.</dd></div>
+        <div class="row"><dt>Seat Plan</dt><dd>Assignment of students to exam-hall seats.</dd></div>
+    </div>
+
+    <h2 id="finance">Finance</h2>
+    <div class="dl">
+        <div class="row"><dt>Fee Head / Sub-head</dt><dd>Head = a grouping (Tuition); sub-head = a billable line (January tuition).</dd></div>
+        <div class="row"><dt>Fee Config</dt><dd>The payable amount for a sub-head, per class config, per year.</dd></div>
+        <div class="row"><dt>Waiver</dt><dd>A discount that reduces a student's payable.</dd></div>
+        <div class="row"><dt>Fine</dt><dd>A flat late charge applied once after a due date passes.</dd></div>
+        <div class="row"><dt>Student Fee / Dues</dt><dd>The assessed amount a student owes: payable − waiver − paid (+ fine).</dd></div>
+        <div class="row"><dt>Collection / Receipt</dt><dd>A recorded payment with a sequential receipt number.</dd></div>
+        <div class="row"><dt>Ledger Account</dt><dd>An account in the chart of accounts (Cash, Tuition Income…).</dd></div>
+        <div class="row"><dt>Voucher</dt><dd>A financial transaction made of debit/credit entries. Types: receive, payment, contra, journal.</dd></div>
+        <div class="row"><dt>Double-entry</dt><dd>Every voucher's debits equal its credits — the books stay balanced.</dd></div>
+        <div class="row"><dt>Trial Balance</dt><dd>All accounts' debit/credit totals — proof the ledger balances.</dd></div>
+    </div>
+
+    <h2 id="people-docs">People &amp; documents</h2>
+    <div class="dl">
+        <div class="row"><dt>Guardian</dt><dd>A student's parent/guardian and contact for notifications.</dd></div>
+        <div class="row"><dt>Migration (students)</dt><dd>Year-end promotion of students — promote, general (re-enrol) or push-back (reverse).</dd></div>
+        <div class="row"><dt>Transfer Certificate (TC)</dt><dd>The official leaving certificate issued when a student departs.</dd></div>
+        <div class="row"><dt>Testimonial</dt><dd>A character/attendance testimonial document.</dd></div>
+        <div class="row"><dt>Subject-Teacher</dt><dd>An assignment linking a teacher, a subject and a class config.</dd></div>
+        <div class="row"><dt>Punch</dt><dd>A raw biometric device event, later resolved into daily attendance.</dd></div>
+        <div class="row"><dt>Device Map</dt><dd>A mapping from a device user-ID to a student or employee.</dd></div>
+    </div>
+
+    <h2 id="cms-terms">CMS &amp; website</h2>
+    <div class="dl">
+        <div class="row"><dt>Page</dt><dd>A website page built from stacked content blocks.</dd></div>
+        <div class="row"><dt>Block</dt><dd>A reusable content section (hero, rich text, gallery, CTA, FAQ…).</dd></div>
+        <div class="row"><dt>Post</dt><dd>An article/news item, categorized by taxonomies.</dd></div>
+        <div class="row"><dt>Taxonomy / Term</dt><dd>A classification (taxonomy) and its values (terms) used to organize posts.</dd></div>
+        <div class="row"><dt>Notice / Event</dt><dd>An announcement / a dated calendar entry published to the site.</dd></div>
+        <div class="row"><dt>Redirect</dt><dd>A rule sending an old URL to a new one.</dd></div>
+        <div class="row"><dt>SEO fields</dt><dd>Meta title, description and social-preview data per content item.</dd></div>
+    </div>
+
+    <h2 id="platform-terms">Platform &amp; security</h2>
+    <div class="dl">
+        <div class="row"><dt>Multi-branch / Tenancy</dt><dd>Running many branches on one system with row-level isolation by <code>branch_id</code>.</dd></div>
+        <div class="row"><dt>Active branch context</dt><dd>The branch a request operates in, set per request and scoping all data.</dd></div>
+        <div class="row"><dt>Role</dt><dd>A named bundle of permissions (Admin, Accountant, Teacher…).</dd></div>
+        <div class="row"><dt>Permission</dt><dd>A single capability, e.g. <code>fees.manage</code>.</dd></div>
+        <div class="row"><dt>RBAC</dt><dd>Role-Based Access Control — permissions granted via roles, scoped per branch.</dd></div>
+        <div class="row"><dt>Sanctum</dt><dd>Laravel's cookie-session authentication used by the SPA.</dd></div>
+        <div class="row"><dt>Soft delete</dt><dd>Marking a record deleted (reversible) rather than removing it permanently.</dd></div>
+        <div class="row"><dt>Report Artifact</dt><dd>An asynchronously generated report file (PDF/Excel) you poll for and download.</dd></div>
+        <div class="row"><dt>Audit log</dt><dd>A record of who did what and when, for sensitive operations.</dd></div>
+    </div>
+
+    <div class="page-nav">
+        <a href="api-reference.html"><span class="dir">← Previous</span><span class="ttl">API Reference</span></a>
+        <a class="next" href="index.html"><span class="dir">Back to →</span><span class="ttl">Overview</span></a>
+    </div>
+    <p class="footer-note">DecentEdu School Management System — documentation.</p>
+</main>
+<script>window.PAGE = { title: 'Glossary' };</script>
+<script src="assets/app.js"></script>
+</body>
+</html>

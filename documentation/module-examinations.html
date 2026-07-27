@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Exams &amp; Results — DecentEdu Docs</title>
+<meta name="description" content="Examinations module: exam setup, grade scales, mark configuration, mark entry, GPA result processing with the 4th-subject rule, positions, marksheets, tabulation and admit cards.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<main class="content">
+    <div class="breadcrumb"><a href="index.html">Home</a><span class="sep">/</span><span>Exams &amp; Results</span></div>
+    <h1>Examinations &amp; Results</h1>
+    <p class="lead">The most involved module: it takes a term exam all the way from <strong>setup</strong> and
+    <strong>mark entry</strong> through <strong>GPA result processing</strong> to printed <strong>marksheets</strong>,
+    <strong>tabulation sheets</strong>, merit/fail lists and <strong>admit cards</strong> — following the
+    Bangladesh-board grading rules.</p>
+
+    <div class="tag-row" style="margin-bottom:22px">
+        <span class="badge brand">Menu: Examinations &amp; Results</span>
+        <span class="badge">Permission: <code>examinations.manage</code></span>
+        <span class="badge info">Typical user: Exam Controller / Teacher</span>
+    </div>
+
+    <h2 id="lifecycle">The lifecycle at a glance</h2>
+    <div class="flow">
+        <span class="node">Setup</span><span class="arw">→</span>
+        <span class="node">Configure</span><span class="arw">→</span>
+        <span class="node">Enter marks</span><span class="arw">→</span>
+        <span class="node">Process results</span><span class="arw">→</span>
+        <span class="node">Print &amp; publish</span>
+    </div>
+
+    <h2 id="setup">1 · Setup</h2>
+    <div class="dl">
+        <div class="row"><dt>Exams</dt><dd>The exams you run — Weekly, Monthly, Half-Yearly, Final, Grand Final. Each has a merit-processing style (by total mark or grade point, sequential or non-sequential positions).</dd></div>
+        <div class="row"><dt>Grades (grade scale)</dt><dd>The mark-range → letter grade → grade point table, defined <strong>per class</strong> (e.g. 80–100 = A+ = 5.0).</dd></div>
+        <div class="row"><dt>Short codes</dt><dd>Labels for mark components (e.g. CQ, MCQ, Practical).</dd></div>
+    </div>
+
+    <h2 id="configure">2 · Configure the exam</h2>
+    <div class="dl">
+        <div class="row"><dt>Exam config</dt><dd>Which class configs and subjects an exam applies to.</dd></div>
+        <div class="row"><dt>Mark config</dt><dd>Per subject: its components (short codes), each component's total and the <strong>pass mark</strong>.</dd></div>
+        <div class="row"><dt>4th subject</dt><dd>Which subject counts as the optional 4th subject for a student (it earns a GPA bonus, not a penalty).</dd></div>
+        <div class="row"><dt>Class-teacher config</dt><dd>Who signs off a class's results.</dd></div>
+        <div class="row"><dt>Signatures &amp; admit instructions</dt><dd>Signature blocks and the instruction text printed on admit cards.</dd></div>
+    </div>
+
+    <h2 id="exam-routine">3 · Exam routine</h2>
+    <p>Schedule each subject's exam — date, time and room — so it can be printed and drive admit cards and seat plans.</p>
+
+    <h2 id="marks">4 · Mark entry</h2>
+    <p>Teachers open the <strong>mark grid</strong> for an exam × subject × class config and fill each student's
+    component marks, or tick <strong>absent</strong>. Rules enforced on save:</p>
+    <ul>
+        <li>A mark cannot exceed its component's total.</li>
+        <li>A student is either <em>absent</em> <strong>or</strong> has marks — never both (absent XOR marks).</li>
+        <li>Marks belong to students actually enrolled in that class config.</li>
+    </ul>
+    <p>All rows save inside one transaction, and mark edits are recorded in the audit log.</p>
+
+    <h2 id="processing">5 · Result processing</h2>
+    <p>Processing runs in stages, each idempotent (safe to re-run):</p>
+    <ol class="steps">
+        <li><strong>General process</strong><div class="s-body">For each student × subject, component marks are summed and compared against the subject's total pass mark; the class grade scale assigns a letter grade and grade point. Absent ⇒ fail for that subject.</div></li>
+        <li><strong>Final process</strong> <span class="badge">optional</span><div class="s-body">Combines term results (e.g. to build a Grand Final) using the configured pass rules.</div></li>
+        <li><strong>Merit process</strong><div class="s-body">Rolls subject results into a per-student <strong>GPA</strong> and assigns class &amp; section <strong>positions</strong>.</div></li>
+    </ol>
+
+    <h3 id="gpa">How GPA is computed</h3>
+    <p>DecentEdu uses the standard Bangladesh-board method:</p>
+<pre><code>base   = sum(grade_point of compulsory subjects)
+bonus  = fourth_subject ? max(0, fourth_grade_point − 2.0) : 0
+GPA    = round( (base + bonus) / count(compulsory subjects) , 2 )
+
+Pass   = student failed 0 subjects (any fail or absent ⇒ overall FAIL, GPA withheld)</code></pre>
+    <p>The 4th subject can only <em>help</em>: it adds <code>gradePoint − 2</code> (never below zero) to the total,
+    but is not counted in the divisor.</p>
+
+    <h3 id="positions">Positions (merit rank)</h3>
+    <p>Passing students are ranked to produce a <strong>class position</strong> (across the whole class) and a
+    <strong>section position</strong> (within their section). The exam's configuration decides the basis
+    (<em>grade point</em> or <em>total marks</em>) and whether ties advance the next rank
+    (<em>sequential</em>) or skip it (<em>non-sequential</em>).</p>
+
+    <div class="callout warn"><span class="cico">⚠️</span><p>Result processing is a bulk operation. Run <em>General</em> first, then <em>Merit</em> (and <em>Final</em> where used). Re-running is safe — it recomputes, it doesn't duplicate.</p></div>
+
+    <h2 id="reports">6 · Results &amp; printouts</h2>
+    <div class="grid cols-2">
+        <div class="card"><h4>Marksheet</h4><p>An individual student's result — subject marks, grades, GPA and position.</p></div>
+        <div class="card"><h4>Tabulation sheet</h4><p>The whole class in one grid — every student × every subject, with totals and positions.</p></div>
+        <div class="card"><h4>Merit list</h4><p>Ranked list of passing students (class-wise or section-wise).</p></div>
+        <div class="card"><h4>Fail list</h4><p>Students who failed, with the subjects they failed.</p></div>
+    </div>
+
+    <h2 id="admit">Admit cards, seat plans &amp; attendance sheets</h2>
+    <p>From the exam routine, DecentEdu generates <strong>admit cards</strong> (with instructions and signatures),
+    allocates a <strong>seat plan</strong>, and prints an exam-hall <strong>attendance sheet</strong>. Heavy print
+    jobs are produced as PDF artifacts through the <a href="module-reporting.html">reporting subsystem</a>.</p>
+
+    <h2 id="api">At the API level</h2>
+<pre><code>GET/POST/PUT/DELETE  /api/v1/examinations/{resource}   # exams | short-codes
+GET/POST/PUT/DELETE  /api/v1/examinations/grades       # per-class grade scale
+...  exam-configs, mark-configs, fourth-subjects, class-teacher-configs, signatures,
+     admit-instructions, exam-routine
+
+GET   /api/v1/examinations/marks/grid                  # mark entry grid
+POST  /api/v1/examinations/marks                       # save marks
+
+POST  /api/v1/examinations/results/general-process
+POST  /api/v1/examinations/results/final-process
+POST  /api/v1/examinations/results/merit-process
+
+GET   /api/v1/examinations/results/marksheet | tabulation-sheet | merit-list | fail-list
+GET   /api/v1/examinations/admit/card | attendance-sheet    POST /admit/seat-plan</code></pre>
+
+    <div class="page-nav">
+        <a href="module-routines.html"><span class="dir">← Previous</span><span class="ttl">Routines</span></a>
+        <a class="next" href="module-fees.html"><span class="dir">Next →</span><span class="ttl">Fees</span></a>
+    </div>
+    <p class="footer-note">DecentEdu School Management System — documentation.</p>
+</main>
+<script>window.PAGE = { title: 'Exams & Results' };</script>
+<script src="assets/app.js"></script>
+</body>
+</html>

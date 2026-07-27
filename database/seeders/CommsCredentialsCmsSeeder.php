@@ -9,9 +9,13 @@ use App\Jobs\SendSmsBatch;
 use App\Models\Academic\AcademicYear;
 use App\Models\Academic\ClassConfig;
 use App\Models\Branch;
+use App\Models\Cms\Event;
 use App\Models\Cms\Menu;
+use App\Models\Cms\Notice;
+use App\Models\Cms\Page;
 use App\Models\Cms\Post;
-use App\Models\Cms\WebsiteSetting;
+use App\Models\Cms\Taxonomy;
+use App\Models\Cms\Term;
 use App\Models\Credentials\IdCardTemplate;
 use App\Models\Hr\Employee;
 use App\Models\Messaging\Contact;
@@ -177,31 +181,115 @@ class CommsCredentialsCmsSeeder extends Seeder
     {
         $adminId = auth()->id();
 
-        $page = Post::firstOrCreate(
-            ['branch_id' => $branchId, 'type' => 'page', 'slug' => 'about-us'],
-            ['title' => 'About Us', 'body' => '<p>Welcome to our institution.</p>', 'status' => 'published', 'published_at' => now(), 'created_by' => $adminId, 'updated_by' => $adminId],
-        );
-        $notice = Post::firstOrCreate(
-            ['branch_id' => $branchId, 'type' => 'notice', 'slug' => 'admission-notice'],
-            ['title' => 'Admission Notice', 'body' => '<p>Admissions are now open for the new academic year.</p>', 'status' => 'published', 'published_at' => now(), 'created_by' => $adminId, 'updated_by' => $adminId],
-        );
-        Post::firstOrCreate(
-            ['branch_id' => $branchId, 'type' => 'news', 'slug' => 'annual-sports-day'],
-            ['title' => 'Annual Sports Day', 'body' => '<p>The annual sports day will be held next month.</p>', 'status' => 'draft', 'created_by' => $adminId, 'updated_by' => $adminId],
+        // ---- A hierarchical page tree, with a block-composed "About" page ----------------
+        $home = Page::firstOrCreate(
+            ['branch_id' => $branchId, 'parent_id' => null, 'slug' => 'home'],
+            ['title' => 'Home', 'path' => 'home', 'template' => 'home', 'status' => 'published',
+                'published_at' => now(), 'created_by' => $adminId, 'updated_by' => $adminId],
         );
 
-        $menu = Menu::firstOrCreate(['branch_id' => $branchId, 'name' => 'Main Menu'], ['location' => 'header', 'status' => true]);
-        $menu->items()->firstOrCreate(['label' => 'Home'], ['url' => '/', 'serial' => 1]);
-        $menu->items()->firstOrCreate(['label' => 'About Us'], ['url' => '/about-us', 'post_id' => $page->id, 'serial' => 2]);
-        $menu->items()->firstOrCreate(['label' => 'Notices'], ['url' => '/notices', 'post_id' => $notice->id, 'serial' => 3]);
+        $about = Page::firstOrCreate(
+            ['branch_id' => $branchId, 'parent_id' => null, 'slug' => 'about-us'],
+            ['title' => 'About Us', 'path' => 'about-us', 'template' => 'default', 'status' => 'published',
+                'excerpt' => 'Learn about our institution.', 'published_at' => now(),
+                'created_by' => $adminId, 'updated_by' => $adminId],
+        );
 
-        WebsiteSetting::firstOrCreate(['branch_id' => $branchId], [
-            'site_title' => Branch::find($branchId)?->name,
-            'tagline' => 'Excellence in Education',
-            'address' => Branch::find($branchId)?->address,
-            'phone' => Branch::find($branchId)?->phone,
-            'email' => Branch::find($branchId)?->email,
-            'status' => true,
-        ]);
+        if ($about->blocks()->count() === 0) {
+            $about->blocks()->create([
+                'type' => 'hero', 'position' => 0, 'is_visible' => true,
+                'payload' => ['heading' => 'Welcome to '.(Branch::find($branchId)?->name ?? 'our institution'),
+                    'subtitle' => 'Excellence in Education'],
+            ]);
+            $about->blocks()->create([
+                'type' => 'rich_text', 'position' => 1, 'is_visible' => true,
+                'payload' => ['content' => '<p>We are committed to nurturing every student toward their full potential.</p>'],
+            ]);
+        }
+
+        // A child page to exercise nested paths.
+        Page::firstOrCreate(
+            ['branch_id' => $branchId, 'parent_id' => $about->id, 'slug' => 'our-team'],
+            ['title' => 'Our Team', 'path' => 'about-us/our-team', 'template' => 'default',
+                'status' => 'published', 'published_at' => now(), 'created_by' => $adminId, 'updated_by' => $adminId],
+        );
+
+        // ---- Taxonomy + terms -------------------------------------------------------------
+        $categories = Taxonomy::firstOrCreate(
+            ['branch_id' => $branchId, 'slug' => 'category'],
+            ['name' => 'Category', 'hierarchical' => true, 'object_types' => ['post', 'event']],
+        );
+        $news = Term::firstOrCreate(['taxonomy_id' => $categories->id, 'slug' => 'news'], ['name' => 'News']);
+        $notices = Term::firstOrCreate(['taxonomy_id' => $categories->id, 'slug' => 'notices'], ['name' => 'Notices']);
+
+        // ---- Blog posts, categorised ------------------------------------------------------
+        $admission = Post::firstOrCreate(
+            ['branch_id' => $branchId, 'slug' => 'admission-notice'],
+            ['title' => 'Admission Notice', 'excerpt' => 'Admissions are now open.',
+                'body' => '<p>Admissions are now open for the new academic year.</p>', 'author_id' => $adminId,
+                'status' => 'published', 'is_featured' => true, 'reading_time' => 1, 'published_at' => now(),
+                'created_by' => $adminId, 'updated_by' => $adminId],
+        );
+        $admission->terms()->syncWithoutDetaching([$notices->id]);
+
+        $sports = Post::firstOrCreate(
+            ['branch_id' => $branchId, 'slug' => 'annual-sports-day'],
+            ['title' => 'Annual Sports Day', 'excerpt' => 'Our annual sports day is coming up.',
+                'body' => '<p>The annual sports day will be held next month.</p>', 'author_id' => $adminId,
+                'status' => 'published', 'reading_time' => 1, 'published_at' => now(),
+                'created_by' => $adminId, 'updated_by' => $adminId],
+        );
+        $sports->terms()->syncWithoutDetaching([$news->id]);
+
+        // ---- Notice categories + dated notices (with a downloadable file) -----------------
+        $noticeCats = Taxonomy::firstOrCreate(
+            ['branch_id' => $branchId, 'slug' => 'notice-category'],
+            ['name' => 'Notice Category', 'hierarchical' => false, 'object_types' => ['notice']],
+        );
+        $catAdmission = Term::firstOrCreate(['taxonomy_id' => $noticeCats->id, 'slug' => 'admission'], ['name' => 'Admission']);
+        $catExam = Term::firstOrCreate(['taxonomy_id' => $noticeCats->id, 'slug' => 'exam'], ['name' => 'Exam']);
+        $catEvent = Term::firstOrCreate(['taxonomy_id' => $noticeCats->id, 'slug' => 'event'], ['name' => 'Event']);
+        $catStipend = Term::firstOrCreate(['taxonomy_id' => $noticeCats->id, 'slug' => 'stipend'], ['name' => 'Stipend']);
+        $catHoliday = Term::firstOrCreate(['taxonomy_id' => $noticeCats->id, 'slug' => 'holiday'], ['name' => 'Holiday']);
+
+        $notices = [
+            ['Class Six Admission Notice for 2026', now()->subDays(2), $catAdmission, true],
+            ['Half-Yearly Exam Schedule and Seat Plan', now()->subDays(11), $catExam, false],
+            ['Science Fair 2026 — Project Submission Guidelines', now()->subDays(19), $catEvent, false],
+            ['Urgent Notice Regarding Stipend Data Update', now()->subDays(28), $catStipend, false],
+            ['Summer Vacation and Class Resumption Dates', now()->subMonth(), $catHoliday, false],
+        ];
+        foreach ($notices as [$title, $date, $term, $important]) {
+            $notice = Notice::firstOrCreate(
+                ['branch_id' => $branchId, 'slug' => str($title)->slug()->value()],
+                ['title' => $title, 'notice_date' => $date, 'is_important' => $important, 'status' => 'published',
+                    'published_at' => $date, 'body' => '<p>'.$title.'.</p>', 'created_by' => $adminId, 'updated_by' => $adminId],
+            );
+            $notice->terms()->syncWithoutDetaching([$term->id]);
+        }
+
+        // ---- Events -----------------------------------------------------------------------
+        $events = [
+            ['Annual Science Fair 2026', now()->addWeeks(2)->setTime(9, 0), 'School auditorium', $catEvent],
+            ['Parent-Teacher Meeting', now()->addWeeks(3)->setTime(10, 30), 'Main hall', $catEvent],
+        ];
+        foreach ($events as [$title, $start, $location, $term]) {
+            $event = Event::firstOrCreate(
+                ['branch_id' => $branchId, 'slug' => str($title)->slug()->value()],
+                ['title' => $title, 'starts_at' => $start, 'ends_at' => (clone $start)->addHours(3), 'location' => $location,
+                    'status' => 'published', 'published_at' => now(), 'body' => '<p>'.$title.'.</p>',
+                    'created_by' => $adminId, 'updated_by' => $adminId],
+            );
+            $event->terms()->syncWithoutDetaching([$term->id]);
+        }
+
+        // ---- A header menu linking pages, a post, and a term ------------------------------
+        $menu = Menu::firstOrCreate(['branch_id' => $branchId, 'key' => 'header'], ['name' => 'Main Menu', 'is_active' => true]);
+        if ($menu->items()->count() === 0) {
+            $menu->items()->create(['label' => 'Home', 'linkable_type' => 'page', 'linkable_id' => $home->id, 'position' => 0]);
+            $menu->items()->create(['label' => 'About Us', 'linkable_type' => 'page', 'linkable_id' => $about->id, 'position' => 1]);
+            $menu->items()->create(['label' => 'Admission', 'linkable_type' => 'post', 'linkable_id' => $admission->id, 'position' => 2]);
+            $menu->items()->create(['label' => 'News', 'linkable_type' => 'term', 'linkable_id' => $news->id, 'position' => 3]);
+        }
     }
 }

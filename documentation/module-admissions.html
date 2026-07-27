@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admissions — DecentEdu Docs</title>
+<meta name="description" content="Admissions module: admission drives, seat quotas, applications, the selection pipeline and applicant-to-student conversion.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<main class="content">
+    <div class="breadcrumb"><a href="index.html">Home</a><span class="sep">/</span><span>Admissions</span></div>
+    <h1>Admissions</h1>
+    <p class="lead">The Admissions module runs a school's intake: opening an <strong>admission drive</strong>, defining
+    <strong>seat quotas</strong>, collecting and screening <strong>applications</strong>, and finally
+    <strong>converting</strong> a selected applicant into an enrolled student.</p>
+
+    <div class="tag-row" style="margin-bottom:22px">
+        <span class="badge brand">Menu: Admissions</span>
+        <span class="badge">Permission: <code>admissions.manage</code></span>
+        <span class="badge info">Typical user: Admin / Front desk</span>
+    </div>
+
+    <h2 id="overview">The pipeline</h2>
+    <div class="flow">
+        <span class="node">Admission year</span><span class="arw">→</span>
+        <span class="node">Quotas</span><span class="arw">→</span>
+        <span class="node">Applications</span><span class="arw">→</span>
+        <span class="node">Selection</span><span class="arw">→</span>
+        <span class="node">Convert → Student</span>
+    </div>
+
+    <h2 id="drives">Admission years (drives)</h2>
+    <p>An <strong>admission year</strong> is a drive — the intake for a given session (e.g. “2027 Admission”). It groups
+    all the quotas and applications for that round and can be opened or closed.</p>
+
+    <h2 id="quotas">Seat quotas</h2>
+    <p>Quotas cap how many students you'll admit and reserve seats for categories (general and any special quotas).
+    They give the office a target to select against and prevent over-admission.</p>
+    <div class="dl">
+        <div class="row"><dt>Name</dt><dd>The quota's label (e.g. General, Freedom-fighter, Sibling).</dd></div>
+        <div class="row"><dt>Seats</dt><dd>How many applicants may be selected under this quota.</dd></div>
+        <div class="row"><dt>Scope</dt><dd>Tied to the admission year and (optionally) a target class.</dd></div>
+    </div>
+
+    <h2 id="applications">Applications</h2>
+    <p>Each applicant is recorded with their personal and guardian details and the class they're applying for. The
+    <strong>Applications</strong> list supports search, filters and pagination, and a <strong>stats</strong> summary
+    shows totals by status so the office can see progress at a glance.</p>
+    <p>Creating or editing an application opens a dedicated form page. An application moves through a
+    <strong>status pipeline</strong>:</p>
+    <div class="tag-row" style="margin-bottom:14px">
+        <span class="badge">Pending</span>
+        <span class="badge ok">Selected</span>
+        <span class="badge warn">Waiting</span>
+        <span class="badge danger">Rejected</span>
+    </div>
+    <p>Status changes are made from the application; each change is a deliberate action so the pipeline stays auditable.</p>
+
+    <h2 id="conversion">Converting to a student</h2>
+    <p>Once an applicant is <em>selected</em>, one action <strong>converts</strong> the application into:</p>
+    <ul>
+        <li>a new <strong>student</strong> record (identity), and</li>
+        <li>a first <strong>enrolment</strong> into the chosen class config for the current academic year.</li>
+    </ul>
+    <p>From that moment the student appears on the roll and is ready for attendance, fees and everything else — no
+    re-typing of their details.</p>
+    <div class="callout tip"><span class="cico">✅</span><p>Conversion is the bridge between Admissions and <a href="module-students.html">Students</a>. It keeps the applicant record for audit while creating the live student.</p></div>
+
+    <h2 id="api">At the API level</h2>
+<pre><code>GET/POST/PUT/DELETE  /api/v1/admissions/years           # admission drives
+GET/POST/PUT/DELETE  /api/v1/admissions/quotas          # seat quotas
+GET   /api/v1/admissions/applications                   # list (search/filter)
+GET   /api/v1/admissions/applications/stats             # totals by status
+POST  /api/v1/admissions/applications                   # create
+POST  /api/v1/admissions/applications/{id}/status       # move in pipeline
+POST  /api/v1/admissions/applications/{id}/convert      # → student + enrolment</code></pre>
+
+    <div class="page-nav">
+        <a href="module-academic.html"><span class="dir">← Previous</span><span class="ttl">Academic Setup</span></a>
+        <a class="next" href="module-students.html"><span class="dir">Next →</span><span class="ttl">Students</span></a>
+    </div>
+    <p class="footer-note">DecentEdu School Management System — documentation.</p>
+</main>
+<script>window.PAGE = { title: 'Admissions' };</script>
+<script src="assets/app.js"></script>
+</body>
+</html>

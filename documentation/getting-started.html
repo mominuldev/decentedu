@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Getting Started — DecentEdu Docs</title>
+<meta name="description" content="Log in, select a branch, understand the active academic year, and navigate the DecentEdu dashboard.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<main class="content">
+    <div class="breadcrumb"><a href="index.html">Home</a><span class="sep">/</span><span>Getting Started</span></div>
+    <h1>Getting Started</h1>
+    <p class="lead">This page walks a brand-new user through signing in, choosing a branch, and understanding the two
+    ideas that frame every screen in DecentEdu: the <strong>active branch</strong> and the <strong>active academic year</strong>.</p>
+
+    <h2 id="signing-in">Signing in</h2>
+    <p>DecentEdu is a web application. Open the school's DecentEdu URL in any modern browser and you land on the
+    <strong>Login</strong> screen.</p>
+    <ol class="steps">
+        <li><strong>Enter your email &amp; password</strong><div class="s-body">Credentials are issued to you by an administrator. There is no public self-registration.</div></li>
+        <li><strong>Sign in</strong><div class="s-body">A secure session cookie is created. You stay signed in until you log out or the session expires.</div></li>
+        <li><strong>First-time / reset password</strong><div class="s-body">If your account was flagged for a reset, you must set a new password before continuing. Forgot your password? Use <em>Forgot password</em> to receive a reset link.</div></li>
+    </ol>
+
+    <div class="callout info"><span class="cico">🔑</span><p><span class="ct">Demo credentials.</span> On a seeded demo database you can sign in as <code>demo@decentedu.test</code> / <code>password</code> (an <em>Admin</em> with access to all demo branches).</p></div>
+
+    <h2 id="selecting-a-branch">Selecting a branch</h2>
+    <p>A single user account can belong to several branches (campuses) of the same organization. Because all data is
+    isolated per branch, the system always needs to know <em>which</em> branch you are working in.</p>
+    <ul>
+        <li>If you belong to <strong>only one branch</strong>, it is selected automatically — you go straight to the dashboard.</li>
+        <li>If you belong to <strong>several branches</strong>, your default branch is used first; you can switch at any time from the top bar.</li>
+    </ul>
+    <p>Switching branch re-scopes everything: student lists, fees, exams, reports — all now show data for the newly
+    selected branch, and your permissions for that branch take effect.</p>
+
+    <div class="callout warn"><span class="cico">⚠️</span><p><span class="ct">Data never crosses branches.</span> A student, receipt or mark that belongs to Branch A is completely invisible while Branch B is active. This is enforced on the server, not just hidden in the interface — see <a href="architecture.html#multi-branch">Multi-branch isolation</a>.</p></div>
+
+    <h2 id="academic-year">The active academic year</h2>
+    <p>Alongside the active branch, each branch has a <strong>current academic year</strong> (session, e.g. <code>2026</code>).
+    A student's class, section and roll are recorded <em>per year</em>, so the active year determines which enrolment,
+    attendance, exams and fees you see. At year-end, students are promoted into the next year through the
+    <a href="module-students.html#migration">Student Migration</a> tool rather than by editing records in place.</p>
+
+    <h2 id="navigation">Finding your way around</h2>
+    <p>The interface has three consistent regions:</p>
+    <div class="dl">
+        <div class="row"><dt>Left sidebar</dt><dd>The module menu, grouped by area (People &amp; Academics, Daily Operations, Finance, Engagement, System). Only modules you have permission for appear.</dd></div>
+        <div class="row"><dt>Top bar</dt><dd>Branch switcher, notifications, light/dark theme toggle, and your profile menu (change password, sign out).</dd></div>
+        <div class="row"><dt>Main area</dt><dd>The current module. Most modules are a <strong>hub page with tabs</strong>; list screens open a full <strong>form page</strong> to create or edit a record (not a pop-up).</dd></div>
+    </div>
+
+    <h3 id="tabs-and-forms">Tabs, lists and forms</h3>
+    <p>A typical module (say <em>Fees</em> or <em>Examinations</em>) is a single page with tabs across the top — one tab per
+    sub-feature. Inside a list you'll find search, filters and pagination. Creating or editing a record (a student,
+    an application, a CMS page) navigates you to a dedicated form page and returns you to the exact tab you came from
+    when you save or cancel.</p>
+
+    <h2 id="what-you-can-do">What you can do depends on your role</h2>
+    <p>DecentEdu is permission-driven. An <em>Accountant</em> sees Fees, Accounting and Reports; a <em>Teacher</em> sees
+    Attendance, Routines and Examinations; an <em>Admin</em> sees everything in their branch. The full matrix is in
+    <a href="roles-permissions.html">Roles &amp; Permissions</a>.</p>
+
+    <div class="grid cols-2">
+        <a class="card" href="roles-permissions.html"><div class="card-ic">🔐</div><h3>Roles &amp; Permissions</h3><p>See exactly what each role can access.</p></a>
+        <a class="card" href="workflows.html"><div class="card-ic">🧭</div><h3>Key Workflows</h3><p>End-to-end guides that span several modules.</p></a>
+    </div>
+
+    <div class="page-nav">
+        <a href="index.html"><span class="dir">← Previous</span><span class="ttl">Overview</span></a>
+        <a class="next" href="architecture.html"><span class="dir">Next →</span><span class="ttl">System Architecture</span></a>
+    </div>
+    <p class="footer-note">DecentEdu School Management System — documentation.</p>
+</main>
+<script>window.PAGE = { title: 'Getting Started' };</script>
+<script src="assets/app.js"></script>
+</body>
+</html>

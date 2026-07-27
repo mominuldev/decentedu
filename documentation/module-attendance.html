@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Attendance — DecentEdu Docs</title>
+<meta name="description" content="Attendance module: student and staff attendance, biometric devices, device mapping, time configs, holidays, punch processing and reports.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<main class="content">
+    <div class="breadcrumb"><a href="index.html">Home</a><span class="sep">/</span><span>Attendance</span></div>
+    <h1>Attendance</h1>
+    <p class="lead">Attendance covers both <strong>students</strong> and <strong>staff</strong>. Marks can be entered
+    manually or ingested automatically from <strong>biometric devices</strong>, with holidays and time rules deciding
+    what counts as present, late or absent — and absentee notifications going out to guardians.</p>
+
+    <div class="tag-row" style="margin-bottom:22px">
+        <span class="badge brand">Menu: Attendance</span>
+        <span class="badge">Permission: <code>attendance.manage</code></span>
+        <span class="badge info">Typical user: Teacher / Admin</span>
+    </div>
+
+    <h2 id="two-subsystems">Two sub-systems</h2>
+    <div class="grid cols-2">
+        <div class="card"><h4>Student attendance</h4><p>Taken per class config for a date. Statuses: present, absent, late, leave, half-day.</p></div>
+        <div class="card"><h4>Staff attendance</h4><p>Employee daily attendance, typically fed from device punches.</p></div>
+    </div>
+
+    <h2 id="taking">Taking attendance</h2>
+    <ol class="steps">
+        <li><strong>Pick the class &amp; date</strong><div class="s-body">Choose a class config (and section) and the day.</div></li>
+        <li><strong>Mark each student</strong><div class="s-body">Present / absent / late / leave / half-day — quickly across the roster.</div></li>
+        <li><strong>Save</strong><div class="s-body">Records are stored; an existing day's attendance can be updated.</div></li>
+        <li><strong>Notify (optional)</strong><div class="s-body">Send guardians of absentees an SMS using a template. — <a href="module-messaging.html">Messaging</a></div></li>
+    </ol>
+
+    <h2 id="devices">Biometric devices</h2>
+    <p>For schools using fingerprint / card devices, DecentEdu ingests raw <strong>punches</strong> and resolves them
+    into daily attendance.</p>
+    <div class="dl">
+        <div class="row"><dt>Devices</dt><dd>Register each physical device.</dd></div>
+        <div class="row"><dt>Device maps</dt><dd>Map a device's user ID to a student or employee, so a punch is attributed to the right person.</dd></div>
+        <div class="row"><dt>Time configs</dt><dd>Define expected in/out times and the late threshold.</dd></div>
+        <div class="row"><dt>Punch processing</dt><dd>Raw punches are received, then <em>processed</em> into resolved present/late records for the day.</dd></div>
+    </div>
+    <div class="flow">
+        <span class="node">Device punch</span><span class="arw">→</span>
+        <span class="node">Map to person</span><span class="arw">→</span>
+        <span class="node">Apply time config</span><span class="arw">→</span>
+        <span class="node">Daily attendance</span>
+    </div>
+
+    <h2 id="holidays">Holidays</h2>
+    <p>Holidays mark non-working days so attendance and reports don't flag those dates as absences. Maintain the
+    holiday calendar per branch.</p>
+
+    <h2 id="reports">Reports</h2>
+    <p>Daily attendance reports for students and staff summarize presence, absence and lateness — filterable by class
+    and date range, and printable.</p>
+
+    <h2 id="api">At the API level</h2>
+<pre><code>GET/POST/PUT/DELETE  /api/v1/attendance/holidays
+GET/POST/PUT/DELETE  /api/v1/attendance/devices
+GET/POST/DELETE      /api/v1/attendance/device-maps
+GET/POST/PUT/DELETE  /api/v1/attendance/time-configs
+POST  /api/v1/attendance/punches            # ingest raw punches
+POST  /api/v1/attendance/punches/process    # resolve into attendance
+GET   /api/v1/attendance/students           POST .../students/take    GET .../students/report
+GET   /api/v1/attendance/employees          POST .../employees/take   GET .../employees/report</code></pre>
+
+    <div class="page-nav">
+        <a href="module-hr.html"><span class="dir">← Previous</span><span class="ttl">HR &amp; Staff</span></a>
+        <a class="next" href="module-routines.html"><span class="dir">Next →</span><span class="ttl">Routines</span></a>
+    </div>
+    <p class="footer-note">DecentEdu School Management System — documentation.</p>
+</main>
+<script>window.PAGE = { title: 'Attendance' };</script>
+<script src="assets/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fees — DecentEdu Docs</title>
+<meta name="description" content="Fees module: fee heads and sub-heads, fee structures per class, waivers, due dates and fines, student dues and receipt collection posting to the ledger.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<main class="content">
+    <div class="breadcrumb"><a href="index.html">Home</a><span class="sep">/</span><span>Fees</span></div>
+    <h1>Fees</h1>
+    <p class="lead">The Fees module manages what students owe and pay: a <strong>fee structure</strong> per class,
+    <strong>waivers</strong> for individual students, <strong>due dates &amp; fines</strong>, and receipt
+    <strong>collection</strong> that automatically posts to the general ledger.</p>
+
+    <div class="tag-row" style="margin-bottom:22px">
+        <span class="badge brand">Menu: Fees</span>
+        <span class="badge">Permission: <code>fees.manage</code></span>
+        <span class="badge info">Typical user: Accountant / Admin</span>
+    </div>
+
+    <h2 id="structure">1 · Fee structure</h2>
+    <div class="dl">
+        <div class="row"><dt>Heads &amp; sub-heads</dt><dd>Heads group fees (Tuition, Exam, Transport); sub-heads are the billable lines within them (January tuition, Half-yearly exam fee…).</dd></div>
+        <div class="row"><dt>Fee config</dt><dd>The <strong>payable amount</strong> for each sub-head, per class config, per academic year.</dd></div>
+        <div class="row"><dt>Time config</dt><dd>A <strong>due date</strong> and a flat <strong>fine</strong> per sub-head, per year.</dd></div>
+        <div class="row"><dt>Waivers</dt><dd>Named discounts (e.g. Merit 50%, Sibling) that reduce a student's payable.</dd></div>
+    </div>
+
+    <h2 id="assess">2 · Assess dues</h2>
+    <p>Assessment assigns the structure to students as <strong>student fees</strong> (the payable lines each student
+    owes). A student's due for a line is:</p>
+<pre><code>due = payable_amount − waiver_amount − already_paid  (+ fine, if overdue)</code></pre>
+    <p>Per-student <strong>waiver configs</strong> attach a waiver to a student so their payable drops accordingly.</p>
+
+    <h2 id="fines">3 · Due dates &amp; fines</h2>
+    <p>If a line has a due date and it passes, a <strong>flat fine</strong> from the time config applies. The fine is
+    charged <strong>once</strong> — the first time a payment is made after the due date — and then tracked so it isn't
+    double-charged on later instalments. Before payment, the dues screen shows a <em>projected fine</em> so the desk
+    knows the real amount owing.</p>
+    <div class="flow">
+        <span class="node">Due date passes</span><span class="arw">→</span>
+        <span class="node">First payment after due</span><span class="arw">→</span>
+        <span class="node">Flat fine added once</span>
+    </div>
+
+    <h2 id="collect">4 · Collect a payment</h2>
+    <ol class="steps">
+        <li><strong>Open the student's dues</strong><div class="s-body">See every outstanding line with payable, waiver, fine, paid-so-far and the current due.</div></li>
+        <li><strong>Enter amounts</strong><div class="s-body">Pay in full or partially against selected sub-heads. Paying more than the due is rejected.</div></li>
+        <li><strong>Save &amp; get a receipt</strong><div class="s-body">A receipt (with a sequential receipt number) is created; each line's status becomes <em>paid</em>, <em>partial</em> or stays <em>due</em>.</div></li>
+        <li><strong>Ledger posting</strong><div class="s-body">A <code>FeeCollected</code> event raises the matching receive voucher in Accounting.</div></li>
+    </ol>
+    <div class="callout tip"><span class="cico">🧾</span><p>Receipts are immutable records. Partial payments are fully supported — a line tracks paid-so-far and remaining due until it's cleared.</p></div>
+
+    <h2 id="reports">Reports</h2>
+    <div class="grid cols-2">
+        <div class="card"><h4>Daily collection</h4><p>Everything collected on a date — by head, class or collector.</p></div>
+        <div class="card"><h4>Dues summary</h4><p>Outstanding balances across students/classes for follow-up.</p></div>
+    </div>
+
+    <h2 id="api">At the API level</h2>
+<pre><code>GET/POST/PUT/DELETE  /api/v1/fees/{resource}          # heads | sub-heads | waivers
+GET/POST  /api/v1/fees/configs         POST /api/v1/fees/configs/assess
+GET/POST  /api/v1/fees/time-configs                    # due dates + fines
+GET/POST/DELETE  /api/v1/fees/waiver-configs           # per-student waivers
+GET   /api/v1/fees/students/{id}/dues                  # a student's outstanding lines
+GET/POST  /api/v1/fees/collections     GET /api/v1/fees/collections/{id}   # receipts
+GET   /api/v1/fees/reports/daily-collection | dues-summary</code></pre>
+
+    <div class="page-nav">
+        <a href="module-examinations.html"><span class="dir">← Previous</span><span class="ttl">Exams &amp; Results</span></a>
+        <a class="next" href="module-accounting.html"><span class="dir">Next →</span><span class="ttl">Accounting</span></a>
+    </div>
+    <p class="footer-note">DecentEdu School Management System — documentation.</p>
+</main>
+<script>window.PAGE = { title: 'Fees' };</script>
+<script src="assets/app.js"></script>
+</body>
+</html>

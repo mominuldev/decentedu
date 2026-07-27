@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsureBranchContext;
+use App\Http\Middleware\ResolvePublicBranch;
 use App\Http\Middleware\SecurityHeaders;
 use App\Support\ApiResponse;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -31,6 +32,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // Resolve + enforce the active branch on scoped routes.
         $middleware->alias([
             'branch' => EnsureBranchContext::class,
+            // Pins the active branch from config for the anonymous public/rendered-site API.
+            'public-branch' => ResolvePublicBranch::class,
             // Not auto-registered by spatie/laravel-permission on Laravel 11+.
             'permission' => PermissionMiddleware::class,
             'role' => RoleMiddleware::class,

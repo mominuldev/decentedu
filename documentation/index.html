@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DecentEdu — School Management System Documentation</title>
+<meta name="description" content="Complete documentation for the DecentEdu multi-branch school & college management system: modules, workflows, roles, architecture and API.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<main class="content">
+
+    <section class="hero">
+        <p class="eyebrow">Documentation</p>
+        <h1>DecentEdu School Management System</h1>
+        <p>A multi-branch school &amp; college ERP for the Bangladeshi education system — admissions, students, staff,
+        attendance, examinations &amp; results, fees, double-entry accounting, communications and a public-website CMS,
+        all in one platform. This is the complete guide for administrators, teachers, accountants, office staff and developers.</p>
+        <div class="hero-actions">
+            <a class="btn primary" href="getting-started.html">Get started →</a>
+            <a class="btn ghost" href="architecture.html">How it works</a>
+        </div>
+        <div class="hero-meta">
+            <div><div class="hm-num">14</div><div class="hm-lbl">Functional modules</div></div>
+            <div><div class="hm-num">Multi-branch</div><div class="hm-lbl">One login, many schools</div></div>
+            <div><div class="hm-num">Bilingual</div><div class="hm-lbl">English + বাংলা</div></div>
+            <div><div class="hm-num">Role-based</div><div class="hm-lbl">Fine-grained access</div></div>
+        </div>
+    </section>
+
+    <h2 id="what-is-it">What is DecentEdu?</h2>
+    <p class="lead">DecentEdu is a ground-up rebuild of the “Safe Eduman” school ERP, delivered as a modern
+    <strong>Laravel API + React single-page application</strong>. It runs the full academic and administrative
+    lifecycle of a school or college — from an applicant's admission through daily attendance, exams, result
+    processing, fee collection and financial accounting, to certificates and the school's public website.</p>
+
+    <div class="grid cols-3">
+        <div class="card">
+            <div class="card-ic">🏫</div>
+            <h3>Multi-branch by design</h3>
+            <p>One organization can run many branches (campuses). A single login can access several branches; you pick an
+            <em>active branch</em> and every screen is scoped to it.</p>
+        </div>
+        <div class="card">
+            <div class="card-ic">🇧🇩</div>
+            <h3>Built for the BD system</h3>
+            <p>Class / Shift / Section / Group model, GPA grading with the 4th-subject bonus, transfer certificates,
+            testimonials and bilingual (English + Bangla) records.</p>
+        </div>
+        <div class="card">
+            <div class="card-ic">🔐</div>
+            <h3>Role &amp; permission based</h3>
+            <p>Super Admin, Admin, Accountant, Exam Controller and Teacher roles, with permissions that decide exactly
+            which modules and actions each user can reach.</p>
+        </div>
+    </div>
+
+    <h2 id="modules">Explore the modules</h2>
+    <p>Each module below has its own guide covering what it does, who uses it, the step-by-step workflows and the
+    data behind it.</p>
+
+    <div class="grid cols-3">
+        <a class="card" href="module-academic.html">
+            <div class="card-ic">📚</div>
+            <h3>Academic Setup</h3>
+            <p>Academic years, classes, shifts, sections, groups, subjects and the class-config backbone.</p>
+        </a>
+        <a class="card" href="module-admissions.html">
+            <div class="card-ic">📝</div>
+            <h3>Admissions</h3>
+            <p>Admission drives, seat quotas, applications and applicant → student conversion.</p>
+        </a>
+        <a class="card" href="module-students.html">
+            <div class="card-ic">🎓</div>
+            <h3>Students</h3>
+            <p>Enrolment, profiles, guardians, bulk registration and year-end promotion (migration).</p>
+        </a>
+        <a class="card" href="module-hr.html">
+            <div class="card-ic">🧑‍🏫</div>
+            <h3>HR &amp; Staff</h3>
+            <p>Employees, designations, departments and subject-teacher assignments.</p>
+        </a>
+        <a class="card" href="module-attendance.html">
+            <div class="card-ic">🗓️</div>
+            <h3>Attendance</h3>
+            <p>Student &amp; staff attendance, biometric devices, holidays and daily reports.</p>
+        </a>
+        <a class="card" href="module-routines.html">
+            <div class="card-ic">⏰</div>
+            <h3>Routines</h3>
+            <p>Class timetables and teacher routines with conflict-aware period slots.</p>
+        </a>
+        <a class="card" href="module-examinations.html">
+            <div class="card-ic">🏆</div>
+            <h3>Exams &amp; Results</h3>
+            <p>Exam setup, mark entry, GPA result processing, marksheets, tabulation and admit cards.</p>
+        </a>
+        <a class="card" href="module-fees.html">
+            <div class="card-ic">💰</div>
+            <h3>Fees</h3>
+            <p>Fee heads, structures, waivers, fines, dues and receipt collection.</p>
+        </a>
+        <a class="card" href="module-accounting.html">
+            <div class="card-ic">🏦</div>
+            <h3>Accounting</h3>
+            <p>Double-entry ledgers, vouchers, trial balance and income statement.</p>
+        </a>
+        <a class="card" href="module-messaging.html">
+            <div class="card-ic">💬</div>
+            <h3>SMS &amp; Messaging</h3>
+            <p>Templates, phone book, bulk send with balance metering and delivery batches.</p>
+        </a>
+        <a class="card" href="module-credentials.html">
+            <div class="card-ic">🪪</div>
+            <h3>Credentials &amp; ID</h3>
+            <p>Transfer certificates, testimonials, certificates and printable ID cards.</p>
+        </a>
+        <a class="card" href="module-cms.html">
+            <div class="card-ic">🌐</div>
+            <h3>CMS &amp; Website</h3>
+            <p>Pages, posts, notices, events, media library, menus, SEO and redirects.</p>
+        </a>
+    </div>
+
+    <h2 id="audience">Who is this for?</h2>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Reader</th><th>Start here</th><th>Also useful</th></tr></thead>
+            <tbody>
+                <tr><td><strong>Administrators</strong></td><td><a href="getting-started.html">Getting Started</a></td><td><a href="roles-permissions.html">Roles &amp; Permissions</a>, <a href="workflows.html">Workflows</a></td></tr>
+                <tr><td><strong>Teachers</strong></td><td><a href="module-attendance.html">Attendance</a></td><td><a href="module-examinations.html">Exams &amp; Results</a>, <a href="module-routines.html">Routines</a></td></tr>
+                <tr><td><strong>Accountants</strong></td><td><a href="module-fees.html">Fees</a></td><td><a href="module-accounting.html">Accounting</a>, <a href="module-reporting.html">Reports</a></td></tr>
+                <tr><td><strong>Office / Front desk</strong></td><td><a href="module-admissions.html">Admissions</a></td><td><a href="module-students.html">Students</a>, <a href="module-credentials.html">Credentials</a></td></tr>
+                <tr><td><strong>Developers</strong></td><td><a href="architecture.html">Architecture</a></td><td><a href="data-model.html">Data Model</a>, <a href="api-reference.html">API Reference</a></td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="callout info">
+        <span class="cico">💡</span>
+        <p><span class="ct">New to the system?</span> Read <a href="getting-started.html">Getting Started</a> to learn how logging in,
+        branch selection and the active academic year frame everything you do — then dive into the module that matches your role.</p>
+    </div>
+
+    <div class="page-nav">
+        <span></span>
+        <a class="next" href="getting-started.html"><span class="dir">Next →</span><span class="ttl">Getting Started</span></a>
+    </div>
+
+    <p class="footer-note">DecentEdu School Management System — internal product documentation. Reflects the current
+    <code>cms</code> build. Screens, roles and behaviour described here match the shipped application.</p>
+
+</main>
+<script>window.PAGE = { title: 'Overview' };</script>
+<script src="assets/app.js"></script>
+</body>
+</html>

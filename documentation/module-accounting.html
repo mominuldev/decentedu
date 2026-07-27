@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Accounting — DecentEdu Docs</title>
+<meta name="description" content="Accounting module: chart of accounts (ledgers), double-entry vouchers, and financial reports — trial balance and income statement.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<main class="content">
+    <div class="breadcrumb"><a href="index.html">Home</a><span class="sep">/</span><span>Accounting</span></div>
+    <h1>Accounting</h1>
+    <p class="lead">A proper <strong>double-entry</strong> general ledger. Maintain a chart of accounts, post balanced
+    vouchers (receive, payment, contra, journal), and read the school's financial position through a trial balance and
+    income statement. Fee collections post here automatically.</p>
+
+    <div class="tag-row" style="margin-bottom:22px">
+        <span class="badge brand">Menu: Accounting</span>
+        <span class="badge">Permission: <code>accounting.manage</code></span>
+        <span class="badge info">Typical user: Accountant</span>
+    </div>
+
+    <h2 id="ledgers">Chart of accounts (ledgers)</h2>
+    <p>Ledger accounts are the buckets money moves between — Cash, Bank, Tuition Income, Salary Expense, and so on.
+    Each account has a type that determines how it behaves in reports (asset, liability, income, expense, equity).</p>
+
+    <h2 id="vouchers">Vouchers &amp; double-entry</h2>
+    <p>Every financial transaction is a <strong>voucher</strong> made of <strong>entries</strong> that debit some
+    accounts and credit others. The golden rule is enforced on save:</p>
+    <div class="callout info"><span class="cico">⚖️</span><p><span class="ct">Debits must equal credits.</span> A voucher whose total debit ≠ total credit is rejected. This keeps the books balanced by construction.</p></div>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Voucher type</th><th>Used for</th></tr></thead>
+            <tbody>
+                <tr><td><span class="badge ok">Receive</span></td><td>Money coming in (e.g. fee collection, donations).</td></tr>
+                <tr><td><span class="badge danger">Payment</span></td><td>Money going out (salaries, bills, purchases).</td></tr>
+                <tr><td><span class="badge info">Contra</span></td><td>Transfers between own accounts (cash ↔ bank).</td></tr>
+                <tr><td><span class="badge">Journal</span></td><td>Adjustments and non-cash entries.</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h3 id="example">Example: a fee receipt</h3>
+<pre><code>Voucher (Receive) — Receipt #000123
+  Debit   Cash .................. 1,500.00
+  Credit  Tuition Income ....... 1,500.00
+  (debit total 1,500.00 = credit total 1,500.00 ✓)</code></pre>
+
+    <h2 id="integration">Fees → ledger integration</h2>
+    <p>When a fee is collected, DecentEdu raises a <code>FeeCollected</code> event and an Accounting listener posts the
+    corresponding receive voucher — so the general ledger is always the single source of financial truth and never
+    drifts from what the office actually collected.</p>
+    <div class="flow">
+        <span class="node">Fee collected</span><span class="arw">→</span>
+        <span class="node"><code>FeeCollected</code></span><span class="arw">→</span>
+        <span class="node">Receive voucher</span><span class="arw">→</span>
+        <span class="node">Ledger updated</span>
+    </div>
+
+    <h2 id="reports">Financial reports</h2>
+    <div class="grid cols-2">
+        <div class="card"><h4>Trial balance</h4><p>Every account's debit/credit totals — proof the books balance and the basis for statements.</p></div>
+        <div class="card"><h4>Income statement</h4><p>Income vs. expense over a period → surplus or deficit.</p></div>
+    </div>
+
+    <h2 id="api">At the API level</h2>
+<pre><code>GET/POST/PUT/DELETE  /api/v1/accounting/ledgers
+GET/POST  /api/v1/accounting/vouchers      GET /api/v1/accounting/vouchers/{id}
+GET   /api/v1/accounting/reports/trial-balance | income-statement</code></pre>
+
+    <div class="page-nav">
+        <a href="module-fees.html"><span class="dir">← Previous</span><span class="ttl">Fees</span></a>
+        <a class="next" href="module-messaging.html"><span class="dir">Next →</span><span class="ttl">SMS &amp; Messaging</span></a>
+    </div>
+    <p class="footer-note">DecentEdu School Management System — documentation.</p>
+</main>
+<script>window.PAGE = { title: 'Accounting' };</script>
+<script src="assets/app.js"></script>
+</body>
+</html>

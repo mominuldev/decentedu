@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Students — DecentEdu Docs</title>
+<meta name="description" content="Students module: registration, profiles, guardians, bulk registration, enrolment history and year-end migration (promote/push-back).">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<main class="content">
+    <div class="breadcrumb"><a href="index.html">Home</a><span class="sep">/</span><span>Students</span></div>
+    <h1>Students</h1>
+    <p class="lead">The Students module manages the people at the heart of the school — their identity, guardians and
+    documents, their <strong>enrolment</strong> in a class each year, and the year-end <strong>migration</strong> that
+    promotes a whole cohort forward.</p>
+
+    <div class="tag-row" style="margin-bottom:22px">
+        <span class="badge brand">Menu: Students</span>
+        <span class="badge">Permission: <code>students.manage</code></span>
+        <span class="badge info">Typical user: Admin / Front desk</span>
+    </div>
+
+    <h2 id="identity-vs-enrolment">Identity vs. enrolment</h2>
+    <p>DecentEdu keeps a student's <strong>identity</strong> (name, guardians, photo, contact) separate from their
+    <strong>placement</strong> (class, section, roll) which is recorded <em>per academic year</em>. This is why the
+    same student can be Class Eight this year and Class Nine next year without ever overwriting history — and why past
+    results and fees always point to the right class.</p>
+    <div class="flow">
+        <span class="node">Student (permanent)</span><span class="arw">+</span>
+        <span class="node">Enrolment 2025 · Eight-A</span><span class="arw">+</span>
+        <span class="node">Enrolment 2026 · Nine-A</span>
+    </div>
+
+    <h2 id="profile">Student profile</h2>
+    <p>The student form (opened on its own page for create/edit) captures:</p>
+    <div class="dl">
+        <div class="row"><dt>Identity</dt><dd>Student ID / admission no, name &amp; name (Bangla), gender, religion, blood group, date of birth, photo.</dd></div>
+        <div class="row"><dt>Guardians &amp; contact</dt><dd>Father's &amp; mother's name and mobiles, student mobile, present &amp; permanent address.</dd></div>
+        <div class="row"><dt>Placement</dt><dd>Academic year, class config, group, category and <strong>roll</strong> — the current enrolment.</dd></div>
+        <div class="row"><dt>Status</dt><dd>Active, transferred, left or passed-out — the student lifecycle.</dd></div>
+    </div>
+    <div class="callout info"><span class="cico">🔢</span><p>Roll is unique within a class config for a year, and the student ID is unique within the branch — the system prevents duplicates.</p></div>
+
+    <h2 id="list">The student list</h2>
+    <p>A searchable, filterable roster — filter by academic year, class config, group, category, gender or status. From
+    here you open a profile, edit, or jump to bulk tools. The list can be sent to a clean <strong>printable</strong>
+    student-list page.</p>
+
+    <h2 id="bulk">Bulk registration</h2>
+    <p>Admitting a whole class one-by-one is slow, so DecentEdu has a <strong>bulk registration grid</strong>: pick the
+    academic year and class config, then enter many students row-by-row (name, roll, guardian, mobile…) and save them
+    all at once inside a single transaction. If any row is invalid the whole import is rejected with clear errors, so
+    you never get a half-loaded class. Bulk import is rate-limited to protect the system.</p>
+
+    <h2 id="migration">Year-end migration (promotion)</h2>
+    <p>At the end of a session you move students into the new year with <strong>Migration</strong> rather than editing
+    records. Three modes:</p>
+    <div class="grid cols-3">
+        <div class="card"><h4>Promote</h4><p>Advance selected students to the next class in the new academic year.</p></div>
+        <div class="card"><h4>General</h4><p>Re-enrol students into the same class (e.g. repeaters, or a fresh year at the same level).</p></div>
+        <div class="card"><h4>Push Back</h4><p>Reverse a promotion — undo a migration that was applied by mistake.</p></div>
+    </div>
+    <p>Migration creates new enrolments for the target year and updates each student's <em>current</em> enrolment flag,
+    while last year's enrolment (and its results and fees) stays untouched for history and reporting.</p>
+    <div class="callout warn"><span class="cico">⚠️</span><p>Always add and mark the <strong>new academic year</strong> current before migrating. Migration is a bulk, transactional operation — review your selection first.</p></div>
+
+    <h2 id="documents">Documents &amp; credentials</h2>
+    <p>Students can carry supporting documents, and the <a href="module-credentials.html">Credentials</a> module issues
+    their transfer certificates, testimonials, certificates and ID cards.</p>
+
+    <h2 id="reports">Reports</h2>
+    <p>Class/section/group/category-wise lists, gender and religion breakdowns, section summaries and student profiles
+    are available as printable reports — see <a href="module-reporting.html">Dashboard &amp; Reports</a>.</p>
+
+    <h2 id="api">At the API level</h2>
+<pre><code>GET   /api/v1/students                 # list (year/class/group/category/status filters)
+POST  /api/v1/students                 # single registration
+POST  /api/v1/students/bulk-register   # grid import (throttled)
+POST  /api/v1/students/migrate         # promote | general | push_back
+GET   /api/v1/students/{id}            # profile
+PUT   /api/v1/students/{id}            # update
+DELETE /api/v1/students/{id}           # soft delete</code></pre>
+
+    <div class="page-nav">
+        <a href="module-admissions.html"><span class="dir">← Previous</span><span class="ttl">Admissions</span></a>
+        <a class="next" href="module-hr.html"><span class="dir">Next →</span><span class="ttl">HR &amp; Staff</span></a>
+    </div>
+    <p class="footer-note">DecentEdu School Management System — documentation.</p>
+</main>
+<script>window.PAGE = { title: 'Students' };</script>
+<script src="assets/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SMS &amp; Messaging — DecentEdu Docs</title>
+<meta name="description" content="Messaging module: SMS templates, phone book contacts, audience-based sending, balance metering and delivery batches.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<main class="content">
+    <div class="breadcrumb"><a href="index.html">Home</a><span class="sep">/</span><span>SMS &amp; Messaging</span></div>
+    <h1>SMS &amp; Messaging</h1>
+    <p class="lead">Reach guardians and staff by SMS: save reusable <strong>templates</strong>, keep a
+    <strong>phone book</strong>, send to a whole class or a custom list, and track <strong>delivery</strong> — all
+    metered against a prepaid <strong>SMS balance</strong>.</p>
+
+    <div class="tag-row" style="margin-bottom:22px">
+        <span class="badge brand">Menu: SMS &amp; Messaging</span>
+        <span class="badge">Permission: <code>messaging.manage</code></span>
+        <span class="badge info">Typical user: Admin / Office</span>
+    </div>
+
+    <h2 id="templates">Templates</h2>
+    <p>Save the messages you send often — fee reminders, absentee notices, result announcements, holiday notices — so
+    staff pick a template instead of retyping. Templates keep wording consistent and correct.</p>
+
+    <h2 id="contacts">Phone book</h2>
+    <p>A directory of contacts (guardians, staff, custom groups) you can send to directly, in addition to audiences
+    derived from student/class data.</p>
+
+    <h2 id="sending">Sending</h2>
+    <p>Choose an <strong>audience</strong> (a class/section, selected contacts, or a custom list), pick a template or
+    type a message, and send. Before anything goes out, DecentEdu checks your balance.</p>
+    <ol class="steps">
+        <li><strong>Pick audience &amp; message</strong><div class="s-body">Class-wise, section-wise, contact-wise or file/list based.</div></li>
+        <li><strong>Cost check</strong><div class="s-body">Recipients × unit cost is computed; if the balance is too low the send is blocked (no partial sends).</div></li>
+        <li><strong>Deduct &amp; queue</strong><div class="s-body">The balance is decremented and a <strong>batch</strong> is created; individual messages are queued to the gateway.</div></li>
+    </ol>
+    <div class="callout warn"><span class="cico">💳</span><p><span class="ct">Balance guardrail.</span> Every SMS — whether sent manually here or triggered by another module (e.g. absentee notices) — goes through the same balance check, so you can never overspend.</p></div>
+
+    <h2 id="batches">Delivery batches &amp; balance</h2>
+    <p>Each send becomes a <strong>batch</strong> you can open to see per-message status (queued, sent, delivered,
+    failed). The <strong>balance</strong> screen shows remaining credit and supports top-ups.</p>
+    <div class="flow">
+        <span class="node">Send</span><span class="arw">→</span>
+        <span class="node">Balance check</span><span class="arw">→</span>
+        <span class="node">Batch created</span><span class="arw">→</span>
+        <span class="node">Gateway delivery</span><span class="arw">→</span>
+        <span class="node">Status log</span>
+    </div>
+
+    <h2 id="triggers">Triggered messages</h2>
+    <p>Beyond manual sends, messaging is the channel other modules use for notifications — most notably
+    <a href="module-attendance.html">absentee SMS</a> to guardians and result/fee announcements. The gateway is
+    pluggable, so the same flow works across providers.</p>
+
+    <h2 id="api">At the API level</h2>
+<pre><code>GET/POST/PUT/DELETE  /api/v1/messaging/templates
+GET/POST/PUT/DELETE  /api/v1/messaging/contacts
+POST  /api/v1/messaging/send            # (throttled) audience send
+GET   /api/v1/messaging/batches         GET /api/v1/messaging/batches/{id}
+GET   /api/v1/messaging/balance         POST /api/v1/messaging/balance/topup</code></pre>
+
+    <div class="page-nav">
+        <a href="module-accounting.html"><span class="dir">← Previous</span><span class="ttl">Accounting</span></a>
+        <a class="next" href="module-credentials.html"><span class="dir">Next →</span><span class="ttl">Credentials &amp; ID</span></a>
+    </div>
+    <p class="footer-note">DecentEdu School Management System — documentation.</p>
+</main>
+<script>window.PAGE = { title: 'SMS & Messaging' };</script>
+<script src="assets/app.js"></script>
+</body>
+</html>

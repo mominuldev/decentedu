@@ -18,10 +18,22 @@ use App\Http\Controllers\Api\Attendance\TimeConfigController;
 use App\Http\Controllers\Api\Audit\AuditLogController;
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\BranchController;
+use App\Http\Controllers\Api\Cms\AssetController;
+use App\Http\Controllers\Api\Cms\EventController;
+use App\Http\Controllers\Api\Cms\MediaFolderController;
 use App\Http\Controllers\Api\Cms\MenuController;
-use App\Http\Controllers\Api\Cms\MenuItemController;
+use App\Http\Controllers\Api\Cms\NoticeController;
+use App\Http\Controllers\Api\Cms\PageController;
 use App\Http\Controllers\Api\Cms\PostController;
-use App\Http\Controllers\Api\Cms\WebsiteSettingController;
+use App\Http\Controllers\Api\Cms\Public\EventController as PublicEventController;
+use App\Http\Controllers\Api\Cms\Public\MenuController as PublicMenuController;
+use App\Http\Controllers\Api\Cms\Public\NoticeController as PublicNoticeController;
+use App\Http\Controllers\Api\Cms\Public\PageController as PublicPageController;
+use App\Http\Controllers\Api\Cms\Public\PostController as PublicPostController;
+use App\Http\Controllers\Api\Cms\Public\TermController as PublicTermController;
+use App\Http\Controllers\Api\Cms\RedirectController;
+use App\Http\Controllers\Api\Cms\TaxonomyController;
+use App\Http\Controllers\Api\Cms\TermController;
 use App\Http\Controllers\Api\Credentials\CertificateController;
 use App\Http\Controllers\Api\Credentials\IdCardController;
 use App\Http\Controllers\Api\Credentials\IdCardTemplateController;
@@ -69,6 +81,25 @@ Route::prefix('v1')->group(function () use ($setupSlugs) {
     Route::post('auth/login', [AuthController::class, 'login']);
     Route::post('auth/forgot-password', [AuthController::class, 'forgotPassword']);
     Route::post('auth/reset-password', [AuthController::class, 'resetPassword']);
+
+    // Rendered public site (Next.js frontend). Unauthenticated, read-only, serving the
+    // published CMS content of the single branch pinned in config('cms.public_branch_id').
+    // Reuses the same Public\* controllers as the in-app authenticated preview endpoints;
+    // the only difference is how the branch is resolved (config vs. session). The
+    // pages/{path} wildcard is last so it can't swallow the sibling collection routes.
+    Route::prefix('site')->middleware('public-branch')->group(function () {
+        Route::get('pages', [PublicPageController::class, 'index']);
+        Route::get('posts', [PublicPostController::class, 'index']);
+        Route::get('posts/{slug}', [PublicPostController::class, 'show']);
+        Route::get('taxonomies/{taxonomy}/terms', [PublicTermController::class, 'index']);
+        Route::get('terms/{taxonomy}/{slug}', [PublicTermController::class, 'show']);
+        Route::get('notices', [PublicNoticeController::class, 'index']);
+        Route::get('notices/{slug}', [PublicNoticeController::class, 'show']);
+        Route::get('events', [PublicEventController::class, 'index']);
+        Route::get('events/{slug}', [PublicEventController::class, 'show']);
+        Route::get('menus/{key}', [PublicMenuController::class, 'show']);
+        Route::get('pages/{path}', [PublicPageController::class, 'show'])->where('path', '.*');
+    });
 
     // Authenticated (Sanctum SPA cookie session) + active-branch context.
     Route::middleware(['auth:sanctum', 'branch'])->group(function () use ($setupSlugs) {
@@ -405,25 +436,97 @@ Route::prefix('v1')->group(function () use ($setupSlugs) {
         });
 
         // ---- CMS module ---------------------------------------------------
+        // Public (rendered-site) read endpoints: any authenticated branch user may read published
+        // content — no cms.manage needed. Registered before the admin group so the pages/{path}
+        // wildcard here is namespaced under cms/public and can't swallow admin routes.
+        Route::prefix('cms/public')->group(function () {
+            Route::get('pages', [PublicPageController::class, 'index']);
+            Route::get('posts', [PublicPostController::class, 'index']);
+            Route::get('posts/{slug}', [PublicPostController::class, 'show']);
+            Route::get('taxonomies/{taxonomy}/terms', [PublicTermController::class, 'index']);
+            Route::get('terms/{taxonomy}/{slug}', [PublicTermController::class, 'show']);
+            Route::get('notices', [PublicNoticeController::class, 'index']);
+            Route::get('notices/{slug}', [PublicNoticeController::class, 'show']);
+            Route::get('events', [PublicEventController::class, 'index']);
+            Route::get('events/{slug}', [PublicEventController::class, 'show']);
+            Route::get('menus/{key}', [PublicMenuController::class, 'show']);
+            // Registered last: the wildcard swallows any remaining GET path.
+            Route::get('pages/{path}', [PublicPageController::class, 'show'])->where('path', '.*');
+        });
+
+        // Admin (content management) endpoints — require cms.manage.
         Route::prefix('cms')->middleware('permission:cms.manage')->group(function () {
+            // Pages
+            Route::get('pages', [PageController::class, 'index']);
+            Route::get('pages/meta', [PageController::class, 'meta']);
+            Route::post('pages', [PageController::class, 'store']);
+            Route::get('pages/{id}', [PageController::class, 'show'])->whereNumber('id');
+            Route::match(['put', 'patch'], 'pages/{id}', [PageController::class, 'update'])->whereNumber('id');
+            Route::delete('pages/{id}', [PageController::class, 'destroy'])->whereNumber('id');
+            Route::post('pages/{id}/restore', [PageController::class, 'restore'])->whereNumber('id');
+
+            // Posts
             Route::get('posts', [PostController::class, 'index']);
+            Route::get('posts/meta', [PostController::class, 'meta']);
             Route::post('posts', [PostController::class, 'store']);
             Route::get('posts/{id}', [PostController::class, 'show'])->whereNumber('id');
             Route::match(['put', 'patch'], 'posts/{id}', [PostController::class, 'update'])->whereNumber('id');
             Route::delete('posts/{id}', [PostController::class, 'destroy'])->whereNumber('id');
+            Route::post('posts/{id}/restore', [PostController::class, 'restore'])->whereNumber('id');
 
+            // Taxonomies & terms
+            Route::get('taxonomies', [TaxonomyController::class, 'index']);
+            Route::post('taxonomies', [TaxonomyController::class, 'store']);
+            Route::get('taxonomies/{id}', [TaxonomyController::class, 'show'])->whereNumber('id');
+            Route::put('taxonomies/{id}', [TaxonomyController::class, 'update'])->whereNumber('id');
+            Route::delete('taxonomies/{id}', [TaxonomyController::class, 'destroy'])->whereNumber('id');
+            Route::post('terms', [TermController::class, 'store']);
+            Route::match(['put', 'patch'], 'terms/{id}', [TermController::class, 'update'])->whereNumber('id');
+            Route::delete('terms/{id}', [TermController::class, 'destroy'])->whereNumber('id');
+
+            // Media
+            Route::get('media', [AssetController::class, 'index']);
+            Route::get('media/picker', [AssetController::class, 'picker']);
+            Route::post('media', [AssetController::class, 'store']);
+            Route::post('media/bulk-destroy', [AssetController::class, 'bulkDestroy']);
+            Route::match(['put', 'patch'], 'media/{id}', [AssetController::class, 'update'])->whereNumber('id');
+            Route::delete('media/{id}', [AssetController::class, 'destroy'])->whereNumber('id');
+            Route::get('media-folders', [MediaFolderController::class, 'index']);
+            Route::post('media-folders', [MediaFolderController::class, 'store']);
+            Route::match(['put', 'patch'], 'media-folders/{id}', [MediaFolderController::class, 'update'])->whereNumber('id');
+            Route::delete('media-folders/{id}', [MediaFolderController::class, 'destroy'])->whereNumber('id');
+
+            // Menus
             Route::get('menus', [MenuController::class, 'index']);
             Route::post('menus', [MenuController::class, 'store']);
+            Route::get('menus/{id}', [MenuController::class, 'show'])->whereNumber('id');
             Route::match(['put', 'patch'], 'menus/{id}', [MenuController::class, 'update'])->whereNumber('id');
+            Route::put('menus/{id}/tree', [MenuController::class, 'updateTree'])->whereNumber('id');
             Route::delete('menus/{id}', [MenuController::class, 'destroy'])->whereNumber('id');
 
-            Route::get('menu-items', [MenuItemController::class, 'index']);
-            Route::post('menu-items', [MenuItemController::class, 'store']);
-            Route::match(['put', 'patch'], 'menu-items/{id}', [MenuItemController::class, 'update'])->whereNumber('id');
-            Route::delete('menu-items/{id}', [MenuItemController::class, 'destroy'])->whereNumber('id');
+            // Notices
+            Route::get('notices', [NoticeController::class, 'index']);
+            Route::get('notices/meta', [NoticeController::class, 'meta']);
+            Route::post('notices', [NoticeController::class, 'store']);
+            Route::get('notices/{id}', [NoticeController::class, 'show'])->whereNumber('id');
+            Route::match(['put', 'patch'], 'notices/{id}', [NoticeController::class, 'update'])->whereNumber('id');
+            Route::delete('notices/{id}', [NoticeController::class, 'destroy'])->whereNumber('id');
+            Route::post('notices/{id}/restore', [NoticeController::class, 'restore'])->whereNumber('id');
 
-            Route::get('website-settings', [WebsiteSettingController::class, 'show']);
-            Route::match(['put', 'patch'], 'website-settings', [WebsiteSettingController::class, 'update']);
+            // Events
+            Route::get('events', [EventController::class, 'index']);
+            Route::get('events/meta', [EventController::class, 'meta']);
+            Route::post('events', [EventController::class, 'store']);
+            Route::get('events/{id}', [EventController::class, 'show'])->whereNumber('id');
+            Route::match(['put', 'patch'], 'events/{id}', [EventController::class, 'update'])->whereNumber('id');
+            Route::delete('events/{id}', [EventController::class, 'destroy'])->whereNumber('id');
+            Route::post('events/{id}/restore', [EventController::class, 'restore'])->whereNumber('id');
+
+            // Redirects
+            Route::get('redirects', [RedirectController::class, 'index']);
+            Route::post('redirects', [RedirectController::class, 'store']);
+            Route::match(['put', 'patch'], 'redirects/{id}', [RedirectController::class, 'update'])->whereNumber('id');
+            Route::delete('redirects/{id}', [RedirectController::class, 'destroy'])->whereNumber('id');
         });
 
         // ---- Reporting subsystem ------------------------------------------------

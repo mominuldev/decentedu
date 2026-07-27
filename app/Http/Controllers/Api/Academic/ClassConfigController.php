@@ -65,10 +65,10 @@ class ClassConfigController extends Controller
         $branchId = app(BranchContext::class)->idOrFail();
 
         $data = Cache::remember("class-config-options:{$branchId}", 60, fn () => [
-            'classes' => SchoolClass::where('status', true)->orderBy('serial')->get(['id', 'name']),
-            'shifts' => Shift::where('status', true)->orderBy('serial')->get(['id', 'name']),
-            'sections' => Section::where('status', true)->orderBy('serial')->get(['id', 'name']),
-            'groups' => Group::where('status', true)->orderBy('serial')->get(['id', 'name']),
+            'classes' => SchoolClass::where('status', true)->orderBy('serial')->get(['id', 'name'])->toArray(),
+            'shifts' => Shift::where('status', true)->orderBy('serial')->get(['id', 'name'])->toArray(),
+            'sections' => Section::where('status', true)->orderBy('serial')->get(['id', 'name'])->toArray(),
+            'groups' => Group::where('status', true)->orderBy('serial')->get(['id', 'name'])->toArray(),
         ]);
 
         return ApiResponse::success($data, 'Options retrieved.');

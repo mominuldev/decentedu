@@ -1,77 +1,112 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Api\Cms;
 
+use App\Actions\Cms\Posts\CreatePost;
+use App\Actions\Cms\Posts\UpdatePost;
+use App\Enums\Cms\ContentStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Cms\Posts\PostRequest;
 use App\Models\Cms\Post;
+use App\Models\Cms\Term;
+use App\Models\User;
+use App\Services\Cms\Blocks\BlockAdminPresenter;
+use App\Services\Cms\Blocks\BlockRegistry;
 use App\Support\ApiResponse;
-use App\Support\BranchContext;
-use App\Support\HtmlSanitizer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
+use Spatie\Tags\Tag;
 
 class PostController extends Controller
 {
-    private const TYPES = [
-        'page', 'news', 'notice', 'slider', 'teacher', 'staff', 'committee',
-        'gallery', 'result', 'homepage_person', 'instruction',
-    ];
-
     public function index(Request $request): JsonResponse
     {
-        $query = Post::query();
+        $query = Post::query()->with(['author:id,name', 'terms:id,name']);
 
-        if ($type = $request->query('type')) {
-            $query->where('type', $type);
+        if ($request->boolean('trashed')) {
+            $query->onlyTrashed();
         }
-        if ($status = $request->query('status')) {
-            $query->where('status', $status);
+        if ($request->filled('search')) {
+            $query->where('title', 'like', '%'.$request->string('search')->value().'%');
         }
-        if ($search = trim((string) $request->query('search'))) {
-            $query->where('title', 'like', "%{$search}%");
+        if ($request->filled('status')) {
+            $query->where('status', $request->string('status')->value());
+        }
+        if ($request->filled('author')) {
+            $query->where('author_id', $request->integer('author'));
         }
 
-        $perPage = min((int) $request->query('per_page', 50), 200);
-        $page = $query->orderByDesc('id')->paginate($perPage);
+        $sortable = ['title', 'status', 'is_featured', 'published_at', 'created_at'];
+        $sort = $request->string('sort')->value();
+        if (in_array($sort, $sortable, true)) {
+            $dir = $request->string('direction')->value() === 'asc' ? 'asc' : 'desc';
+            $query->orderBy($sort, $dir)->orderByDesc('id');
+        } else {
+            $query->orderByDesc('published_at')->orderByDesc('id');
+        }
 
-        return ApiResponse::success($page->items(), 'Posts retrieved.', ['pagination' => [
-            'total' => $page->total(), 'per_page' => $page->perPage(),
-            'current_page' => $page->currentPage(), 'last_page' => $page->lastPage(),
-        ]]);
+        $posts = $query->paginate(min($request->integer('per_page', 50), 200));
+
+        return ApiResponse::success(
+            collect($posts->items())->map(fn (Post $p): array => [
+                'id' => $p->id,
+                'title' => $p->title,
+                'slug' => $p->slug,
+                'status' => $p->status->value,
+                'is_featured' => $p->is_featured,
+                'author' => $p->author?->name,
+                'published_at' => $p->published_at?->toIso8601String(),
+                'categories' => $p->terms->pluck('name')->all(),
+                'deleted_at' => $p->deleted_at?->toIso8601String(),
+            ])->all(),
+            'Posts retrieved.',
+            ['pagination' => [
+                'total' => $posts->total(), 'per_page' => $posts->perPage(),
+                'current_page' => $posts->currentPage(), 'last_page' => $posts->lastPage(),
+            ]],
+        );
     }
 
-    public function show(int $id): JsonResponse
+    public function meta(BlockRegistry $registry): JsonResponse
     {
-        return ApiResponse::success(Post::findOrFail($id), 'Post retrieved.');
+        return ApiResponse::success([
+            'statuses' => ContentStatus::options(),
+            'block_types' => $registry->options(),
+            'authors' => User::query()->orderBy('name')->get(['id', 'name']),
+            'terms' => Term::query()->with('taxonomy:id,name')->orderBy('name')
+                ->whereHas('taxonomy', fn ($q) => $q->forObjectType('post'))
+                ->get(['id', 'name', 'taxonomy_id'])
+                ->map(fn (Term $t): array => ['id' => $t->id, 'name' => $t->name, 'taxonomy' => $t->taxonomy?->name])->all(),
+            'tags' => Tag::query()->orderBy('name')->pluck('name')->all(),
+        ], 'Post editor metadata.');
     }
 
-    public function store(Request $request): JsonResponse
+    public function show(int $id, BlockAdminPresenter $presenter): JsonResponse
     {
-        $branchId = app(BranchContext::class)->idOrFail();
-        $data = $request->validate($this->rules($branchId, null));
+        $post = Post::query()
+            ->with(['seo.ogImageAsset', 'blocks', 'terms:id,name', 'featuredAsset', 'tags'])
+            ->findOrFail($id);
 
-        $data['body'] = isset($data['body']) ? HtmlSanitizer::clean($data['body']) : null;
-        $data['slug'] = $this->uniqueSlug($branchId, $data['type'], $data['slug'] ?? $data['title'], null);
-
-        $post = Post::create($data + ['created_by' => auth()->id(), 'updated_by' => auth()->id()]);
-
-        return ApiResponse::success($post, 'Post created.', status: 201);
+        return ApiResponse::success($this->editorPayload($post, $presenter), 'Post retrieved.');
     }
 
-    public function update(Request $request, int $id): JsonResponse
+    public function store(PostRequest $request, CreatePost $action, BlockAdminPresenter $presenter): JsonResponse
     {
-        $branchId = app(BranchContext::class)->idOrFail();
+        $post = $action->handle($request->validated(), $request->user());
+        $post->load(['seo.ogImageAsset', 'blocks', 'terms:id,name', 'featuredAsset', 'tags']);
+
+        return ApiResponse::success($this->editorPayload($post, $presenter), 'Post created.', status: 201);
+    }
+
+    public function update(PostRequest $request, int $id, UpdatePost $action, BlockAdminPresenter $presenter): JsonResponse
+    {
         $post = Post::findOrFail($id);
-        $data = $request->validate($this->rules($branchId, $id));
+        $post = $action->handle($post, $request->validated(), $request->user());
+        $post->load(['seo.ogImageAsset', 'blocks', 'terms:id,name', 'featuredAsset', 'tags']);
 
-        $data['body'] = isset($data['body']) ? HtmlSanitizer::clean($data['body']) : null;
-        $data['slug'] = $this->uniqueSlug($branchId, $data['type'], $data['slug'] ?? $data['title'], $id);
-
-        $post->update($data + ['updated_by' => auth()->id()]);
-
-        return ApiResponse::success($post, 'Post updated.');
+        return ApiResponse::success($this->editorPayload($post, $presenter), 'Post updated.');
     }
 
     public function destroy(int $id): JsonResponse
@@ -81,35 +116,39 @@ class PostController extends Controller
         return ApiResponse::success(null, 'Post deleted.');
     }
 
-    private function rules(int $branchId, ?int $ignoreId): array
+    public function restore(int $id): JsonResponse
     {
-        return [
-            'type' => ['required', Rule::in(self::TYPES)],
-            'title' => ['required', 'string', 'max:255'],
-            'slug' => ['nullable', 'string', 'max:255'],
-            'body' => ['nullable', 'string'],
-            'description' => ['nullable', 'string', 'max:500'],
-            'keywords' => ['nullable', 'string', 'max:255'],
-            'image_path' => ['nullable', 'string', 'max:255'],
-            'meta' => ['nullable', 'array'],
-            'status' => ['sometimes', Rule::in(['draft', 'published'])],
-            'published_at' => ['nullable', 'date'],
-        ];
+        Post::onlyTrashed()->findOrFail($id)->restore();
+
+        return ApiResponse::success(null, 'Post restored.');
     }
 
-    private function uniqueSlug(int $branchId, string $type, string $source, ?int $ignoreId): string
+    /**
+     * @return array<string, mixed>
+     */
+    private function editorPayload(Post $post, BlockAdminPresenter $presenter): array
     {
-        $base = Str::slug($source) ?: 'post';
-        $slug = $base;
-        $n = 1;
-
-        while (Post::withoutBranchScope()
-            ->where('branch_id', $branchId)->where('type', $type)->where('slug', $slug)
-            ->when($ignoreId, fn ($q) => $q->where('id', '!=', $ignoreId))
-            ->exists()) {
-            $slug = "{$base}-".++$n;
-        }
-
-        return $slug;
+        return [
+            'id' => $post->id,
+            'title' => $post->title,
+            'slug' => $post->slug,
+            'excerpt' => $post->excerpt,
+            'body' => $post->body,
+            'author_id' => $post->author_id,
+            'status' => $post->status->value,
+            'published_at' => $post->published_at?->toIso8601String(),
+            'is_featured' => $post->is_featured,
+            'reading_time' => $post->reading_time,
+            'featured_asset_id' => $post->featured_asset_id,
+            'featured_asset' => $post->featuredAsset?->toApiPayload(),
+            'terms' => $post->terms->pluck('id')->all(),
+            'tags' => $post->tags->pluck('name')->all(),
+            'blocks' => $presenter->present($post->blocks),
+            'seo' => $post->seo?->only([
+                'meta_title', 'meta_description', 'canonical_url', 'robots',
+                'og_title', 'og_description', 'og_image_asset_id', 'structured_data',
+            ]),
+            'seo_og_image' => $post->seo?->ogImageAsset?->toApiPayload(),
+        ];
     }
 }

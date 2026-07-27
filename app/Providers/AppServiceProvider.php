@@ -4,9 +4,15 @@ namespace App\Providers;
 
 use App\Events\FeeCollected;
 use App\Listeners\PostFeeCollectionToLedger;
+use App\Models\Cms\Event as EventModel;
+use App\Models\Cms\Notice;
+use App\Models\Cms\Page;
+use App\Models\Cms\Post;
+use App\Models\Cms\Term;
 use App\Models\Hr\Employee;
 use App\Models\Students\Student;
 use App\Models\User;
+use App\Services\Cms\Blocks\BlockRegistry;
 use App\Services\Sms\LogSmsGateway;
 use App\Services\Sms\SmsGatewayInterface;
 use App\Support\BranchContext;
@@ -33,6 +39,9 @@ class AppServiceProvider extends ServiceProvider
 
         // No real SMS gateway is configured for this project — see LogSmsGateway docblock.
         $this->app->bind(SmsGatewayInterface::class, LogSmsGateway::class);
+
+        // CMS block type registry — projects can register extra types here.
+        $this->app->singleton(BlockRegistry::class);
     }
 
     /**
@@ -40,10 +49,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Stable polymorphic type aliases (attendance device maps, future media/attachments).
+        // Stable polymorphic type aliases (attendance device maps, CMS blocks/menus/terms/seo).
         Relation::morphMap([
             'student' => Student::class,
             'employee' => Employee::class,
+            'page' => Page::class,
+            'post' => Post::class,
+            'notice' => Notice::class,
+            'event' => EventModel::class,
+            'term' => Term::class,
         ]);
 
         // Fees stays ignorant of Accounting internals — a receive voucher is posted async-free,

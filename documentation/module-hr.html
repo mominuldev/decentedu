@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HR &amp; Staff — DecentEdu Docs</title>
+<meta name="description" content="HR module: employees, designations, departments (HR sections) and subject-teacher assignments.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<main class="content">
+    <div class="breadcrumb"><a href="index.html">Home</a><span class="sep">/</span><span>HR &amp; Staff</span></div>
+    <h1>HR &amp; Staff</h1>
+    <p class="lead">The HR module holds the school's people on the other side of the desk — teachers and staff — along
+    with their designations and departments, and the <strong>subject-teacher</strong> assignments that connect a
+    teacher to the subjects and classes they teach.</p>
+
+    <div class="tag-row" style="margin-bottom:22px">
+        <span class="badge brand">Menu: HR &amp; Staff</span>
+        <span class="badge">Permission: <code>hr.manage</code></span>
+        <span class="badge info">Typical user: Admin</span>
+    </div>
+
+    <h2 id="setup">Setup lists</h2>
+    <div class="grid cols-2">
+        <div class="card"><h4>Designations</h4><p>Job titles — Head Teacher, Assistant Teacher, Accountant, Peon, etc. Bilingual, sortable.</p></div>
+        <div class="card"><h4>Departments (HR Sections)</h4><p>Organizational units — Academic, Administration, Accounts, and so on.</p></div>
+    </div>
+
+    <h2 id="employees">Employees</h2>
+    <p>Each staff member is recorded with their personal details, designation, department, contact information, blood
+    group and photo. The employee list is searchable, and create/edit happens on a dedicated form. Employees are the
+    people who take attendance, teach routine periods and enter exam marks.</p>
+    <div class="dl">
+        <div class="row"><dt>Identity</dt><dd>Name &amp; name (Bangla), gender, date of birth, blood group, photo.</dd></div>
+        <div class="row"><dt>Role in school</dt><dd>Designation and department (HR section).</dd></div>
+        <div class="row"><dt>Contact</dt><dd>Mobile, email, address.</dd></div>
+    </div>
+
+    <h2 id="subject-teacher">Subject-teacher assignments</h2>
+    <p>An employee is linked to what they teach through <strong>subject-teacher</strong> assignments: a teacher, a
+    subject, and the class config it applies to. These assignments drive:</p>
+    <ul>
+        <li><strong>Routines</strong> — who is scheduled for a period.</li>
+        <li><strong>Exam mark entry</strong> — which teacher is responsible for a subject's marks.</li>
+        <li><strong>Teacher routine printouts</strong> — a personal timetable per teacher.</li>
+    </ul>
+    <div class="flow">
+        <span class="node">Teacher</span><span class="arw">+</span>
+        <span class="node">Subject</span><span class="arw">+</span>
+        <span class="node">Class Config</span><span class="arw">=</span>
+        <span class="node">Assignment</span>
+    </div>
+
+    <h2 id="attendance">Staff attendance</h2>
+    <p>Employee attendance (including biometric device punches) is handled in the <a href="module-attendance.html">Attendance</a>
+    module, which has a dedicated staff sub-system alongside students.</p>
+
+    <h2 id="api">At the API level</h2>
+<pre><code>GET/POST/PUT/DELETE  /api/v1/hr/{resource}                 # designations | hr-sections
+GET   /api/v1/hr/employees                                 # list
+POST  /api/v1/hr/employees                                 # create
+GET   /api/v1/hr/employees/{id}                            # show
+PUT   /api/v1/hr/employees/{id}                            # update
+POST  /api/v1/hr/employees/{id}/assign-subject             # add subject-teacher link
+DELETE /api/v1/hr/employees/{id}/subject-assignments/{id}  # remove link</code></pre>
+
+    <div class="page-nav">
+        <a href="module-students.html"><span class="dir">← Previous</span><span class="ttl">Students</span></a>
+        <a class="next" href="module-attendance.html"><span class="dir">Next →</span><span class="ttl">Attendance</span></a>
+    </div>
+    <p class="footer-note">DecentEdu School Management System — documentation.</p>
+</main>
+<script>window.PAGE = { title: 'HR & Staff' };</script>
+<script src="assets/app.js"></script>
+</body>
+</html>
