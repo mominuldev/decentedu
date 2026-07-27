@@ -9,7 +9,7 @@ import { CSS } from '@dnd-kit/utilities';
 import {
     GripVertical, ChevronDown, ChevronRight, Eye, EyeOff, Trash2, Plus,
     LayoutTemplate, Type, Image as ImageIcon, Images, Video, MousePointerClick,
-    HelpCircle, List, Code2, Minus, Rows3, PanelTop, ShoppingBag, Square, type LucideIcon,
+    HelpCircle, List, Code2, Minus, Rows3, PanelTop, ShoppingBag, Square, Info, type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { BlockFields } from './BlockForms';
@@ -40,6 +40,7 @@ const BLOCK_ICONS: Record<string, LucideIcon> = {
     divider: Minus,
     section: Rows3,
     product_grid: ShoppingBag,
+    about: Info,
 };
 const iconFor = (type: string): LucideIcon => BLOCK_ICONS[type] ?? Square;
 
@@ -56,7 +57,8 @@ function blockSummary(b: EditorBlock): string {
         case 'image': return (p.caption as string) || ((p.asset_id_preview as AssetPayload)?.name ?? '');
         case 'gallery': return `${((p.asset_ids as unknown[]) ?? []).length} images`;
         case 'video_embed': return (p.title as string) || (p.url as string) || '';
-        case 'cta': return (p.heading as string) || '';
+        case 'cta': return (p.title as string) || (p.heading as string) || '';
+        case 'about': return (p.title as string) || (p.heading as string) || '';
         case 'faq': return `${((p.items as unknown[]) ?? []).length} questions`;
         case 'posts_list': return `${(p.mode as string) ?? 'latest'} · ${(p.limit as number) ?? 3}`;
         case 'divider': return (p.style as string) ?? 'line';

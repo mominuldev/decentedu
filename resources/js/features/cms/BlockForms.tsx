@@ -4,6 +4,7 @@ import { Button } from '@/components/ui';
 import { cn } from '@/lib/cn';
 import { MediaPicker } from './MediaPicker';
 import { BlockEditor } from './BlockEditor';
+import { RichTextEditor } from './RichTextEditor';
 import { inputCls, labelCls, type AssetPayload, type BlockTypeOption, type EditorBlock } from './api';
 
 type Payload = Record<string, unknown>;
@@ -128,16 +129,76 @@ export function BlockFields({ type, payload, onChange, blockTypes, depth = 0 }: 
             );
         case 'cta':
             return (
-                <div className="space-y-3">
-                    <Text label="Heading" value={payload.heading} onChange={(v) => set({ heading: v })} />
-                    <Area label="Text" value={payload.text} onChange={(v) => set({ text: v })} />
-                    <div className="grid grid-cols-2 gap-3">
-                        <Text label="Button label" value={payload.button_label} onChange={(v) => set({ button_label: v })} />
-                        <Text label="Button URL" value={payload.button_url} onChange={(v) => set({ button_url: v })} />
+                <div className="space-y-4">
+                    <Text label="Subtitle" value={payload.subtitle} onChange={(v) => set({ subtitle: v })} />
+                    <Text
+                        label="Title"
+                        value={payload.title ?? payload.heading}
+                        onChange={(v) => set({ title: v, heading: v })}
+                    />
+                    <Area
+                        label="Description"
+                        value={payload.description ?? payload.text}
+                        onChange={(v) => set({ description: v, text: v })}
+                    />
+                    <div className="space-y-2 rounded-xl border border-border p-3">
+                        <label className={cn(labelCls, 'font-semibold text-fg')}>CTA Primary</label>
+                        <div className="grid grid-cols-2 gap-3">
+                            <Text
+                                label="Label"
+                                value={payload.cta_primary_label ?? payload.button_label}
+                                onChange={(v) => set({ cta_primary_label: v, button_label: v })}
+                            />
+                            <Text
+                                label="URL"
+                                value={payload.cta_primary_url ?? payload.button_url}
+                                onChange={(v) => set({ cta_primary_url: v, button_url: v })}
+                            />
+                            <Select
+                                label="Style"
+                                value={payload.cta_primary_variant ?? payload.style ?? 'primary'}
+                                options={['primary', 'secondary', 'outline', 'ghost']}
+                                onChange={(v) => set({ cta_primary_variant: v, style: v })}
+                            />
+                            <Select
+                                label="Target"
+                                value={payload.cta_primary_target ?? payload.button_target ?? 'self'}
+                                options={['self', 'blank']}
+                                onChange={(v) => set({ cta_primary_target: v, button_target: v })}
+                            />
+                        </div>
                     </div>
-                    <Select label="Style" value={payload.style ?? 'primary'} options={['primary', 'secondary', 'outline']} onChange={(v) => set({ style: v })} />
+                    <div className="space-y-2 rounded-xl border border-border p-3">
+                        <label className={cn(labelCls, 'font-semibold text-fg')}>CTA Secondary</label>
+                        <div className="grid grid-cols-2 gap-3">
+                            <Text
+                                label="Label"
+                                value={payload.cta_secondary_label}
+                                onChange={(v) => set({ cta_secondary_label: v })}
+                            />
+                            <Text
+                                label="URL"
+                                value={payload.cta_secondary_url}
+                                onChange={(v) => set({ cta_secondary_url: v })}
+                            />
+                            <Select
+                                label="Style"
+                                value={payload.cta_secondary_variant ?? 'secondary'}
+                                options={['primary', 'secondary', 'outline', 'ghost']}
+                                onChange={(v) => set({ cta_secondary_variant: v })}
+                            />
+                            <Select
+                                label="Target"
+                                value={payload.cta_secondary_target ?? 'self'}
+                                options={['self', 'blank']}
+                                onChange={(v) => set({ cta_secondary_target: v })}
+                            />
+                        </div>
+                    </div>
                 </div>
             );
+        case 'about':
+            return <AboutFields payload={payload} onChange={onChange} />;
         case 'faq':
             return <FaqField payload={payload} onChange={onChange} />;
         case 'posts_list':
@@ -627,6 +688,52 @@ function TeachersFields({ payload, onChange }: Props) {
                     <Select label="Layout" value={payload.layout ?? 'grid'} options={['grid', 'list']} onChange={(v) => set({ layout: v })} />
                 </div>
             )}
+        </div>
+    );
+}
+
+function AboutFields({ payload, onChange }: Props) {
+    const set = (patch: Payload) => onChange({ ...payload, ...patch });
+    const items = (payload.items as { label: string; value: string }[]) ?? [];
+    const setItems = (next: typeof items) => set({ items: next });
+
+    return (
+        <div className="space-y-4">
+            <Text label="Subtitle" value={payload.subtitle} onChange={(v) => set({ subtitle: v })} />
+            <Text
+                label="Title"
+                value={payload.title ?? payload.heading}
+                onChange={(v) => set({ title: v, heading: v })}
+            />
+            <div>
+                <label className={labelCls}>Content</label>
+                <RichTextEditor
+                    value={(payload.content as string) ?? ''}
+                    onChange={(html) => set({ content: html })}
+                />
+            </div>
+            <AssetField label="Image" payload={payload} idKey="image_asset_id" previewKey="image_asset_id_preview" onChange={onChange} />
+            <Text label="Image Caption" value={payload.image_caption} onChange={(v) => set({ image_caption: v })} />
+
+            <div className="space-y-3 rounded-xl border border-border p-3">
+                <Text label="Repeater Title" value={payload.repeater_title} onChange={(v) => set({ repeater_title: v })} />
+                <div className="space-y-2">
+                    <label className={labelCls}>Repeater Items</label>
+                    {items.map((it, i) => (
+                        <div key={i} className="space-y-2 rounded-xl border border-border bg-surface-2/30 p-2.5">
+                            <div className="flex items-center justify-between">
+                                <span className="text-[12px] font-medium text-muted">Item {i + 1}</span>
+                                <button type="button" onClick={() => setItems(items.filter((_, x) => x !== i))} className="text-faint hover:text-rose-500"><Trash2 size={14} /></button>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                                <input className={inputCls} placeholder="Label" value={it.label ?? ''} onChange={(e) => setItems(items.map((x, xi) => xi === i ? { ...x, label: e.target.value } : x))} />
+                                <input className={inputCls} placeholder="Value" value={it.value ?? ''} onChange={(e) => setItems(items.map((x, xi) => xi === i ? { ...x, value: e.target.value } : x))} />
+                            </div>
+                        </div>
+                    ))}
+                    <Button variant="outline" size="sm" type="button" onClick={() => setItems([...items, { label: '', value: '' }])}><Plus size={15} /> Add item</Button>
+                </div>
+            </div>
         </div>
     );
 }

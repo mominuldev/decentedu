@@ -366,4 +366,100 @@ class CmsTest extends TestCase
         $this->assertSoftDeleted('pages', ['id' => $child['id']]);
         $this->assertSame(0, Block::count());
     }
+
+    public function test_cta_block_with_subtitle_title_description_and_ctas(): void
+    {
+        $this->actingAsBranchUser();
+
+        $response = $this->postJson('/api/v1/cms/pages', [
+            'title' => 'CTA Page',
+            'template' => 'default',
+            'status' => 'published',
+            'blocks' => [
+                [
+                    'type' => 'cta',
+                    'is_visible' => true,
+                    'payload' => [
+                        'subtitle' => 'Ready to get started?',
+                        'title' => 'Join Our Academy Today',
+                        'description' => 'Enroll now to access top-tier education.',
+                        'cta_primary_label' => 'Apply Now',
+                        'cta_primary_url' => '/admissions/apply',
+                        'cta_primary_target' => 'blank',
+                        'cta_primary_variant' => 'primary',
+                        'cta_secondary_label' => 'Contact Us',
+                        'cta_secondary_url' => '/contact',
+                        'cta_secondary_target' => 'self',
+                        'cta_secondary_variant' => 'outline',
+                    ],
+                ],
+            ],
+        ]);
+
+        $response->assertStatus(201);
+
+        $publicResponse = $this->getJson('/api/v1/cms/public/pages/cta-page');
+        $publicResponse->assertOk();
+
+        $ctaData = $publicResponse->json('data.blocks.0.data');
+        $this->assertSame('Ready to get started?', $ctaData['subtitle']);
+        $this->assertSame('Join Our Academy Today', $ctaData['title']);
+        $this->assertSame('Enroll now to access top-tier education.', $ctaData['description']);
+        $this->assertSame('Apply Now', $ctaData['cta_primary_label']);
+        $this->assertSame('/admissions/apply', $ctaData['cta_primary_url']);
+        $this->assertSame('blank', $ctaData['cta_primary_target']);
+        $this->assertSame('primary', $ctaData['cta_primary_variant']);
+        $this->assertSame('Contact Us', $ctaData['cta_secondary_label']);
+        $this->assertSame('/contact', $ctaData['cta_secondary_url']);
+        $this->assertSame('self', $ctaData['cta_secondary_target']);
+        $this->assertSame('outline', $ctaData['cta_secondary_variant']);
+    }
+
+    public function test_about_block_with_all_fields(): void
+    {
+        $this->actingAsBranchUser();
+
+        $asset = Asset::create(['name' => 'campus.jpg']);
+
+        $response = $this->postJson('/api/v1/cms/pages', [
+            'title' => 'About Us Page',
+            'template' => 'default',
+            'status' => 'published',
+            'blocks' => [
+                [
+                    'type' => 'about',
+                    'is_visible' => true,
+                    'payload' => [
+                        'subtitle' => 'Our History & Mission',
+                        'title' => 'About Our School',
+                        'content' => '<p>Established in 1995, delivering quality education for decades.</p>',
+                        'image_asset_id' => $asset->id,
+                        'image_caption' => 'Main Campus Building',
+                        'repeater_title' => 'Key Milestones',
+                        'items' => [
+                            ['label' => 'Founded', 'value' => '1995'],
+                            ['label' => 'Total Students', 'value' => '2,500+'],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $response->assertStatus(201);
+
+        $publicResponse = $this->getJson('/api/v1/cms/public/pages/about-us-page');
+        $publicResponse->assertOk();
+
+        $aboutData = $publicResponse->json('data.blocks.0.data');
+        $this->assertSame('about', $publicResponse->json('data.blocks.0.type'));
+        $this->assertSame('Our History & Mission', $aboutData['subtitle']);
+        $this->assertSame('About Our School', $aboutData['title']);
+        $this->assertSame('<p>Established in 1995, delivering quality education for decades.</p>', $aboutData['content']);
+        $this->assertSame($asset->id, $aboutData['image']['id']);
+        $this->assertSame('Main Campus Building', $aboutData['image_caption']);
+        $this->assertSame('Key Milestones', $aboutData['repeater_title']);
+        $this->assertCount(2, $aboutData['items']);
+        $this->assertSame('Founded', $aboutData['items'][0]['label']);
+        $this->assertSame('1995', $aboutData['items'][0]['value']);
+    }
 }

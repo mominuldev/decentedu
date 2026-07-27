@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Cms\Blocks;
 
 use App\Enums\Cms\BlockType;
+use App\Services\Cms\Blocks\Types\AboutBlock;
 use App\Services\Cms\Blocks\Types\CardListBlock;
 use App\Services\Cms\Blocks\Types\CtaBlock;
 use App\Services\Cms\Blocks\Types\DividerBlock;
@@ -106,6 +107,7 @@ class BlockRegistry
             new SectionBlock,
             new PageHeaderBlock,
             new TeachersBlock,
+            new AboutBlock,
         ];
     }
 }
