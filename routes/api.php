@@ -59,6 +59,7 @@ use App\Http\Controllers\Api\Fees\FeeTimeConfigController;
 use App\Http\Controllers\Api\Fees\FeeWaiverConfigController;
 use App\Http\Controllers\Api\Fees\SetupController as FeesSetupController;
 use App\Http\Controllers\Api\Hr\EmployeeController;
+use App\Http\Controllers\Api\Hr\TeacherController;
 use App\Http\Controllers\Api\Hr\SetupController as HrSetupController;
 use App\Http\Controllers\Api\Messaging\ContactController;
 use App\Http\Controllers\Api\Messaging\SendController;
@@ -214,6 +215,16 @@ Route::prefix('v1')->group(function () use ($setupSlugs) {
                 Route::delete('{id}/subject-assignments/{assignmentId}', [EmployeeController::class, 'removeSubject'])
                     ->whereNumber('id')
                     ->whereNumber('assignmentId');
+            });
+
+            // Teachers (dedicated endpoints for teachers only)
+            Route::prefix('teachers')->group(function () {
+                Route::get('/', [TeacherController::class, 'index']);
+                Route::get('available', [TeacherController::class, 'available']);
+                Route::get('subject/{subjectId}', [TeacherController::class, 'bySubject'])->whereNumber('subjectId');
+                Route::get('class/{classConfigId}', [TeacherController::class, 'byClassConfig'])->whereNumber('classConfigId');
+                Route::get('{id}', [TeacherController::class, 'show'])->whereNumber('id');
+                Route::get('{id}/classes', [TeacherController::class, 'classes'])->whereNumber('id');
             });
         });
 
