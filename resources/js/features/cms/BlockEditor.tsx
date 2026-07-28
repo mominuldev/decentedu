@@ -13,6 +13,7 @@ import {
     Heading, Quote, GraduationCap, BellRing, LayoutGrid, Newspaper, SeparatorHorizontal, Megaphone, type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/cn';
+import { ConfirmDialog } from '@/components/Modal';
 import { BlockFields } from './BlockForms';
 import type { AssetPayload, BlockTypeOption, EditorBlock } from './api';
 
@@ -98,6 +99,12 @@ export function BlockEditor({
     const items = withKeys(blocks);
     const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
     const [adding, setAdding] = useState(false);
+    const [deletingKey, setDeletingKey] = useState<number | null>(null);
+
+    const deletingBlock = items.find((b) => b._key === deletingKey);
+    const deletingBlockLabel = deletingBlock
+        ? (blockTypes.find((t) => t.type === deletingBlock.type)?.label ?? deletingBlock.type)
+        : 'block';
 
     const emit = (next: Keyed[]) => onChange(next.map(({ _key, ...b }) => b));
 
@@ -147,7 +154,7 @@ export function BlockEditor({
                             onChangePayload={(payload) => patch(b._key, { payload })}
                             onToggle={() => patch(b._key, { is_visible: !b.is_visible })}
                             onDuplicate={() => duplicateBlock(b._key)}
-                            onDelete={() => emit(items.filter((x) => x._key !== b._key))}
+                            onDelete={() => setDeletingKey(b._key)}
                         />
                     ))}
                 </SortableContext>
@@ -176,6 +183,19 @@ export function BlockEditor({
                     )}
                 </div>
             )}
+
+            <ConfirmDialog
+                open={deletingKey !== null}
+                onClose={() => setDeletingKey(null)}
+                onConfirm={() => {
+                    if (deletingKey !== null) {
+                        emit(items.filter((x) => x._key !== deletingKey));
+                        setDeletingKey(null);
+                    }
+                }}
+                title="Delete block"
+                message={`Are you sure you want to delete this "${deletingBlockLabel}" block? This action cannot be undone.`}
+            />
         </div>
     );
 
