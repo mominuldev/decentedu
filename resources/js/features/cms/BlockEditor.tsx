@@ -7,7 +7,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import {
-    GripVertical, ChevronDown, ChevronRight, Eye, EyeOff, Trash2, Plus,
+    GripVertical, ChevronDown, ChevronRight, Eye, EyeOff, Trash2, Plus, Copy,
     LayoutTemplate, Type, Image as ImageIcon, Images, Video, MousePointerClick,
     HelpCircle, Code2, Rows3, PanelTop, ShoppingBag, Square, Info, Milestone,
     Heading, Quote, GraduationCap, BellRing, LayoutGrid, Newspaper, SeparatorHorizontal, Megaphone, type LucideIcon,
@@ -114,6 +114,23 @@ export function BlockEditor({
         setAdding(false);
     };
 
+    const duplicateBlock = (key: number) => {
+        const index = items.findIndex((b) => b._key === key);
+        if (index === -1) return;
+        const target = items[index];
+        const clonedPayload = JSON.parse(JSON.stringify(target.payload ?? {}));
+        const newBlock: Keyed = {
+            id: null,
+            type: target.type,
+            is_visible: target.is_visible,
+            payload: clonedPayload,
+            _key: nextKey(),
+        };
+        const next = [...items];
+        next.splice(index + 1, 0, newBlock);
+        emit(next);
+    };
+
     const patch = (key: number, next: Partial<EditorBlock>) =>
         emit(items.map((b) => (b._key === key ? { ...b, ...next } : b)));
 
@@ -129,6 +146,7 @@ export function BlockEditor({
                             depth={depth}
                             onChangePayload={(payload) => patch(b._key, { payload })}
                             onToggle={() => patch(b._key, { is_visible: !b.is_visible })}
+                            onDuplicate={() => duplicateBlock(b._key)}
                             onDelete={() => emit(items.filter((x) => x._key !== b._key))}
                         />
                     ))}
@@ -194,13 +212,14 @@ function BlockPalette({ blockTypes, onAdd }: { blockTypes: BlockTypeOption[]; on
 }
 
 function BlockCard({
-    block, blockTypes, depth, onChangePayload, onToggle, onDelete,
+    block, blockTypes, depth, onChangePayload, onToggle, onDuplicate, onDelete,
 }: {
     block: Keyed;
     blockTypes: BlockTypeOption[];
     depth: number;
     onChangePayload: (p: Record<string, unknown>) => void;
     onToggle: () => void;
+    onDuplicate: () => void;
     onDelete: () => void;
 }) {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: block._key });
@@ -220,6 +239,9 @@ function BlockCard({
                 </button>
                 <button type="button" onClick={onToggle} className="rounded-lg p-1.5 text-faint hover:bg-surface-2 hover:text-fg" title={block.is_visible ? 'Hide' : 'Show'}>
                     {block.is_visible ? <Eye size={16} /> : <EyeOff size={16} />}
+                </button>
+                <button type="button" onClick={onDuplicate} className="rounded-lg p-1.5 text-faint hover:bg-surface-2 hover:text-brand-600" title="Duplicate block" aria-label="Duplicate block">
+                    <Copy size={16} />
                 </button>
                 <button type="button" onClick={onDelete} className="rounded-lg p-1.5 text-rose-500 hover:bg-rose-500/10 hover:text-rose-600" title="Delete"><Trash2 size={16} /></button>
             </div>
