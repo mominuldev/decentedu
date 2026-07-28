@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Loader2, X, Plus, ArrowLeft } from 'lucide-react';
@@ -46,6 +46,36 @@ export default function StudentFormPage() {
   );
 }
 
+function getInitialForm(student: Student | null, defaultYearId = 0, defaultClassConfigId = 0): StudentFormData {
+  return {
+    student_uid: student?.student_uid || '',
+    name: student?.name || '',
+    name_bn: student?.name_bn || '',
+    sex: student?.sex || 'male',
+    religion: student?.religion || 'Islam',
+    blood_group: student?.blood_group || '',
+    dob: student?.dob ? student.dob.slice(0, 10) : '',
+    birth_certificate_no: student?.birth_certificate_no || '',
+    fathers_name: student?.fathers_name || '',
+    mothers_name: student?.mothers_name || '',
+    father_nid: student?.father_nid || '',
+    mother_nid: student?.mother_nid || '',
+    mobile: student?.mobile || '',
+    father_mobile: student?.father_mobile || '',
+    mother_mobile: student?.mother_mobile || '',
+    photo_path: student?.photo_path || '',
+    present_address: student?.present_address || '',
+    permanent_address: student?.permanent_address || '',
+    status: student?.status || 'active',
+    academic_year_id: student?.current_enrollment?.academic_year_id || defaultYearId,
+    class_config_id: student?.current_enrollment?.class_config_id || defaultClassConfigId,
+    group_id: student?.current_enrollment?.group_id || 0,
+    category_id: student?.current_enrollment?.category_id || 0,
+    roll: student?.current_enrollment?.roll || '',
+    guardians: [],
+  };
+}
+
 function StudentFormBody({
   student,
   onCancel,
@@ -77,29 +107,9 @@ function StudentFormBody({
     queryFn: () => listSetup('categories'),
   });
 
-  const [form, setForm] = useState<StudentFormData>(() => ({
-    student_uid: student?.student_uid || '',
-    name: student?.name || '',
-    name_bn: student?.name_bn || '',
-    sex: student?.sex || 'male',
-    dob: student?.dob || '',
-    birth_certificate_no: student?.birth_certificate_no || '',
-    nid: student?.nid || '',
-    religion: student?.religion || 'Islam',
-    blood_group: student?.blood_group || '',
-    nationality: student?.nationality || 'Bangladeshi',
-    academic_year_id: student?.academic_year_id || academicYears[0]?.id || 0,
-    class_config_id: student?.class_config_id || classConfigs[0]?.id || 0,
-    group_id: student?.group_id || undefined,
-    category_id: student?.category_id || undefined,
-    roll_no: student?.roll_no || undefined,
-    status: student?.status || 'active',
-    father_name: student?.father_name || '',
-    father_mobile: student?.father_mobile || '',
-    mother_name: student?.mother_name || '',
-    mother_mobile: student?.mother_mobile || '',
-    photo_path: student?.photo_path || '',
-  }));
+  const [form, setForm] = useState<StudentFormData>(() =>
+    getInitialForm(student, academicYears[0]?.id, classConfigs[0]?.id)
+  );
 
   const [guardians, setGuardians] = useState(() =>
     student?.guardians?.map(g => ({
@@ -113,6 +123,32 @@ function StudentFormBody({
       is_emergency_contact: g.is_emergency_contact,
     })) || []
   );
+
+  useEffect(() => {
+    if (student) {
+      setForm(getInitialForm(student, academicYears[0]?.id, classConfigs[0]?.id));
+      if (student.guardians) {
+        setGuardians(
+          student.guardians.map(g => ({
+            relationship: g.relationship,
+            name: g.name,
+            mobile: g.mobile || '',
+            email: g.email || '',
+            address: g.address || '',
+            occupation: g.occupation || '',
+            nid: g.nid || '',
+            is_emergency_contact: g.is_emergency_contact,
+          }))
+        );
+      }
+    } else {
+      setForm(prev => ({
+        ...prev,
+        academic_year_id: prev.academic_year_id || academicYears[0]?.id || 0,
+        class_config_id: prev.class_config_id || classConfigs[0]?.id || 0,
+      }));
+    }
+  }, [student, academicYears, classConfigs]);
   const [errors, setErrors] = useState<Record<string, string[]>>({});
   const [error, setError] = useState<string | null>(null);
   const [showGuardianForm, setShowGuardianForm] = useState(false);

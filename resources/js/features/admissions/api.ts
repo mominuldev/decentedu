@@ -43,6 +43,8 @@ export interface AdmissionApplication {
   mothers_name: string;
   father_nid: string | null;
   mother_nid: string | null;
+  father_mobile?: string | null;
+  mother_mobile?: string | null;
   mobile: string | null;
   guardian_mobile: string | null;
   photo_path: string | null;

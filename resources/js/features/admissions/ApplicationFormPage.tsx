@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import { Button, Card } from '@/components/ui';
+import { useToast } from '@/components/Toast';
 import { toApiError } from '@/lib/api';
 import { cn } from '@/lib/cn';
 import { listClassConfigs } from '@/features/academic/api';
@@ -39,6 +40,33 @@ type FormState = {
   remarks: string;
 };
 
+const EMPTY_FORM: FormState = {
+  admission_year_id: 0,
+  class_config_id: 0,
+  quota_id: '',
+  application_no: '',
+  name: '',
+  name_bn: '',
+  sex: 'male',
+  religion: '',
+  blood_group: '',
+  dob: '',
+  birth_certificate_no: '',
+  fathers_name: '',
+  father_nid: '',
+  father_mobile: '',
+  mothers_name: '',
+  mother_nid: '',
+  mother_mobile: '',
+  mobile: '',
+  guardian_mobile: '',
+  present_address: '',
+  permanent_address: '',
+  score: '',
+  status: 'pending',
+  remarks: '',
+};
+
 export default function ApplicationFormPage() {
   const { id } = useParams<{ id: string }>();
   const isEdit = Boolean(id);
@@ -58,35 +86,6 @@ export default function ApplicationFormPage() {
   }
 
   return <ApplicationFormBody application={application} />;
-}
-
-function initForm(a: AdmissionApplication | null, defaultYearId: number): FormState {
-  return {
-    admission_year_id: a?.admission_year_id ?? defaultYearId,
-    class_config_id: a?.class_config_id ?? 0,
-    quota_id: a?.quota_id ?? '',
-    application_no: a?.application_no ?? '',
-    name: a?.name ?? '',
-    name_bn: a?.name_bn ?? '',
-    sex: a?.sex ?? 'male',
-    religion: a?.religion ?? '',
-    blood_group: a?.blood_group ?? '',
-    dob: a?.dob ? a.dob.slice(0, 10) : '',
-    birth_certificate_no: a?.birth_certificate_no ?? '',
-    fathers_name: a?.fathers_name ?? '',
-    father_nid: a?.father_nid ?? '',
-    father_mobile: a?.father_mobile ?? a?.guardian_mobile ?? '',
-    mothers_name: a?.mothers_name ?? '',
-    mother_nid: a?.mother_nid ?? '',
-    mother_mobile: a?.mother_mobile ?? '',
-    mobile: a?.mobile ?? '',
-    guardian_mobile: a?.guardian_mobile ?? '',
-    present_address: a?.present_address ?? '',
-    permanent_address: a?.permanent_address ?? '',
-    score: a?.score != null ? String(a.score) : '',
-    status: a?.status && a.status !== 'admitted' ? a.status : 'pending',
-    remarks: a?.remarks ?? '',
-  };
 }
 
 function ApplicationFormBody({ application }: { application: AdmissionApplication | null }) {
@@ -133,14 +132,6 @@ function ApplicationFormBody({ application }: { application: AdmissionApplicatio
       setForm(f => ({ ...f, admission_year_id: openYear.id }));
     }
   }, [application, years]);
-
-  if (isEdit && isLoadingApplication) {
-    return (
-      <div className="flex items-center justify-center py-24 text-faint">
-        <Loader2 size={24} className="animate-spin" />
-      </div>
-    );
-  }
 
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -192,8 +183,22 @@ function ApplicationFormBody({ application }: { application: AdmissionApplicatio
   const handleSubmit = () => {
     setError(null);
     setErrors({});
-    if (!form.admission_year_id || !form.class_config_id || !form.name || !form.birth_certificate_no || !form.fathers_name || !form.father_nid || !form.father_mobile || !form.mothers_name || !form.mother_nid) {
-      setError('Admission year, class, applicant name, birth certificate number, father info (name, NID, mobile), mother name and mother NID are required.');
+
+    const newErrors: Record<string, string[]> = {};
+    if (!form.admission_year_id) newErrors.admission_year_id = ['Admission year is required.'];
+    if (!form.class_config_id) newErrors.class_config_id = ['Applied class is required.'];
+    if (!form.name.trim()) newErrors.name = ['Applicant name is required.'];
+    if (!form.sex) newErrors.sex = ['Gender is required.'];
+    if (!form.birth_certificate_no.trim()) newErrors.birth_certificate_no = ['Birth certificate number is required.'];
+    if (!form.fathers_name.trim()) newErrors.fathers_name = ["Father's name is required."];
+    if (!form.father_nid.trim()) newErrors.father_nid = ["Father's NID is required."];
+    if (!form.father_mobile.trim()) newErrors.father_mobile = ["Father's mobile number is required."];
+    if (!form.mothers_name.trim()) newErrors.mothers_name = ["Mother's name is required."];
+    if (!form.mother_nid.trim()) newErrors.mother_nid = ["Mother's NID is required."];
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      setError('Please fill in all required fields marked below.');
       return;
     }
     saveMutation.mutate();

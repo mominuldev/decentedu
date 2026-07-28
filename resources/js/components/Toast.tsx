@@ -4,6 +4,7 @@ import { CheckCircle2, AlertTriangle, XCircle, X } from 'lucide-react';
 export type ToastTone = 'success' | 'warning' | 'error';
 
 export interface ToastState {
+    id?: string;
     tone: ToastTone;
     message: string;
 }

@@ -126,6 +126,10 @@ Route::prefix('v1')->group(function () use ($setupSlugs) {
             Route::match(['put', 'patch'], 'branch', [SettingsController::class, 'updateBranchSettings']);
             Route::get('system', [SettingsController::class, 'getSystemSettings']);
             Route::match(['put', 'patch'], 'profile', [SettingsController::class, 'updateProfile']);
+            // Branch management (org-level)
+            Route::get('branches', [SettingsController::class, 'listBranches']);
+            Route::post('branches', [SettingsController::class, 'createBranch']);
+            Route::match(['put', 'patch'], 'branches/{id}', [SettingsController::class, 'updateBranch'])->whereNumber('id');
         });
 
         // ---- Users & Roles -----------------------------------------------------

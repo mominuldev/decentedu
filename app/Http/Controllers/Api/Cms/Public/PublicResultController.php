@@ -32,14 +32,14 @@ class PublicResultController extends Controller
             ->orderByDesc('id')
             ->get(['id', 'name', 'is_current']);
 
-        $classConfigs = ClassConfig::with(['classModel:id,name', 'section:id,name', 'shift:id,name'])
+        $classConfigs = ClassConfig::with(['schoolClass:id,name', 'section:id,name', 'shift:id,name'])
             ->where('branch_id', $branchId)
             ->where('status', true)
             ->get()
             ->map(fn ($c) => [
                 'id' => $c->id,
-                'label' => $c->label,
-                'class_name' => $c->classModel?->name,
+                'label' => $c->label(),
+                'class_name' => $c->schoolClass?->name,
                 'section_name' => $c->section?->name,
                 'shift_name' => $c->shift?->name,
             ]);
@@ -66,7 +66,7 @@ class PublicResultController extends Controller
             'roll_no' => ['required', 'string'],
         ]);
 
-        $enrollment = Enrollment::with(['student', 'classConfig.classModel', 'classConfig.section', 'classConfig.shift'])
+        $enrollment = Enrollment::with(['student', 'classConfig.schoolClass', 'classConfig.section', 'classConfig.shift'])
             ->where('academic_year_id', $data['academic_year_id'])
             ->where('class_config_id', $data['class_config_id'])
             ->where(function ($q) use ($data) {
@@ -103,8 +103,8 @@ class PublicResultController extends Controller
                 'name' => $enrollment->student->name,
                 'name_bn' => $enrollment->student->name_bn,
                 'student_uid' => $enrollment->student->student_uid,
-                'roll_no' => $enrollment->roll_no,
-                'class_name' => $enrollment->classConfig?->classModel?->name,
+                'roll_no' => $enrollment->roll,
+                'class_name' => $enrollment->classConfig?->schoolClass?->name,
                 'section_name' => $enrollment->classConfig?->section?->name,
                 'shift_name' => $enrollment->classConfig?->shift?->name,
             ],

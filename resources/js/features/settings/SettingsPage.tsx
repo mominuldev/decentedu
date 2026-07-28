@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { cn } from '@/lib/cn';
 import { BranchSettingsPanel } from './BranchSettingsPanel';
+import { BranchesPanel } from './BranchesPanel';
 import { SystemSettingsPanel } from './SystemSettingsPanel';
 import { ProfileSettingsPanel } from './ProfileSettingsPanel';
 
 const tabs = [
     { key: 'branch', label: 'Branch & Institution', render: () => <BranchSettingsPanel /> },
+    { key: 'branches', label: 'Manage Branches', render: () => <BranchesPanel /> },
     { key: 'system', label: 'System & Environment', render: () => <SystemSettingsPanel /> },
     { key: 'profile', label: 'Profile & Security', render: () => <ProfileSettingsPanel /> },
 ];

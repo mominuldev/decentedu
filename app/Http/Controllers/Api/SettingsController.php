@@ -100,6 +100,81 @@ class SettingsController extends Controller
         ], 'Branch settings updated successfully.');
     }
 
+    /** List all branches in the current user's organization. */
+    public function listBranches(Request $request): JsonResponse
+    {
+        $orgId = $request->user()->organization_id;
+
+        $branches = Branch::where('organization_id', $orgId)
+            ->orderBy('name')
+            ->get()
+            ->map(fn (Branch $b) => $this->presentBranch($b));
+
+        return ApiResponse::success($branches, 'Branches retrieved.');
+    }
+
+    /** Create a new branch inside the current user's organization (Super Admin only). */
+    public function createBranch(Request $request): JsonResponse
+    {
+        $orgId = $request->user()->organization_id;
+
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'name_bn' => ['nullable', 'string', 'max:255'],
+            'code' => ['nullable', 'string', 'max:50', Rule::unique('branches')->where('organization_id', $orgId)],
+            'address' => ['nullable', 'string', 'max:500'],
+            'phone' => ['nullable', 'string', 'max:50'],
+            'email' => ['nullable', 'email', 'max:255'],
+            'logo_path' => ['nullable', 'string', 'max:255'],
+            'status' => ['nullable', 'boolean'],
+        ]);
+
+        $branch = Branch::create([
+            'organization_id' => $orgId,
+            'name' => $data['name'],
+            'name_bn' => $data['name_bn'] ?? null,
+            'code' => $data['code'] ?? null,
+            'address' => $data['address'] ?? null,
+            'phone' => $data['phone'] ?? null,
+            'email' => $data['email'] ?? null,
+            'logo_path' => $data['logo_path'] ?? null,
+            'status' => $data['status'] ?? true,
+        ]);
+
+        return ApiResponse::success($this->presentBranch($branch), 'Branch created successfully.', status: 201);
+    }
+
+    /** Update any branch by ID within the current user's organization. */
+    public function updateBranch(Request $request, int $id): JsonResponse
+    {
+        $orgId = $request->user()->organization_id;
+        $branch = Branch::where('organization_id', $orgId)->findOrFail($id);
+
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'name_bn' => ['nullable', 'string', 'max:255'],
+            'code' => ['nullable', 'string', 'max:50', Rule::unique('branches')->ignore($branch->id)->where('organization_id', $orgId)],
+            'address' => ['nullable', 'string', 'max:500'],
+            'phone' => ['nullable', 'string', 'max:50'],
+            'email' => ['nullable', 'email', 'max:255'],
+            'logo_path' => ['nullable', 'string', 'max:255'],
+            'status' => ['nullable', 'boolean'],
+        ]);
+
+        $branch->update([
+            'name' => $data['name'],
+            'name_bn' => $data['name_bn'] ?? null,
+            'code' => $data['code'] ?? $branch->code,
+            'address' => $data['address'] ?? null,
+            'phone' => $data['phone'] ?? null,
+            'email' => $data['email'] ?? null,
+            'logo_path' => $data['logo_path'] ?? null,
+            'status' => $data['status'] ?? $branch->status,
+        ]);
+
+        return ApiResponse::success($this->presentBranch($branch), 'Branch updated successfully.');
+    }
+
     /** Get system diagnostics and runtime statistics. */
     public function getSystemSettings(): JsonResponse
     {
@@ -143,5 +218,22 @@ class SettingsController extends Controller
         $user->update($data);
 
         return ApiResponse::success(AuthPayload::for($user, $request), 'Profile updated successfully.');
+    }
+
+    /** Serialize a Branch model to a consistent API shape. */
+    private function presentBranch(Branch $branch): array
+    {
+        return [
+            'id' => $branch->id,
+            'organization_id' => $branch->organization_id,
+            'name' => $branch->name,
+            'name_bn' => $branch->name_bn,
+            'code' => $branch->code,
+            'address' => $branch->address,
+            'phone' => $branch->phone,
+            'email' => $branch->email,
+            'logo_path' => $branch->logo_path,
+            'status' => $branch->status,
+        ];
     }
 }

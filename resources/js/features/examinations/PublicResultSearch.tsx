@@ -39,7 +39,7 @@ interface StudentResult {
   summary: {
     total_marks: number;
     total_obtained: number;
-    gpa: number;
+    gpa: number | string;
     is_pass: boolean;
     class_position: number | null;
     section_position: number | null;
@@ -50,7 +50,7 @@ interface StudentResult {
     total_marks: number;
     obtained_marks: number;
     grade: string;
-    grade_point: number;
+    grade_point: number | string;
     is_pass: boolean;
     is_absent: boolean;
   }>;
@@ -329,7 +329,9 @@ export function PublicResultSearch() {
                 {/* GPA Badge */}
                 <div className="rounded-lg border border-border bg-bg-subtle p-4">
                   <p className="text-xs font-medium text-muted uppercase">GPA</p>
-                  <p className="mt-2 text-2xl font-bold text-fg">{searchResult.summary.gpa.toFixed(2)}</p>
+                  <p className="mt-2 text-2xl font-bold text-fg">
+                    {searchResult.summary.gpa != null ? Number(searchResult.summary.gpa).toFixed(2) : '—'}
+                  </p>
                 </div>
 
                 {/* Pass/Fail Status */}
@@ -416,7 +418,9 @@ export function PublicResultSearch() {
                         )}
                       </td>
                       <td className="px-4 py-3 text-center text-sm text-fg">{subject.grade}</td>
-                      <td className="px-4 py-3 text-center text-sm text-fg">{subject.grade_point.toFixed(2)}</td>
+                      <td className="px-4 py-3 text-center text-sm text-fg">
+                        {subject.grade_point != null ? Number(subject.grade_point).toFixed(2) : '—'}
+                      </td>
                       <td className="px-4 py-3 text-center">
                         <span className={cn(
                           "inline-flex rounded-full px-2 py-1 text-xs font-medium",

@@ -180,10 +180,11 @@ export default function AdmissionsPage() {
                   ) : applications.length === 0 ? (
                     <tr><td colSpan={6} className="px-5 py-10 text-center text-muted">No applications match these filters.</td></tr>
                   ) : (
-                    applications.map((a) => (
+                    applications.map((a, index) => (
                       <Row
                         key={a.id}
                         app={a}
+                        isLast={index >= applications.length - 2}
                         onEdit={() => navigate(`/admissions/applications/${a.id}/edit`)}
                         onConvert={() => setConverting(a)}
                         onDelete={() => setDeleting(a)}
@@ -213,7 +214,7 @@ export default function AdmissionsPage() {
           application={converting}
           classConfigs={classConfigs}
           onClose={() => setConverting(null)}
-          onConverted={(r) => { setConverting(null); setToast(`Admitted — student ${r.student_uid} created.`); setTimeout(() => setToast(null), 5000); }}
+          onConverted={(r) => { setConverting(null); globalToast.success(`Admitted — student ${r.student_uid} created.`); }}
         />
       )}
 
@@ -229,8 +230,9 @@ export default function AdmissionsPage() {
   );
 }
 
-function Row({ app, onEdit, onConvert, onDelete, onStatus }: {
+function Row({ app, isLast, onEdit, onConvert, onDelete, onStatus }: {
   app: AdmissionApplication;
+  isLast?: boolean;
   onEdit: () => void;
   onConvert: () => void;
   onDelete: () => void;
@@ -258,13 +260,13 @@ function Row({ app, onEdit, onConvert, onDelete, onStatus }: {
           {admitted && <span className="text-[12px] text-emerald-600 dark:text-emerald-400">Enrolled</span>}
           {!admitted && (
             <div className="relative">
-              <button className="grid h-8 w-8 place-items-center rounded-lg text-muted hover:bg-surface-2 hover:text-fg" onClick={() => setMenuOpen((o) => !o)} aria-label="More">
+              <button className="grid h-8 w-8 cursor-pointer place-items-center rounded-lg text-muted hover:bg-surface-2 hover:text-fg" onClick={() => setMenuOpen((o) => !o)} aria-label="More">
                 <MoreVertical size={16} />
               </button>
               {menuOpen && (
                 <>
                   <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
-                  <div className="absolute right-0 z-20 mt-1 w-44 rounded-xl border border-border bg-surface p-1 shadow-[var(--shadow-pop)]">
+                  <div className={`absolute right-0 z-20 w-44 rounded-xl border border-border bg-surface p-1 shadow-[var(--shadow-pop)] ${isLast ? 'bottom-full mb-1' : 'top-full mt-1'}`}>
                     <MenuItem onClick={() => { setMenuOpen(false); onEdit(); }}><Pencil size={14} />Edit</MenuItem>
                     <div className="my-1 border-t border-border" />
                     <div className="px-2.5 py-1 text-[11px] uppercase tracking-wide text-faint">Set status</div>
@@ -290,7 +292,7 @@ function MenuItem({ children, onClick, danger }: { children: React.ReactNode; on
   return (
     <button
       onClick={onClick}
-      className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-[13px] hover:bg-surface-2 ${danger ? 'text-rose-600 dark:text-rose-400' : 'text-fg'}`}
+      className={`flex w-full cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-[13px] hover:bg-surface-2 ${danger ? 'text-rose-600 dark:text-rose-400' : 'text-fg'}`}
     >
       {children}
     </button>

@@ -64,6 +64,32 @@ export interface ProfilePayload {
     avatar_path?: string | null;
 }
 
+// ---- Branch management (org-level) ----
+
+export interface BranchRow {
+    id: number;
+    organization_id: number;
+    name: string;
+    name_bn: string | null;
+    code: string | null;
+    address: string | null;
+    phone: string | null;
+    email: string | null;
+    logo_path: string | null;
+    status: boolean;
+}
+
+export interface BranchPayload {
+    name: string;
+    name_bn?: string | null;
+    code?: string | null;
+    address?: string | null;
+    phone?: string | null;
+    email?: string | null;
+    logo_path?: string | null;
+    status?: boolean;
+}
+
 export async function fetchBranchSettings(): Promise<BranchSettingsRow> {
     const { data } = await api.get(`${base}/settings/branch`);
     return data.data as BranchSettingsRow;
@@ -82,4 +108,19 @@ export async function fetchSystemSettings(): Promise<SystemSettingsData> {
 export async function updateProfile(payload: ProfilePayload): Promise<any> {
     const { data } = await api.put(`${base}/settings/profile`, payload);
     return data.data;
+}
+
+export async function listBranches(): Promise<BranchRow[]> {
+    const { data } = await api.get(`${base}/settings/branches`);
+    return data.data as BranchRow[];
+}
+
+export async function createBranch(payload: BranchPayload): Promise<BranchRow> {
+    const { data } = await api.post(`${base}/settings/branches`, payload);
+    return data.data as BranchRow;
+}
+
+export async function updateBranch(id: number, payload: BranchPayload): Promise<BranchRow> {
+    const { data } = await api.put(`${base}/settings/branches/${id}`, payload);
+    return data.data as BranchRow;
 }

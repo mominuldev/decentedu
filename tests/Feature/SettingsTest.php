@@ -98,4 +98,71 @@ class SettingsTest extends TestCase
             'email' => 'jane@test.com',
         ]);
     }
+
+    public function test_can_list_branches(): void
+    {
+        $this->user->update(['organization_id' => $this->org->id]);
+
+        // Create a second branch in the same org
+        Branch::create([
+            'organization_id' => $this->org->id,
+            'name' => 'Second Campus',
+            'code' => 'SEC',
+            'status' => true,
+        ]);
+
+        $response = $this->getJson('/api/v1/settings/branches');
+
+        $response->assertStatus(200)
+            ->assertJsonPath('success', true)
+            ->assertJsonCount(2, 'data');
+    }
+
+    public function test_can_create_branch(): void
+    {
+        $this->user->update(['organization_id' => $this->org->id]);
+
+        $response = $this->postJson('/api/v1/settings/branches', [
+            'name' => 'New Campus',
+            'name_bn' => 'নতুন ক্যাম্পাস',
+            'code' => 'NEW',
+            'phone' => '+880 1700-999999',
+            'email' => 'new@campus.edu',
+            'address' => 'Road 1, Block A, Dhaka',
+            'status' => true,
+        ]);
+
+        $response->assertStatus(201)
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('data.name', 'New Campus')
+            ->assertJsonPath('data.code', 'NEW');
+
+        $this->assertDatabaseHas('branches', [
+            'organization_id' => $this->org->id,
+            'name' => 'New Campus',
+            'code' => 'NEW',
+        ]);
+    }
+
+    public function test_can_update_branch_by_id(): void
+    {
+        $this->user->update(['organization_id' => $this->org->id]);
+
+        $response = $this->putJson("/api/v1/settings/branches/{$this->branch->id}", [
+            'name' => 'Updated Campus',
+            'code' => 'UPD',
+            'phone' => '+880 1700-123456',
+            'status' => true,
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('data.name', 'Updated Campus')
+            ->assertJsonPath('data.code', 'UPD');
+
+        $this->assertDatabaseHas('branches', [
+            'id' => $this->branch->id,
+            'name' => 'Updated Campus',
+        ]);
+    }
 }
