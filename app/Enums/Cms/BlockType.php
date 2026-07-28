@@ -49,7 +49,7 @@ enum BlockType: string
             self::Teachers => 'Teachers',
             self::About => 'About',
             self::MilestonesTimeline => 'Milestones Timeline',
-            self::AnnouncementStrip => 'Announcement Strip',
+            self::AnnouncementStrip => 'Notice Strip',
         };
     }
 }

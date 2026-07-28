@@ -61,7 +61,7 @@ function blockSummary(b: EditorBlock): string {
     switch (b.type) {
         case 'hero': return (p.heading as string) || '';
         case 'heading': return (p.title as string) || (p.heading as string) || (p.subtitle as string) || '';
-        case 'announcement_strip': return (p.title as string) || (p.heading as string) || 'Announcement Strip';
+        case 'announcement_strip': return (p.title as string) || (p.heading as string) || 'Notice Strip';
         case 'page_header': return (p.heading as string) || '';
         case 'rich_text': return stripHtml((p.content as string) ?? '');
         case 'html': return 'Custom HTML';
