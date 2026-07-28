@@ -24,7 +24,7 @@ const nextKey = () => uid--;
 type Keyed = EditorBlock & { _key: number };
 
 function withKeys(blocks: EditorBlock[]): Keyed[] {
-    return blocks.map((b) => ({ ...b, _key: b.id ?? nextKey() }));
+    return blocks.map((b) => ({ ...b, _key: b._key ?? b.id ?? nextKey() }));
 }
 
 /* Icon shown in the palette + as the block's glyph. */
@@ -106,7 +106,7 @@ export function BlockEditor({
         ? (blockTypes.find((t) => t.type === deletingBlock.type)?.label ?? deletingBlock.type)
         : 'block';
 
-    const emit = (next: Keyed[]) => onChange(next.map(({ _key, ...b }) => b));
+    const emit = (next: Keyed[]) => onChange(next);
 
     const onDragEnd = (e: DragEndEvent) => {
         const { active, over } = e;

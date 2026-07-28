@@ -43,6 +43,7 @@ export interface EditorBlock {
     type: string;
     is_visible: boolean;
     payload: Record<string, unknown>;
+    _key?: number;
 }
 
 /* -------------------------------------------------------------------- pages */
