@@ -107,20 +107,30 @@ export async function getPageMeta(): Promise<PageMeta> {
     const { data } = await api.get(`${base}/pages/meta`);
     return data.data as PageMeta;
 }
-export async function getPage(id: number): Promise<PageDetail> {
-    const { data } = await api.get(`${base}/pages/${id}`);
+export async function getPage(idOrSlug: number | string): Promise<PageDetail> {
+    const { data } = await api.get(`${base}/pages/${idOrSlug}`);
     return data.data as PageDetail;
 }
 export async function createPage(payload: PagePayload): Promise<PageDetail> {
     const { data } = await api.post(`${base}/pages`, payload);
     return data.data as PageDetail;
 }
-export async function updatePage(id: number, payload: PagePayload): Promise<PageDetail> {
-    const { data } = await api.put(`${base}/pages/${id}`, payload);
+export async function updatePage(idOrSlug: number | string, payload: PagePayload): Promise<PageDetail> {
+    const { data } = await api.put(`${base}/pages/${idOrSlug}`, payload);
     return data.data as PageDetail;
 }
-export async function deletePage(id: number): Promise<void> {
-    await api.delete(`${base}/pages/${id}`);
+export async function deletePage(idOrSlug: number | string): Promise<void> {
+    await api.delete(`${base}/pages/${idOrSlug}`);
+}
+export async function restorePage(idOrSlug: number | string): Promise<void> {
+    await api.post(`${base}/pages/${idOrSlug}/restore`);
+}
+export async function forceDeletePage(idOrSlug: number | string): Promise<void> {
+    await api.delete(`${base}/pages/${idOrSlug}/force`);
+}
+export async function duplicatePage(idOrSlug: number | string): Promise<PageDetail> {
+    const { data } = await api.post(`${base}/pages/${idOrSlug}/duplicate`);
+    return data.data as PageDetail;
 }
 
 /* -------------------------------------------------------------------- posts */
@@ -186,20 +196,30 @@ export async function getPostMeta(): Promise<PostMeta> {
     const { data } = await api.get(`${base}/posts/meta`);
     return data.data as PostMeta;
 }
-export async function getPost(id: number): Promise<PostDetail> {
-    const { data } = await api.get(`${base}/posts/${id}`);
+export async function getPost(idOrSlug: number | string): Promise<PostDetail> {
+    const { data } = await api.get(`${base}/posts/${idOrSlug}`);
     return data.data as PostDetail;
 }
 export async function createPost(payload: PostPayload): Promise<PostDetail> {
     const { data } = await api.post(`${base}/posts`, payload);
     return data.data as PostDetail;
 }
-export async function updatePost(id: number, payload: PostPayload): Promise<PostDetail> {
-    const { data } = await api.put(`${base}/posts/${id}`, payload);
+export async function updatePost(idOrSlug: number | string, payload: PostPayload): Promise<PostDetail> {
+    const { data } = await api.put(`${base}/posts/${idOrSlug}`, payload);
     return data.data as PostDetail;
 }
-export async function deletePost(id: number): Promise<void> {
-    await api.delete(`${base}/posts/${id}`);
+export async function deletePost(idOrSlug: number | string): Promise<void> {
+    await api.delete(`${base}/posts/${idOrSlug}`);
+}
+export async function restorePost(idOrSlug: number | string): Promise<void> {
+    await api.post(`${base}/posts/${idOrSlug}/restore`);
+}
+export async function forceDeletePost(idOrSlug: number | string): Promise<void> {
+    await api.delete(`${base}/posts/${idOrSlug}/force`);
+}
+export async function duplicatePost(idOrSlug: number | string): Promise<PostDetail> {
+    const { data } = await api.post(`${base}/posts/${idOrSlug}/duplicate`);
+    return data.data as PostDetail;
 }
 
 /* --------------------------------------------------------------- taxonomies */
@@ -506,20 +526,26 @@ export async function getNoticeMeta(): Promise<ContentMeta> {
     const { data } = await api.get(`${base}/notices/meta`);
     return data.data as ContentMeta;
 }
-export async function getNotice(id: number): Promise<NoticeDetail> {
-    const { data } = await api.get(`${base}/notices/${id}`);
+export async function getNotice(idOrSlug: number | string): Promise<NoticeDetail> {
+    const { data } = await api.get(`${base}/notices/${idOrSlug}`);
     return data.data as NoticeDetail;
 }
 export async function createNotice(payload: NoticePayload): Promise<NoticeDetail> {
     const { data } = await api.post(`${base}/notices`, payload);
     return data.data as NoticeDetail;
 }
-export async function updateNotice(id: number, payload: NoticePayload): Promise<NoticeDetail> {
-    const { data } = await api.put(`${base}/notices/${id}`, payload);
+export async function updateNotice(idOrSlug: number | string, payload: NoticePayload): Promise<NoticeDetail> {
+    const { data } = await api.put(`${base}/notices/${idOrSlug}`, payload);
     return data.data as NoticeDetail;
 }
-export async function deleteNotice(id: number): Promise<void> {
-    await api.delete(`${base}/notices/${id}`);
+export async function deleteNotice(idOrSlug: number | string): Promise<void> {
+    await api.delete(`${base}/notices/${idOrSlug}`);
+}
+export async function restoreNotice(idOrSlug: number | string): Promise<void> {
+    await api.post(`${base}/notices/${idOrSlug}/restore`);
+}
+export async function forceDeleteNotice(idOrSlug: number | string): Promise<void> {
+    await api.delete(`${base}/notices/${idOrSlug}/force`);
 }
 
 /* ------------------------------------------------------------------- events */
@@ -571,20 +597,82 @@ export async function getEventMeta(): Promise<ContentMeta> {
     const { data } = await api.get(`${base}/events/meta`);
     return data.data as ContentMeta;
 }
-export async function getEvent(id: number): Promise<EventDetail> {
-    const { data } = await api.get(`${base}/events/${id}`);
+export async function getEvent(idOrSlug: number | string): Promise<EventDetail> {
+    const { data } = await api.get(`${base}/events/${idOrSlug}`);
     return data.data as EventDetail;
 }
 export async function createEvent(payload: EventPayload): Promise<EventDetail> {
     const { data } = await api.post(`${base}/events`, payload);
     return data.data as EventDetail;
 }
-export async function updateEvent(id: number, payload: EventPayload): Promise<EventDetail> {
-    const { data } = await api.put(`${base}/events/${id}`, payload);
+export async function updateEvent(idOrSlug: number | string, payload: EventPayload): Promise<EventDetail> {
+    const { data } = await api.put(`${base}/events/${idOrSlug}`, payload);
     return data.data as EventDetail;
 }
-export async function deleteEvent(id: number): Promise<void> {
-    await api.delete(`${base}/events/${id}`);
+export async function deleteEvent(idOrSlug: number | string): Promise<void> {
+    await api.delete(`${base}/events/${idOrSlug}`);
+}
+export async function restoreEvent(idOrSlug: number | string): Promise<void> {
+    await api.post(`${base}/events/${idOrSlug}/restore`);
+}
+export async function forceDeleteEvent(idOrSlug: number | string): Promise<void> {
+    await api.delete(`${base}/events/${idOrSlug}/force`);
+}
+
+/* ------------------------------------------------------------------ galleries */
+
+export interface GalleryRow {
+    id: number;
+    title: string;
+    slug: string;
+    description: string | null;
+    cover_asset_id: number | null;
+    cover_asset: AssetPayload | null;
+    image_ids: number[];
+    images: AssetPayload[];
+    status: ContentStatus;
+    published_at: string | null;
+    created_at: string;
+}
+
+export interface GalleryPayload {
+    title: string;
+    slug?: string | null;
+    description?: string | null;
+    cover_asset_id?: number | null;
+    images?: number[];
+    status: ContentStatus;
+    published_at?: string | null;
+}
+
+export async function listGalleries(params: { search?: string; status?: string; sort?: string; direction?: SortDir } = {}): Promise<GalleryRow[]> {
+    const { data } = await api.get(`${base}/galleries`, { params: { per_page: 200, ...params } });
+    return data.data as GalleryRow[];
+}
+export async function getGallery(idOrSlug: number | string): Promise<GalleryRow> {
+    const { data } = await api.get(`${base}/galleries/${idOrSlug}`);
+    return data.data as GalleryRow;
+}
+export async function createGallery(payload: GalleryPayload): Promise<GalleryRow> {
+    const { data } = await api.post(`${base}/galleries`, payload);
+    return data.data as GalleryRow;
+}
+export async function updateGallery(idOrSlug: number | string, payload: GalleryPayload): Promise<GalleryRow> {
+    const { data } = await api.put(`${base}/galleries/${idOrSlug}`, payload);
+    return data.data as GalleryRow;
+}
+export async function deleteGallery(idOrSlug: number | string): Promise<void> {
+    await api.delete(`${base}/galleries/${idOrSlug}`);
+}
+export async function restoreGallery(idOrSlug: number | string): Promise<void> {
+    await api.post(`${base}/galleries/${idOrSlug}/restore`);
+}
+export async function forceDeleteGallery(idOrSlug: number | string): Promise<void> {
+    await api.delete(`${base}/galleries/${idOrSlug}/force`);
+}
+export async function duplicateGallery(idOrSlug: number | string): Promise<GalleryRow> {
+    const { data } = await api.post(`${base}/galleries/${idOrSlug}/duplicate`);
+    return data.data as GalleryRow;
 }
 
 /* ---------------------------------------------------------------- ui tokens */

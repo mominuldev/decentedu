@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, CheckCircle2, Loader2, XCircle } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import { Card, Button } from '@/components/ui';
 import { toApiError } from '@/lib/api';
 import { useToast } from '@/components/Toast';
@@ -16,14 +16,16 @@ import { Tabs, Field, Loading } from './PagesPanel';
 const EMPTY: PagePayload = { title: '', template: 'default', status: 'draft', blocks: [], seo: {} };
 
 export default function PageFormPage() {
-    const { id: idParam } = useParams<{ id: string }>();
+    const { slug: slugParam, id: idParam } = useParams<{ slug?: string; id?: string }>();
+    const routeParam = slugParam || idParam || null;
     const navigate = useNavigate();
     const qc = useQueryClient();
     const toast = useToast();
 
-    // Track the id locally so a freshly-created page switches into edit mode
+    // Track slugOrId & id locally so a freshly-created page switches into edit mode
     // (subsequent saves become updates) without a route remount that would reset the tab.
-    const [id, setId] = useState<number | null>(idParam ? Number(idParam) : null);
+    const [slugOrId, setSlugOrId] = useState<string | number | null>(routeParam);
+    const [id, setId] = useState<number | null>(null);
     const [tab, setTab] = useState<'content' | 'blocks' | 'seo'>('content');
     const [form, setForm] = useState<PagePayload>(EMPTY);
     const [seo, setSeo] = useState<SeoData>({});
@@ -36,13 +38,14 @@ export default function PageFormPage() {
 
     const { data: meta } = useQuery({ queryKey: ['cms-page-meta'], queryFn: getPageMeta });
     const { isLoading } = useQuery({
-        queryKey: ['cms-page', id],
+        queryKey: ['cms-page', slugOrId],
         queryFn: async () => {
-            const p = await getPage(id!);
+            const p = await getPage(slugOrId!);
+            setId(p.id);
             hydrate(p);
             return p;
         },
-        enabled: id !== null,
+        enabled: slugOrId !== null,
     });
 
     const hydrate = (p: PageDetail) => {
@@ -58,20 +61,22 @@ export default function PageFormPage() {
     const save = useMutation({
         mutationFn: () => {
             const payload: PagePayload = { ...form, seo, blocks };
-            return id ? updatePage(id, payload) : createPage(payload);
+            const target = id ?? slugOrId;
+            return target ? updatePage(target, payload) : createPage(payload);
         },
         onSuccess: (page) => {
             setError(null);
             setErrors({});
             qc.invalidateQueries({ queryKey: ['cms-pages'] });
-            if (id === null) {
+            if (slugOrId === null) {
                 // Newly created: move into edit mode and sync the URL without remounting,
                 // so the user stays on the tab they were editing.
                 setId(page.id);
+                setSlugOrId(page.slug || page.id);
                 hydrate(page);
-                window.history.replaceState(null, '', `/cms/${page.id}/edit`);
+                window.history.replaceState(null, '', `/cms/pages/${page.slug || page.id}/edit`);
             } else {
-                qc.invalidateQueries({ queryKey: ['cms-page', id] });
+                qc.invalidateQueries({ queryKey: ['cms-page', slugOrId] });
             }
             toast.success('Page saved successfully');
         },

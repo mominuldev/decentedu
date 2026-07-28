@@ -17,8 +17,9 @@ import { useToast } from '@/components/Toast';
 const EMPTY: PostPayload = { title: '', status: 'draft', body: '', terms: [], tags: [], blocks: [], seo: {} };
 
 export default function PostFormPage() {
-    const { id: idParam } = useParams<{ id: string }>();
-    const id = idParam ? Number(idParam) : null;
+    const { slug: slugParam, id: idParam } = useParams<{ slug?: string; id?: string }>();
+    const slugOrId = slugParam || idParam || null;
+    const [postId, setPostId] = useState<number | null>(null);
     const navigate = useNavigate();
     const qc = useQueryClient();
     const toast = useToast();
@@ -36,24 +37,29 @@ export default function PostFormPage() {
 
     const { data: meta } = useQuery({ queryKey: ['cms-post-meta'], queryFn: getPostMeta });
     const { isLoading } = useQuery({
-        queryKey: ['cms-post', id],
+        queryKey: ['cms-post', slugOrId],
         queryFn: async () => {
-            const p = await getPost(id!);
+            const p = await getPost(slugOrId!);
+            setPostId(p.id);
             setForm({
                 title: p.title, slug: p.slug, excerpt: p.excerpt, body: p.body, status: p.status,
                 is_featured: p.is_featured, published_at: p.published_at, featured_asset_id: p.featured_asset_id,
-                terms: p.terms.map((t) => t.id), tags: p.tags,
+                terms: p.terms, tags: p.tags,
             });
             setSeo(p.seo ?? {});
             setOgImage(p.seo_og_image);
             setBlocks(p.blocks);
             return p;
         },
-        enabled: id !== null,
+        enabled: slugOrId !== null,
     });
 
     const save = useMutation({
-        mutationFn: () => { const payload: PostPayload = { ...form, seo, blocks }; return id ? updatePost(id, payload) : createPost(payload); },
+        mutationFn: () => {
+            const payload: PostPayload = { ...form, seo, blocks };
+            const target = postId ?? slugOrId;
+            return target ? updatePost(target, payload) : createPost(payload);
+        },
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: ['cms-posts'] });
             toast.success('Post saved successfully');
@@ -77,8 +83,8 @@ export default function PostFormPage() {
                 <div className="flex items-center gap-3">
                     <Button variant="outline" onClick={back} disabled={save.isPending}><ArrowLeft size={16} /> Back</Button>
                     <div>
-                        <h1 className="text-[22px] font-bold tracking-tight text-fg">{id ? 'Edit post' : 'New post'}</h1>
-                        <p className="mt-0.5 text-[13.5px] text-muted">{id ? `Editing “${form.title}”` : 'Create a new post for the public site'}</p>
+                        <h1 className="text-[22px] font-bold tracking-tight text-fg">{slugOrId ? 'Edit post' : 'New post'}</h1>
+                        <p className="mt-0.5 text-[13.5px] text-muted">{slugOrId ? `Editing “${form.title}”` : 'Create a new post for the public site'}</p>
                     </div>
                 </div>
                 <div className="flex gap-2">
@@ -90,7 +96,7 @@ export default function PostFormPage() {
                 </div>
             </div>
 
-            {id !== null && isLoading ? <Loading /> : (
+            {slugOrId !== null && isLoading ? <Loading /> : (
                 <Card className="p-5">
                     <div className="space-y-4">
                         {error && <p className="rounded-lg bg-rose-50 px-3 py-2 text-[13px] text-rose-700 dark:bg-rose-500/10 dark:text-rose-300">{error}</p>}

@@ -23,15 +23,15 @@ class PageController extends Controller
     {
         $query = Page::query()->with(['updater:id,name']);
 
-        if ($request->boolean('trashed')) {
+        if ($request->boolean('trashed') || $request->input('status') === 'trashed') {
             $query->onlyTrashed();
+        } elseif ($request->filled('status')) {
+            $query->where('status', $request->string('status')->value());
         }
+
         if ($request->filled('search')) {
             $search = $request->string('search')->value();
             $query->where(fn ($q) => $q->where('title', 'like', "%{$search}%")->orWhere('path', 'like', "%{$search}%"));
-        }
-        if ($request->filled('status')) {
-            $query->where('status', $request->string('status')->value());
         }
 
         $sortable = ['title', 'path', 'template', 'status', 'position', 'published_at', 'updated_at'];
@@ -80,11 +80,10 @@ class PageController extends Controller
         ], 'Page editor metadata.');
     }
 
-    public function show(int $id, BlockAdminPresenter $presenter): JsonResponse
+    public function show(int|string $id, BlockAdminPresenter $presenter): JsonResponse
     {
-        $page = Page::query()
-            ->with(['seo.ogImageAsset', 'blocks', 'featuredAsset'])
-            ->findOrFail($id);
+        $page = $this->findPage($id)
+            ->load(['seo.ogImageAsset', 'blocks', 'featuredAsset']);
 
         return ApiResponse::success($this->editorPayload($page, $presenter), 'Page retrieved.');
     }
@@ -97,27 +96,69 @@ class PageController extends Controller
         return ApiResponse::success($this->editorPayload($page, $presenter), 'Page created.', status: 201);
     }
 
-    public function update(PageRequest $request, int $id, UpdatePage $action, BlockAdminPresenter $presenter): JsonResponse
+    public function update(PageRequest $request, int|string $id, UpdatePage $action, BlockAdminPresenter $presenter): JsonResponse
     {
-        $page = Page::findOrFail($id);
+        $page = $this->findPage($id);
         $page = $action->handle($page, $request->validated(), $request->user());
         $page->load(['seo.ogImageAsset', 'blocks', 'featuredAsset']);
 
         return ApiResponse::success($this->editorPayload($page, $presenter), 'Page updated.');
     }
 
-    public function destroy(int $id, DeletePage $action): JsonResponse
+    public function destroy(int|string $id, DeletePage $action): JsonResponse
     {
-        $action->handle(Page::findOrFail($id));
+        $action->handle($this->findPage($id));
 
         return ApiResponse::success(null, 'Page deleted.');
     }
 
-    public function restore(int $id): JsonResponse
+    public function restore(int|string $id): JsonResponse
     {
-        Page::onlyTrashed()->findOrFail($id)->restore();
+        $this->findPage($id, onlyTrashed: true)->restore();
 
         return ApiResponse::success(null, 'Page restored.');
+    }
+
+    public function forceDelete(int|string $id): JsonResponse
+    {
+        $this->findPage($id, onlyTrashed: true)->forceDelete();
+
+        return ApiResponse::success(null, 'Page permanently deleted.');
+    }
+
+    public function duplicate(int|string $id, CreatePage $action, BlockAdminPresenter $presenter, Request $request): JsonResponse
+    {
+        $original = $this->findPage($id)
+            ->load(['seo.ogImageAsset', 'blocks', 'featuredAsset']);
+
+        $data = [
+            'title' => $original->title.' (Copy)',
+            'slug' => \Illuminate\Support\Str::slug($original->title.' Copy'),
+            'parent_id' => $original->parent_id,
+            'template' => $original->template,
+            'excerpt' => $original->excerpt,
+            'status' => ContentStatus::Draft->value,
+            'published_at' => null,
+            'position' => $original->position,
+            'featured_asset_id' => $original->featured_asset_id,
+            'blocks' => $presenter->present($original->blocks),
+            'seo' => $original->seo?->only([
+                'meta_title', 'meta_description', 'canonical_url', 'robots',
+                'og_title', 'og_description', 'og_image_asset_id', 'structured_data',
+            ]),
+        ];
+
+        $page = $action->handle($data, $request->user());
+        $page->load(['seo.ogImageAsset', 'blocks', 'featuredAsset']);
+
+        return ApiResponse::success($this->editorPayload($page, $presenter), 'Page duplicated as draft.', status: 201);
+    }
+
+    private function findPage(int|string $idOrSlug, bool $onlyTrashed = false): Page
+    {
+        $query = $onlyTrashed ? Page::onlyTrashed() : Page::query();
+
+        return $query->where(fn ($q) => $q->where('id', $idOrSlug)->orWhere('slug', $idOrSlug))->firstOrFail();
     }
 
     /**

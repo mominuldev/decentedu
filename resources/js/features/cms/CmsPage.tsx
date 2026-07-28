@@ -1,8 +1,9 @@
 import { useSearchParams } from 'react-router-dom';
-import { FileText, Newspaper, Tags, Image, Menu as MenuIcon, CornerUpRight, Megaphone, CalendarDays } from 'lucide-react';
+import { FileText, Newspaper, Tags, Image, Menu as MenuIcon, CornerUpRight, Megaphone, CalendarDays, Images } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { PagesPanel } from './PagesPanel';
 import { PostsPanel } from './PostsPanel';
+import { GalleryPanel } from './GalleryPanel';
 import { TaxonomiesPanel } from './TaxonomiesPanel';
 import { MediaPanel } from './MediaPanel';
 import { MenusPanel } from './MenusPanel';
@@ -13,11 +14,12 @@ import { RedirectsPanel } from './RedirectsPanel';
 const sections = [
     { key: 'pages', label: 'Pages', icon: FileText, render: () => <PagesPanel /> },
     { key: 'posts', label: 'Posts', icon: Newspaper, render: () => <PostsPanel /> },
+    { key: 'gallery', label: 'Gallery', icon: Images, render: () => <GalleryPanel /> },
+    { key: 'notices', label: 'Notices', icon: Megaphone, render: () => <NoticesPanel /> },
+    { key: 'events', label: 'Events', icon: CalendarDays, render: () => <EventsPanel /> },
     { key: 'taxonomies', label: 'Taxonomies', icon: Tags, render: () => <TaxonomiesPanel /> },
     { key: 'media', label: 'Media', icon: Image, render: () => <MediaPanel /> },
     { key: 'menus', label: 'Menus', icon: MenuIcon, render: () => <MenusPanel /> },
-    { key: 'notices', label: 'Notices', icon: Megaphone, render: () => <NoticesPanel /> },
-    { key: 'events', label: 'Events', icon: CalendarDays, render: () => <EventsPanel /> },
     { key: 'redirects', label: 'Redirects', icon: CornerUpRight, render: () => <RedirectsPanel /> },
 ] as const;
 

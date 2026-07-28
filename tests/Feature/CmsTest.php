@@ -768,4 +768,146 @@ class CmsTest extends TestCase
         $this->assertCount(3, $blockData['notices']);
         $this->assertSame('Notice 4', $blockData['notices'][0]['title']);
     }
+
+    public function test_gallery_can_be_created_listed_updated_and_deleted(): void
+    {
+        $this->actingAsBranchUser();
+
+        // 1. Create gallery
+        $createResponse = $this->postJson('/api/v1/cms/galleries', [
+            'title' => 'Annual Cultural Program 2026',
+            'description' => 'Highlights from our cultural evening.',
+            'status' => 'published',
+            'images' => [],
+        ]);
+
+        $createResponse->assertStatus(201);
+        $galleryId = $createResponse->json('data.id');
+        $this->assertSame('Annual Cultural Program 2026', $createResponse->json('data.title'));
+        $this->assertSame('published', $createResponse->json('data.status'));
+
+        // 2. List galleries
+        $listResponse = $this->getJson('/api/v1/cms/galleries');
+        $listResponse->assertOk();
+        $this->assertGreaterThanOrEqual(1, count($listResponse->json('data')));
+
+        // 3. Duplicate gallery as draft
+        $duplicateResponse = $this->postJson("/api/v1/cms/galleries/{$galleryId}/duplicate");
+        $duplicateResponse->assertStatus(201);
+        $this->assertSame('Annual Cultural Program 2026 (Copy)', $duplicateResponse->json('data.title'));
+        $this->assertSame('draft', $duplicateResponse->json('data.status'));
+
+        // 4. Update gallery
+        $updateResponse = $this->putJson("/api/v1/cms/galleries/{$galleryId}", [
+            'title' => 'Updated Cultural Program 2026',
+            'description' => 'Updated description.',
+            'status' => 'draft',
+        ]);
+        $updateResponse->assertOk();
+        $this->assertSame('Updated Cultural Program 2026', $updateResponse->json('data.title'));
+
+        // 5. Delete gallery
+        $deleteResponse = $this->deleteJson("/api/v1/cms/galleries/{$galleryId}");
+        $deleteResponse->assertOk();
+    }
+
+    public function test_page_and_post_can_be_duplicated_as_draft(): void
+    {
+        $this->actingAsBranchUser();
+
+        // 1. Create original page & duplicate
+        $pageRes = $this->postJson('/api/v1/cms/pages', [
+            'title' => 'Admissions Overview',
+            'template' => 'default',
+            'status' => 'published',
+        ]);
+        $pageRes->assertStatus(201);
+        $pageId = $pageRes->json('data.id');
+
+        $pageDupRes = $this->postJson("/api/v1/cms/pages/{$pageId}/duplicate");
+        $pageDupRes->assertStatus(201);
+        $this->assertSame('Admissions Overview (Copy)', $pageDupRes->json('data.title'));
+        $this->assertSame('draft', $pageDupRes->json('data.status'));
+
+        // 2. Create original post & duplicate
+        $postRes = $this->postJson('/api/v1/cms/posts', [
+            'title' => 'Welcome to Campus 2026',
+            'body' => '<p>Welcome students!</p>',
+            'status' => 'published',
+        ]);
+        $postRes->assertStatus(201);
+        $postId = $postRes->json('data.id');
+
+        $postDupRes = $this->postJson("/api/v1/cms/posts/{$postId}/duplicate");
+        $postDupRes->assertStatus(201);
+        $this->assertSame('Welcome to Campus 2026 (Copy)', $postDupRes->json('data.title'));
+        $this->assertSame('draft', $postDupRes->json('data.status'));
+    }
+
+    public function test_gallery_can_be_trashed_restored_and_permanently_deleted(): void
+    {
+        $this->actingAsBranchUser();
+
+        // 1. Create gallery
+        $res = $this->postJson('/api/v1/cms/galleries', [
+            'title' => 'Campus Tour Gallery',
+            'status' => 'published',
+        ]);
+        $res->assertStatus(201);
+        $id = $res->json('data.id');
+
+        // 2. Soft delete -> moves to trash
+        $this->deleteJson("/api/v1/cms/galleries/{$id}")->assertOk();
+
+        // 3. Trash list returns item
+        $trashRes = $this->getJson('/api/v1/cms/galleries?status=trashed');
+        $trashRes->assertOk();
+        $this->assertCount(1, $trashRes->json('data'));
+
+        // 4. Restore item
+        $this->postJson("/api/v1/cms/galleries/{$id}/restore")->assertOk();
+        $listRes = $this->getJson('/api/v1/cms/galleries');
+        $this->assertGreaterThanOrEqual(1, count($listRes->json('data')));
+
+        // 5. Soft delete again and force delete (permanent delete)
+        $this->deleteJson("/api/v1/cms/galleries/{$id}")->assertOk();
+        $this->deleteJson("/api/v1/cms/galleries/{$id}/force")->assertOk();
+
+        $finalTrashRes = $this->getJson('/api/v1/cms/galleries?status=trashed');
+        $this->assertCount(0, $finalTrashRes->json('data'));
+    }
+
+    public function test_page_can_be_trashed_restored_and_permanently_deleted(): void
+    {
+        $this->actingAsBranchUser();
+
+        // 1. Create page
+        $res = $this->postJson('/api/v1/cms/pages', [
+            'title' => 'Test Trash Page',
+            'template' => 'default',
+            'status' => 'published',
+        ]);
+        $res->assertStatus(201);
+        $id = $res->json('data.id');
+
+        // 2. Soft delete -> moves to trash
+        $this->deleteJson("/api/v1/cms/pages/{$id}")->assertOk();
+
+        // 3. Trash list returns item
+        $trashRes = $this->getJson('/api/v1/cms/pages?status=trashed');
+        $trashRes->assertOk();
+        $this->assertCount(1, $trashRes->json('data'));
+
+        // 4. Restore item
+        $this->postJson("/api/v1/cms/pages/{$id}/restore")->assertOk();
+        $listRes = $this->getJson('/api/v1/cms/pages');
+        $this->assertGreaterThanOrEqual(1, count($listRes->json('data')));
+
+        // 5. Soft delete again and force delete (permanent delete)
+        $this->deleteJson("/api/v1/cms/pages/{$id}")->assertOk();
+        $this->deleteJson("/api/v1/cms/pages/{$id}/force")->assertOk();
+
+        $finalTrashRes = $this->getJson('/api/v1/cms/pages?status=trashed');
+        $this->assertCount(0, $finalTrashRes->json('data'));
+    }
 }

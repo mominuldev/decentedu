@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\BranchController;
 use App\Http\Controllers\Api\SettingsController;
 use App\Http\Controllers\Api\Cms\AssetController;
 use App\Http\Controllers\Api\Cms\EventController;
+use App\Http\Controllers\Api\Cms\GalleryController;
 use App\Http\Controllers\Api\Cms\MediaFolderController;
 use App\Http\Controllers\Api\Cms\MenuController;
 use App\Http\Controllers\Api\Cms\NoticeController;
@@ -484,19 +485,23 @@ Route::prefix('v1')->group(function () use ($setupSlugs) {
             Route::get('pages', [PageController::class, 'index']);
             Route::get('pages/meta', [PageController::class, 'meta']);
             Route::post('pages', [PageController::class, 'store']);
-            Route::get('pages/{id}', [PageController::class, 'show'])->whereNumber('id');
-            Route::match(['put', 'patch'], 'pages/{id}', [PageController::class, 'update'])->whereNumber('id');
-            Route::delete('pages/{id}', [PageController::class, 'destroy'])->whereNumber('id');
-            Route::post('pages/{id}/restore', [PageController::class, 'restore'])->whereNumber('id');
+            Route::get('pages/{id}', [PageController::class, 'show']);
+            Route::match(['put', 'patch'], 'pages/{id}', [PageController::class, 'update']);
+            Route::delete('pages/{id}', [PageController::class, 'destroy']);
+            Route::post('pages/{id}/restore', [PageController::class, 'restore']);
+            Route::delete('pages/{id}/force', [PageController::class, 'forceDelete']);
+            Route::post('pages/{id}/duplicate', [PageController::class, 'duplicate']);
 
             // Posts
             Route::get('posts', [PostController::class, 'index']);
             Route::get('posts/meta', [PostController::class, 'meta']);
             Route::post('posts', [PostController::class, 'store']);
-            Route::get('posts/{id}', [PostController::class, 'show'])->whereNumber('id');
-            Route::match(['put', 'patch'], 'posts/{id}', [PostController::class, 'update'])->whereNumber('id');
-            Route::delete('posts/{id}', [PostController::class, 'destroy'])->whereNumber('id');
-            Route::post('posts/{id}/restore', [PostController::class, 'restore'])->whereNumber('id');
+            Route::get('posts/{id}', [PostController::class, 'show']);
+            Route::match(['put', 'patch'], 'posts/{id}', [PostController::class, 'update']);
+            Route::delete('posts/{id}', [PostController::class, 'destroy']);
+            Route::post('posts/{id}/restore', [PostController::class, 'restore']);
+            Route::delete('posts/{id}/force', [PostController::class, 'forceDelete']);
+            Route::post('posts/{id}/duplicate', [PostController::class, 'duplicate']);
 
             // Taxonomies & terms
             Route::get('taxonomies', [TaxonomyController::class, 'index']);
@@ -527,19 +532,31 @@ Route::prefix('v1')->group(function () use ($setupSlugs) {
             Route::get('notices', [NoticeController::class, 'index']);
             Route::get('notices/meta', [NoticeController::class, 'meta']);
             Route::post('notices', [NoticeController::class, 'store']);
-            Route::get('notices/{id}', [NoticeController::class, 'show'])->whereNumber('id');
-            Route::match(['put', 'patch'], 'notices/{id}', [NoticeController::class, 'update'])->whereNumber('id');
-            Route::delete('notices/{id}', [NoticeController::class, 'destroy'])->whereNumber('id');
-            Route::post('notices/{id}/restore', [NoticeController::class, 'restore'])->whereNumber('id');
+            Route::get('notices/{id}', [NoticeController::class, 'show']);
+            Route::match(['put', 'patch'], 'notices/{id}', [NoticeController::class, 'update']);
+            Route::delete('notices/{id}', [NoticeController::class, 'destroy']);
+            Route::post('notices/{id}/restore', [NoticeController::class, 'restore']);
+            Route::delete('notices/{id}/force', [NoticeController::class, 'forceDelete']);
 
             // Events
             Route::get('events', [EventController::class, 'index']);
             Route::get('events/meta', [EventController::class, 'meta']);
             Route::post('events', [EventController::class, 'store']);
-            Route::get('events/{id}', [EventController::class, 'show'])->whereNumber('id');
-            Route::match(['put', 'patch'], 'events/{id}', [EventController::class, 'update'])->whereNumber('id');
-            Route::delete('events/{id}', [EventController::class, 'destroy'])->whereNumber('id');
-            Route::post('events/{id}/restore', [EventController::class, 'restore'])->whereNumber('id');
+            Route::get('events/{id}', [EventController::class, 'show']);
+            Route::match(['put', 'patch'], 'events/{id}', [EventController::class, 'update']);
+            Route::delete('events/{id}', [EventController::class, 'destroy']);
+            Route::post('events/{id}/restore', [EventController::class, 'restore']);
+            Route::delete('events/{id}/force', [EventController::class, 'forceDelete']);
+
+            // Galleries
+            Route::get('galleries', [GalleryController::class, 'index']);
+            Route::post('galleries', [GalleryController::class, 'store']);
+            Route::get('galleries/{id}', [GalleryController::class, 'show']);
+            Route::match(['put', 'patch'], 'galleries/{id}', [GalleryController::class, 'update']);
+            Route::delete('galleries/{id}', [GalleryController::class, 'destroy']);
+            Route::post('galleries/{id}/restore', [GalleryController::class, 'restore']);
+            Route::delete('galleries/{id}/force', [GalleryController::class, 'forceDelete']);
+            Route::post('galleries/{id}/duplicate', [GalleryController::class, 'duplicate']);
 
             // Redirects
             Route::get('redirects', [RedirectController::class, 'index']);

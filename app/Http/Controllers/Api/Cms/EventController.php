@@ -21,13 +21,9 @@ class EventController extends Controller
     {
         $query = Event::query()->with(['terms:id,name', 'featuredAsset.media']);
 
-        if ($request->boolean('trashed')) {
+        if ($request->boolean('trashed') || $request->input('status') === 'trashed') {
             $query->onlyTrashed();
-        }
-        if ($request->filled('search')) {
-            $query->where('title', 'like', '%'.$request->string('search')->value().'%');
-        }
-        if ($request->filled('status')) {
+        } elseif ($request->filled('status')) {
             $query->where('status', $request->string('status')->value());
         }
 
@@ -74,9 +70,9 @@ class EventController extends Controller
         ], 'Event editor metadata.');
     }
 
-    public function show(int $id): JsonResponse
+    public function show(int|string $id): JsonResponse
     {
-        $event = Event::query()->with(['terms:id,name', 'featuredAsset.media'])->findOrFail($id);
+        $event = $this->findEvent($id)->load(['terms:id,name', 'featuredAsset.media']);
 
         return ApiResponse::success($this->editorPayload($event), 'Event retrieved.');
     }
@@ -89,26 +85,40 @@ class EventController extends Controller
         return ApiResponse::success($this->editorPayload($event), 'Event created.', status: 201);
     }
 
-    public function update(EventRequest $request, int $id): JsonResponse
+    public function update(EventRequest $request, int|string $id): JsonResponse
     {
-        $event = $this->save(Event::findOrFail($id), $request);
+        $event = $this->save($this->findEvent($id), $request);
         $event->load(['terms:id,name', 'featuredAsset.media']);
 
         return ApiResponse::success($this->editorPayload($event), 'Event updated.');
     }
 
-    public function destroy(int $id): JsonResponse
+    public function destroy(int|string $id): JsonResponse
     {
-        Event::findOrFail($id)->delete();
+        $this->findEvent($id)->delete();
 
         return ApiResponse::success(null, 'Event deleted.');
     }
 
-    public function restore(int $id): JsonResponse
+    public function restore(int|string $id): JsonResponse
     {
-        Event::onlyTrashed()->findOrFail($id)->restore();
+        $this->findEvent($id, onlyTrashed: true)->restore();
 
         return ApiResponse::success(null, 'Event restored.');
+    }
+
+    public function forceDelete(int|string $id): JsonResponse
+    {
+        $this->findEvent($id, onlyTrashed: true)->forceDelete();
+
+        return ApiResponse::success(null, 'Event permanently deleted.');
+    }
+
+    private function findEvent(int|string $idOrSlug, bool $onlyTrashed = false): Event
+    {
+        $query = $onlyTrashed ? Event::onlyTrashed() : Event::query();
+
+        return $query->where(fn ($q) => $q->where('id', $idOrSlug)->orWhere('slug', $idOrSlug))->firstOrFail();
     }
 
     private function save(Event $event, EventRequest $request): Event

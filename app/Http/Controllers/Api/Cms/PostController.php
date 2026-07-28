@@ -25,13 +25,9 @@ class PostController extends Controller
     {
         $query = Post::query()->with(['author:id,name', 'terms:id,name']);
 
-        if ($request->boolean('trashed')) {
+        if ($request->boolean('trashed') || $request->input('status') === 'trashed') {
             $query->onlyTrashed();
-        }
-        if ($request->filled('search')) {
-            $query->where('title', 'like', '%'.$request->string('search')->value().'%');
-        }
-        if ($request->filled('status')) {
+        } elseif ($request->filled('status')) {
             $query->where('status', $request->string('status')->value());
         }
         if ($request->filled('author')) {
@@ -83,11 +79,10 @@ class PostController extends Controller
         ], 'Post editor metadata.');
     }
 
-    public function show(int $id, BlockAdminPresenter $presenter): JsonResponse
+    public function show(int|string $id, BlockAdminPresenter $presenter): JsonResponse
     {
-        $post = Post::query()
-            ->with(['seo.ogImageAsset', 'blocks', 'terms:id,name', 'featuredAsset', 'tags'])
-            ->findOrFail($id);
+        $post = $this->findPost($id)
+            ->load(['seo.ogImageAsset', 'blocks', 'terms:id,name', 'featuredAsset', 'tags']);
 
         return ApiResponse::success($this->editorPayload($post, $presenter), 'Post retrieved.');
     }
@@ -100,27 +95,70 @@ class PostController extends Controller
         return ApiResponse::success($this->editorPayload($post, $presenter), 'Post created.', status: 201);
     }
 
-    public function update(PostRequest $request, int $id, UpdatePost $action, BlockAdminPresenter $presenter): JsonResponse
+    public function update(PostRequest $request, int|string $id, UpdatePost $action, BlockAdminPresenter $presenter): JsonResponse
     {
-        $post = Post::findOrFail($id);
+        $post = $this->findPost($id);
         $post = $action->handle($post, $request->validated(), $request->user());
         $post->load(['seo.ogImageAsset', 'blocks', 'terms:id,name', 'featuredAsset', 'tags']);
 
         return ApiResponse::success($this->editorPayload($post, $presenter), 'Post updated.');
     }
 
-    public function destroy(int $id): JsonResponse
+    public function destroy(int|string $id): JsonResponse
     {
-        Post::findOrFail($id)->delete();
+        $this->findPost($id)->delete();
 
         return ApiResponse::success(null, 'Post deleted.');
     }
 
-    public function restore(int $id): JsonResponse
+    public function restore(int|string $id): JsonResponse
     {
-        Post::onlyTrashed()->findOrFail($id)->restore();
+        $this->findPost($id, onlyTrashed: true)->restore();
 
         return ApiResponse::success(null, 'Post restored.');
+    }
+
+    public function forceDelete(int|string $id): JsonResponse
+    {
+        $this->findPost($id, onlyTrashed: true)->forceDelete();
+
+        return ApiResponse::success(null, 'Post permanently deleted.');
+    }
+
+    public function duplicate(int|string $id, CreatePost $action, BlockAdminPresenter $presenter, Request $request): JsonResponse
+    {
+        $original = $this->findPost($id)
+            ->load(['seo.ogImageAsset', 'blocks', 'terms:id,name', 'featuredAsset', 'tags']);
+
+        $data = [
+            'title' => $original->title.' (Copy)',
+            'slug' => \Illuminate\Support\Str::slug($original->title.' Copy'),
+            'excerpt' => $original->excerpt,
+            'body' => $original->body,
+            'status' => ContentStatus::Draft->value,
+            'published_at' => null,
+            'is_featured' => false,
+            'featured_asset_id' => $original->featured_asset_id,
+            'terms' => $original->terms->pluck('id')->all(),
+            'tags' => $original->tags->pluck('name')->all(),
+            'blocks' => $presenter->present($original->blocks),
+            'seo' => $original->seo?->only([
+                'meta_title', 'meta_description', 'canonical_url', 'robots',
+                'og_title', 'og_description', 'og_image_asset_id', 'structured_data',
+            ]),
+        ];
+
+        $post = $action->handle($data, $request->user());
+        $post->load(['seo.ogImageAsset', 'blocks', 'terms:id,name', 'featuredAsset', 'tags']);
+
+        return ApiResponse::success($this->editorPayload($post, $presenter), 'Post duplicated as draft.', status: 201);
+    }
+
+    private function findPost(int|string $idOrSlug, bool $onlyTrashed = false): Post
+    {
+        $query = $onlyTrashed ? Post::onlyTrashed() : Post::query();
+
+        return $query->where(fn ($q) => $q->where('id', $idOrSlug)->orWhere('slug', $idOrSlug))->firstOrFail();
     }
 
     /**

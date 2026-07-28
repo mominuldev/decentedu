@@ -17,8 +17,9 @@ const today = () => new Date().toISOString().slice(0, 10);
 const EMPTY: NoticePayload = { title: '', status: 'draft', body: '', notice_date: today(), is_important: false, terms: [] };
 
 export default function NoticeFormPage() {
-    const { id: idParam } = useParams<{ id: string }>();
-    const id = idParam ? Number(idParam) : null;
+    const { slug: slugParam, id: idParam } = useParams<{ slug?: string; id?: string }>();
+    const slugOrId = slugParam || idParam || null;
+    const [noticeId, setNoticeId] = useState<number | null>(null);
     const navigate = useNavigate();
     const qc = useQueryClient();
     const toast = useToast();
@@ -33,9 +34,9 @@ export default function NoticeFormPage() {
 
     const { data: meta } = useQuery({ queryKey: ['cms-notice-meta'], queryFn: getNoticeMeta });
     const { isLoading } = useQuery({
-        queryKey: ['cms-notice', id],
-        queryFn: async () => { const n = await getNotice(id!); hydrate(n); return n; },
-        enabled: id !== null,
+        queryKey: ['cms-notice', slugOrId],
+        queryFn: async () => { const n = await getNotice(slugOrId!); setNoticeId(n.id); hydrate(n); return n; },
+        enabled: slugOrId !== null,
     });
 
     const hydrate = (n: NoticeDetail) => {
@@ -44,7 +45,11 @@ export default function NoticeFormPage() {
     };
 
     const save = useMutation({
-        mutationFn: () => { const payload: NoticePayload = { ...form, attachment_asset_id: attachment?.id ?? null }; return id ? updateNotice(id, payload) : createNotice(payload); },
+        mutationFn: () => {
+            const payload: NoticePayload = { ...form, attachment_asset_id: attachment?.id ?? null };
+            const target = noticeId ?? slugOrId;
+            return target ? updateNotice(target, payload) : createNotice(payload);
+        },
         onSuccess: () => { 
             qc.invalidateQueries({ queryKey: ['cms-notices'] }); 
             toast.success('Notice saved successfully');
@@ -67,8 +72,8 @@ export default function NoticeFormPage() {
                 <div className="flex items-center gap-3">
                     <Button variant="outline" onClick={back} disabled={save.isPending}><ArrowLeft size={16} /> Back</Button>
                     <div>
-                        <h1 className="text-[22px] font-bold tracking-tight text-fg">{id ? 'Edit notice' : 'New notice'}</h1>
-                        <p className="mt-0.5 text-[13.5px] text-muted">{id ? `Editing “${form.title}”` : 'Publish a dated notice, with an optional PDF/Excel download'}</p>
+                        <h1 className="text-[22px] font-bold tracking-tight text-fg">{slugOrId ? 'Edit notice' : 'New notice'}</h1>
+                        <p className="mt-0.5 text-[13.5px] text-muted">{slugOrId ? `Editing “${form.title}”` : 'Publish a dated notice, with an optional PDF/Excel download'}</p>
                     </div>
                 </div>
                 <div className="flex gap-2">
@@ -80,7 +85,7 @@ export default function NoticeFormPage() {
                 </div>
             </div>
 
-            {id !== null && isLoading ? <Loading /> : (
+            {slugOrId !== null && isLoading ? <Loading /> : (
                 <Card className="p-5">
                     <div className="space-y-4">
                         {error && <p className="rounded-lg bg-rose-50 px-3 py-2 text-[13px] text-rose-700 dark:bg-rose-500/10 dark:text-rose-300">{error}</p>}

@@ -26,6 +26,7 @@ import PageFormPage from '@/features/cms/PageFormPage';
 import PostFormPage from '@/features/cms/PostFormPage';
 import NoticeFormPage from '@/features/cms/NoticeFormPage';
 import EventFormPage from '@/features/cms/EventFormPage';
+import GalleryFormPage from '@/features/cms/GalleryFormPage';
 import UsersPage from '@/features/users/UsersPage';
 import AuditLogPage from '@/features/audit/AuditLogPage';
 import SettingsPage from '@/features/settings/SettingsPage';
@@ -67,13 +68,15 @@ export const router = createBrowserRouter([
     { path: '/credentials', element: page(<CredentialsPage />) },
     { path: '/cms', element: page(<CmsPage />) },
     { path: '/cms/pages/new', element: page(<PageFormPage />) },
-    { path: '/cms/pages/:id/edit', element: page(<PageFormPage />) },
+    { path: '/cms/pages/:slug/edit', element: page(<PageFormPage />) },
     { path: '/cms/posts/new', element: page(<PostFormPage />) },
-    { path: '/cms/posts/:id/edit', element: page(<PostFormPage />) },
+    { path: '/cms/posts/:slug/edit', element: page(<PostFormPage />) },
     { path: '/cms/notices/new', element: page(<NoticeFormPage />) },
-    { path: '/cms/notices/:id/edit', element: page(<NoticeFormPage />) },
+    { path: '/cms/notices/:slug/edit', element: page(<NoticeFormPage />) },
     { path: '/cms/events/new', element: page(<EventFormPage />) },
-    { path: '/cms/events/:id/edit', element: page(<EventFormPage />) },
+    { path: '/cms/events/:slug/edit', element: page(<EventFormPage />) },
+    { path: '/cms/galleries/new', element: page(<GalleryFormPage />) },
+    { path: '/cms/galleries/:slug/edit', element: page(<GalleryFormPage />) },
     { path: '/users', element: page(<UsersPage />) },
     { path: '/audit-log', element: page(<AuditLogPage />) },
     { path: '/print/routine/:classConfigId', element: <ProtectedRoute><PrintClassRoutinePage /></ProtectedRoute> },

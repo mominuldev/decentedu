@@ -21,13 +21,9 @@ class NoticeController extends Controller
     {
         $query = Notice::query()->with(['terms:id,name', 'attachment.media']);
 
-        if ($request->boolean('trashed')) {
+        if ($request->boolean('trashed') || $request->input('status') === 'trashed') {
             $query->onlyTrashed();
-        }
-        if ($request->filled('search')) {
-            $query->where('title', 'like', '%'.$request->string('search')->value().'%');
-        }
-        if ($request->filled('status')) {
+        } elseif ($request->filled('status')) {
             $query->where('status', $request->string('status')->value());
         }
 
@@ -74,9 +70,9 @@ class NoticeController extends Controller
         ], 'Notice editor metadata.');
     }
 
-    public function show(int $id): JsonResponse
+    public function show(int|string $id): JsonResponse
     {
-        $notice = Notice::query()->with(['terms:id,name', 'attachment.media'])->findOrFail($id);
+        $notice = $this->findNotice($id)->load(['terms:id,name', 'attachment.media']);
 
         return ApiResponse::success($this->editorPayload($notice), 'Notice retrieved.');
     }
@@ -89,26 +85,40 @@ class NoticeController extends Controller
         return ApiResponse::success($this->editorPayload($notice), 'Notice created.', status: 201);
     }
 
-    public function update(NoticeRequest $request, int $id): JsonResponse
+    public function update(NoticeRequest $request, int|string $id): JsonResponse
     {
-        $notice = $this->save(Notice::findOrFail($id), $request);
+        $notice = $this->save($this->findNotice($id), $request);
         $notice->load(['terms:id,name', 'attachment.media']);
 
         return ApiResponse::success($this->editorPayload($notice), 'Notice updated.');
     }
 
-    public function destroy(int $id): JsonResponse
+    public function destroy(int|string $id): JsonResponse
     {
-        Notice::findOrFail($id)->delete();
+        $this->findNotice($id)->delete();
 
         return ApiResponse::success(null, 'Notice deleted.');
     }
 
-    public function restore(int $id): JsonResponse
+    public function restore(int|string $id): JsonResponse
     {
-        Notice::onlyTrashed()->findOrFail($id)->restore();
+        $this->findNotice($id, onlyTrashed: true)->restore();
 
         return ApiResponse::success(null, 'Notice restored.');
+    }
+
+    public function forceDelete(int|string $id): JsonResponse
+    {
+        $this->findNotice($id, onlyTrashed: true)->forceDelete();
+
+        return ApiResponse::success(null, 'Notice permanently deleted.');
+    }
+
+    private function findNotice(int|string $idOrSlug, bool $onlyTrashed = false): Notice
+    {
+        $query = $onlyTrashed ? Notice::onlyTrashed() : Notice::query();
+
+        return $query->where(fn ($q) => $q->where('id', $idOrSlug)->orWhere('slug', $idOrSlug))->firstOrFail();
     }
 
     private function save(Notice $notice, NoticeRequest $request): Notice

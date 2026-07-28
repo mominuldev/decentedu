@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { Image as ImageIcon, X, Plus, Trash2 } from 'lucide-react';
+import { X, Plus, Trash2, UploadCloud, ImageOff } from 'lucide-react';
 import { Button } from '@/components/ui';
 import { cn } from '@/lib/cn';
 import { MediaPicker } from './MediaPicker';
 import { BlockEditor } from './BlockEditor';
 import { RichTextEditor } from './RichTextEditor';
-import { inputCls, labelCls, type AssetPayload, type BlockTypeOption, type EditorBlock } from './api';
+import { assetFileUrl, inputCls, labelCls, type AssetPayload, type BlockTypeOption, type EditorBlock } from './api';
 
 type Payload = Record<string, unknown>;
 type Props = { payload: Payload; onChange: (p: Payload) => void };
@@ -53,22 +53,60 @@ function Select({ label, value, options, onChange }: { label: string; value: unk
 /** Single-asset picker with a preview stored under `previewKey` in the payload. */
 function AssetField({ label, payload, idKey, previewKey, onChange }: { label: string; payload: Payload; idKey: string; previewKey: string; onChange: (p: Payload) => void }) {
     const [open, setOpen] = useState(false);
+    const [broken, setBroken] = useState(false);
     const preview = payload[previewKey] as AssetPayload | undefined;
+    const value = payload[idKey] ? String(payload[idKey]) : null;
+
     return (
         <div>
             <label className={labelCls}>{label}</label>
-            {preview ? (
-                <div className="flex items-center gap-3 rounded-xl border border-border p-2">
-                    <img src={preview.thumb_url ?? preview.url ?? ''} alt="" className="h-12 w-12 rounded-lg object-cover" />
-                    <span className="flex-1 truncate text-[13px] text-fg">{preview.name}</span>
-                    <button type="button" onClick={() => onChange({ ...payload, [idKey]: null, [previewKey]: null })}
-                        className="rounded-lg p-1.5 text-faint hover:bg-surface-2 hover:text-rose-500"><X size={16} /></button>
+            <div className="flex items-center gap-3">
+                <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-xl border border-border-strong bg-surface-2 text-faint">
+                    {preview?.thumb_url || preview?.url || (value && !broken) ? (
+                        <img
+                            src={preview?.thumb_url ?? preview?.url ?? assetFileUrl(value!, 'thumb')} alt="" className="h-full w-full object-cover"
+                            onError={() => setBroken(true)}
+                        />
+                    ) : <ImageOff size={20} />}
                 </div>
-            ) : (
-                <Button variant="outline" size="sm" type="button" onClick={() => setOpen(true)}><ImageIcon size={15} /> Choose image</Button>
+                <div className="flex flex-col gap-1.5">
+                    <div className="flex gap-1.5">
+                        <button
+                            type="button" onClick={() => setOpen(true)}
+                            className="flex items-center gap-1.5 rounded-lg border border-border-strong px-3 py-1.5 text-[12.5px] font-medium text-fg hover:bg-surface-2"
+                        >
+                            <UploadCloud size={14} />
+                            {value || preview ? 'Replace' : 'Upload'}
+                        </button>
+                        {(value || preview) && (
+                            <button
+                                type="button" onClick={() => onChange({ ...payload, [idKey]: null, [previewKey]: null })}
+                                className="flex items-center gap-1 rounded-lg border border-border-strong px-2.5 py-1.5 text-[12.5px] text-muted hover:bg-surface-2 hover:text-rose-500"
+                                aria-label="Remove"
+                            >
+                                <X size={14} />
+                            </button>
+                        )}
+                    </div>
+                    <p className="text-[11.5px] text-faint">Images, videos or documents, up to 20MB</p>
+                </div>
+            </div>
+
+            {open && (
+                <MediaPicker
+                    open={open}
+                    category="cms"
+                    initialAssetId={value}
+                    onClose={() => setOpen(false)}
+                    onPick={(assets) => {
+                        const a = assets[0];
+                        if (a) {
+                            setBroken(false);
+                            onChange({ ...payload, [idKey]: a.id, [previewKey]: a });
+                        }
+                    }}
+                />
             )}
-            <MediaPicker open={open} onClose={() => setOpen(false)}
-                onPick={(a) => a[0] && onChange({ ...payload, [idKey]: a[0].id, [previewKey]: a[0] })} />
         </div>
     );
 }
@@ -265,7 +303,7 @@ function GalleryField({ payload, onChange }: Props) {
                 ))}
                 <Button variant="outline" size="sm" type="button" onClick={() => setOpen(true)}><Plus size={15} /> Add</Button>
             </div>
-            <MediaPicker open={open} onClose={() => setOpen(false)} multiple
+            <MediaPicker open={open} onClose={() => setOpen(false)} multiple category="cms"
                 onPick={(assets) => {
                     const existing = (payload.asset_ids as number[]) ?? [];
                     const merged = [...previews];
@@ -355,37 +393,60 @@ function IconAssetField({
     }>) => void;
 }) {
     const [open, setOpen] = useState(false);
+    const [broken, setBroken] = useState(false);
     const preview = item.icon_asset_id_preview;
+    const value = item.icon_asset_id ? String(item.icon_asset_id) : null;
 
     return (
         <div>
             <label className={labelCls}>{label}</label>
-            {preview ? (
-                <div className="flex items-center gap-3 rounded-xl border border-border p-2">
-                    <img src={preview.thumb_url ?? preview.url ?? ''} alt="" className="h-12 w-12 rounded-lg object-cover" />
-                    <span className="flex-1 truncate text-[13px] text-fg">{preview.name}</span>
-                    <button
-                        type="button"
-                        onClick={() => onChange(items.map((x, xi) => xi === index ? { ...x, icon_asset_id: null, icon_asset_id_preview: undefined } : x))}
-                        className="rounded-lg p-1.5 text-faint hover:bg-surface-2 hover:text-rose-500"
-                    >
-                        <X size={16} />
-                    </button>
+            <div className="flex items-center gap-3">
+                <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-xl border border-border-strong bg-surface-2 text-faint">
+                    {preview?.thumb_url || preview?.url || (value && !broken) ? (
+                        <img
+                            src={preview?.thumb_url ?? preview?.url ?? assetFileUrl(value!, 'thumb')} alt="" className="h-full w-full object-cover"
+                            onError={() => setBroken(true)}
+                        />
+                    ) : <ImageOff size={20} />}
                 </div>
-            ) : (
-                <Button variant="outline" size="sm" type="button" onClick={() => setOpen(true)}>
-                    <ImageIcon size={15} /> Choose icon
-                </Button>
+                <div className="flex flex-col gap-1.5">
+                    <div className="flex gap-1.5">
+                        <button
+                            type="button" onClick={() => setOpen(true)}
+                            className="flex items-center gap-1.5 rounded-lg border border-border-strong px-3 py-1.5 text-[12.5px] font-medium text-fg hover:bg-surface-2"
+                        >
+                            <UploadCloud size={14} />
+                            {value || preview ? 'Replace' : 'Upload'}
+                        </button>
+                        {(value || preview) && (
+                            <button
+                                type="button" onClick={() => onChange(items.map((x, xi) => xi === index ? { ...x, icon_asset_id: null, icon_asset_id_preview: undefined } : x))}
+                                className="flex items-center gap-1 rounded-lg border border-border-strong px-2.5 py-1.5 text-[12.5px] text-muted hover:bg-surface-2 hover:text-rose-500"
+                                aria-label="Remove"
+                            >
+                                <X size={14} />
+                            </button>
+                        )}
+                    </div>
+                    <p className="text-[11.5px] text-faint">Images, videos or documents, up to 20MB</p>
+                </div>
+            </div>
+
+            {open && (
+                <MediaPicker
+                    open={open}
+                    category="cms"
+                    initialAssetId={value}
+                    onClose={() => setOpen(false)}
+                    onPick={(assets) => {
+                        const a = assets[0];
+                        if (a) {
+                            setBroken(false);
+                            onChange(items.map((x, xi) => xi === index ? { ...x, icon_asset_id: a.id, icon_asset_id_preview: a } : x));
+                        }
+                    }}
+                />
             )}
-            <MediaPicker
-                open={open}
-                onClose={() => setOpen(false)}
-                onPick={(assets) => {
-                    if (assets[0]) {
-                        onChange(items.map((x, xi) => xi === index ? { ...x, icon_asset_id: assets[0].id, icon_asset_id_preview: assets[0] } : x));
-                    }
-                }}
-            />
         </div>
     );
 }
