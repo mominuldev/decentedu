@@ -252,18 +252,18 @@ function BlockCard({
             className={cn('rounded-2xl border border-border bg-surface-2/40', isDragging && 'opacity-60 shadow-[var(--shadow-pop)]')}>
             <div className="flex items-center gap-3 px-3.5 py-3">
                 <button type="button" className="cursor-grab text-faint hover:text-fg" {...attributes} {...listeners}><GripVertical size={16} /></button>
-                <button type="button" onClick={() => setOpen((v) => !v)} className="flex min-w-0 flex-1 items-center gap-2 text-left">
+                <button type="button" onClick={() => setOpen((v) => !v)} className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 text-left">
                     {open ? <ChevronDown size={15} className="shrink-0 text-faint" /> : <ChevronRight size={15} className="shrink-0 text-faint" />}
                     <span className={cn('shrink-0 text-[14px] font-semibold', block.is_visible ? 'text-fg' : 'text-faint line-through')}>{label}</span>
                     {summary && <span className="truncate text-[13px] text-muted">{summary}</span>}
                 </button>
-                <button type="button" onClick={onToggle} className="rounded-lg p-1.5 text-faint hover:bg-surface-2 hover:text-fg" title={block.is_visible ? 'Hide' : 'Show'}>
+                <button type="button" onClick={onToggle} className="cursor-pointer rounded-lg p-1.5 text-faint hover:bg-surface-2 hover:text-fg" title={block.is_visible ? 'Hide' : 'Show'}>
                     {block.is_visible ? <Eye size={16} /> : <EyeOff size={16} />}
                 </button>
-                <button type="button" onClick={onDuplicate} className="rounded-lg p-1.5 text-faint hover:bg-surface-2 hover:text-brand-600" title="Duplicate block" aria-label="Duplicate block">
+                <button type="button" onClick={onDuplicate} className="cursor-pointer rounded-lg p-1.5 text-faint hover:bg-surface-2 hover:text-brand-600" title="Duplicate block" aria-label="Duplicate block">
                     <Copy size={16} />
                 </button>
-                <button type="button" onClick={onDelete} className="rounded-lg p-1.5 text-rose-500 hover:bg-rose-500/10 hover:text-rose-600" title="Delete"><Trash2 size={16} /></button>
+                <button type="button" onClick={onDelete} className="cursor-pointer rounded-lg p-1.5 text-rose-500 hover:bg-rose-500/10 hover:text-rose-600" title="Delete"><Trash2 size={16} /></button>
             </div>
             {open && (
                 <div className="border-t border-border px-3.5 py-3">

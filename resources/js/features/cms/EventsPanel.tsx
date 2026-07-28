@@ -167,8 +167,8 @@ export function EventsPanel() {
                                                 </>
                                             ) : (
                                                 <>
-                                                    <button onClick={() => navigate(`/cms/events/${r.slug || r.id}/edit`)} className="rounded-lg p-1.5 text-faint hover:bg-surface-2 hover:text-brand-600" aria-label="Edit"><Pencil size={16} /></button>
-                                                    <button onClick={() => setDeleting(r)} className="rounded-lg p-1.5 text-faint hover:bg-surface-2 hover:text-rose-500" title="Move to trash" aria-label="Delete"><Trash2 size={16} /></button>
+                                                     <button onClick={() => navigate(`/cms/events/${r.slug || r.id}/edit`)} className="cursor-pointer rounded-lg p-1.5 text-faint hover:bg-surface-2 hover:text-brand-600" aria-label="Edit"><Pencil size={16} /></button>
+                                                     <button onClick={() => setDeleting(r)} className="cursor-pointer rounded-lg p-1.5 text-faint hover:bg-surface-2 hover:text-rose-500" title="Move to trash" aria-label="Delete"><Trash2 size={16} /></button>
                                                 </>
                                             )}
                                         </div>

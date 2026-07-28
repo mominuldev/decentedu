@@ -193,7 +193,7 @@ export function GalleryPanel() {
                                                     <button
                                                         onClick={() => dup.mutate(r.id)}
                                                         disabled={dup.isPending}
-                                                        className="rounded-lg p-1.5 text-faint hover:bg-surface-2 hover:text-brand-600 disabled:opacity-50"
+                                                        className="cursor-pointer rounded-lg p-1.5 text-faint hover:bg-surface-2 hover:text-brand-600 disabled:opacity-50"
                                                         title="Duplicate as draft"
                                                         aria-label="Duplicate"
                                                     >
@@ -201,14 +201,14 @@ export function GalleryPanel() {
                                                     </button>
                                                     <button
                                                         onClick={() => navigate(`/cms/galleries/${r.slug || r.id}/edit`)}
-                                                        className="rounded-lg p-1.5 text-faint hover:bg-surface-2 hover:text-brand-600"
+                                                        className="cursor-pointer rounded-lg p-1.5 text-faint hover:bg-surface-2 hover:text-brand-600"
                                                         aria-label="Edit"
                                                     >
                                                         <Pencil size={16} />
                                                     </button>
                                                     <button
                                                         onClick={() => setDeleting(r)}
-                                                        className="rounded-lg p-1.5 text-faint hover:bg-surface-2 hover:text-rose-500"
+                                                        className="cursor-pointer rounded-lg p-1.5 text-faint hover:bg-surface-2 hover:text-rose-500"
                                                         title="Move to trash"
                                                         aria-label="Delete"
                                                     >
