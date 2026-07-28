@@ -4,7 +4,7 @@ import { ConfirmDialog } from '@/components/Modal';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { type Student } from './api';
 import { deleteStudent } from './api';
-import { uploadUrl } from '@/lib/uploads';
+import { assetFileUrl } from '@/features/cms/api';
 
 interface StudentListViewProps {
   students: Student[];
@@ -82,7 +82,7 @@ export function StudentListView({
                       <div className="flex items-center gap-3">
                         {student.photo_path ? (
                           <img
-                            src={uploadUrl(student.photo_path)}
+                            src={assetFileUrl(student.photo_path, 'thumb')}
                             alt={student.name}
                             className="h-8 w-8 rounded-lg object-cover border border-border"
                           />

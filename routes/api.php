@@ -70,7 +70,6 @@ use App\Http\Controllers\Api\Reporting\ReportController;
 use App\Http\Controllers\Api\Routines\ClassRoutineController;
 use App\Http\Controllers\Api\Routines\PeriodController;
 use App\Http\Controllers\Api\Students\StudentController;
-use App\Http\Controllers\Api\UploadController;
 use App\Http\Controllers\Api\Users\RoleController;
 use App\Http\Controllers\Api\Users\UserController;
 use App\Support\Reporting\ReportRegistry;
@@ -150,9 +149,6 @@ Route::prefix('v1')->group(function () use ($setupSlugs) {
         });
 
         Route::get('audit-logs', [AuditLogController::class, 'index'])->middleware('permission:audit.view');
-
-        Route::post('uploads', [UploadController::class, 'store']);
-        Route::get('uploads/{path}', [UploadController::class, 'show'])->where('path', '.*');
 
         Route::get('dashboard', [DashboardController::class, 'index']);
 
@@ -512,13 +508,8 @@ Route::prefix('v1')->group(function () use ($setupSlugs) {
             Route::match(['put', 'patch'], 'terms/{id}', [TermController::class, 'update'])->whereNumber('id');
             Route::delete('terms/{id}', [TermController::class, 'destroy'])->whereNumber('id');
 
-            // Media
-            Route::get('media', [AssetController::class, 'index']);
-            Route::get('media/picker', [AssetController::class, 'picker']);
-            Route::post('media', [AssetController::class, 'store']);
-            Route::post('media/bulk-destroy', [AssetController::class, 'bulkDestroy']);
-            Route::match(['put', 'patch'], 'media/{id}', [AssetController::class, 'update'])->whereNumber('id');
-            Route::delete('media/{id}', [AssetController::class, 'destroy'])->whereNumber('id');
+            // Media folders (CMS-only concept; the shared asset library itself lives outside
+            // this cms.manage-gated group — see below).
             Route::get('media-folders', [MediaFolderController::class, 'index']);
             Route::post('media-folders', [MediaFolderController::class, 'store']);
             Route::match(['put', 'patch'], 'media-folders/{id}', [MediaFolderController::class, 'update'])->whereNumber('id');
@@ -555,6 +546,21 @@ Route::prefix('v1')->group(function () use ($setupSlugs) {
             Route::post('redirects', [RedirectController::class, 'store']);
             Route::match(['put', 'patch'], 'redirects/{id}', [RedirectController::class, 'update'])->whereNumber('id');
             Route::delete('redirects/{id}', [RedirectController::class, 'destroy'])->whereNumber('id');
+        });
+
+        // Shared media library — not gated by cms.manage at the route level, since it also
+        // backs Student/Employee photo and Branch logo pickers. AssetController checks
+        // cms.manage itself, only for the 'cms' category.
+        Route::prefix('cms')->group(function () {
+            Route::get('media', [AssetController::class, 'index']);
+            Route::get('media/picker', [AssetController::class, 'picker']);
+            Route::get('media/stats', [AssetController::class, 'stats']);
+            Route::post('media', [AssetController::class, 'store']);
+            Route::post('media/bulk-destroy', [AssetController::class, 'bulkDestroy']);
+            Route::get('media/{id}', [AssetController::class, 'show'])->whereNumber('id');
+            Route::match(['put', 'patch'], 'media/{id}', [AssetController::class, 'update'])->whereNumber('id');
+            Route::delete('media/{id}', [AssetController::class, 'destroy'])->whereNumber('id');
+            Route::get('media/{id}/file', [AssetController::class, 'serve'])->whereNumber('id');
         });
 
         // ---- Reporting subsystem ------------------------------------------------

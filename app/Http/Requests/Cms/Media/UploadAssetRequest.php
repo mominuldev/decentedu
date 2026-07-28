@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Cms\Media;
 
+use App\Models\Cms\Asset;
 use App\Support\BranchContext;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -33,6 +34,7 @@ class UploadAssetRequest extends FormRequest
                 'nullable', 'integer',
                 Rule::exists('media_folders', 'id')->where('branch_id', $branchId),
             ],
+            'category' => ['nullable', Rule::in(['cms', ...Asset::PRIVATE_CATEGORIES])],
         ];
     }
 }

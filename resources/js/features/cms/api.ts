@@ -308,18 +308,46 @@ export async function updateFolder(id: number, payload: { name: string; parent_i
 export async function deleteFolder(id: number): Promise<void> {
     await api.delete(`${base}/media-folders/${id}`);
 }
-export async function listAssets(params: { folder?: number | null; search?: string } = {}): Promise<AssetRow[]> {
-    const { data } = await api.get(`${base}/media`, { params: { per_page: 100, ...params } });
-    return data.data as AssetRow[];
+export interface PaginationMeta {
+    total: number;
+    per_page: number;
+    current_page: number;
+    last_page: number;
 }
-export async function pickerAssets(params: { search?: string; type?: string } = {}): Promise<AssetPayload[]> {
+export interface AssetListResponse {
+    data: AssetRow[];
+    pagination: PaginationMeta;
+}
+export interface MediaStats {
+    files: number;
+    size_bytes: number;
+}
+/** 'cms' (default) is the content-editor library; 'photo'/'logo' back the Student/Employee/Branch pickers. */
+export type AssetCategory = 'cms' | 'photo' | 'logo';
+
+export async function listAssets(
+    params: { category?: AssetCategory; search?: string; type?: string; page?: number; per_page?: number } = {},
+): Promise<AssetListResponse> {
+    const { data } = await api.get(`${base}/media`, { params });
+    return { data: data.data as AssetRow[], pagination: data.meta.pagination as PaginationMeta };
+}
+export async function getMediaStats(category?: AssetCategory): Promise<MediaStats> {
+    const { data } = await api.get(`${base}/media/stats`, { params: { category } });
+    return data.data as MediaStats;
+}
+export async function pickerAssets(params: { category?: AssetCategory; search?: string; type?: string } = {}): Promise<AssetPayload[]> {
     const { data } = await api.get(`${base}/media/picker`, { params });
     return data.data as AssetPayload[];
 }
-export async function uploadAssets(files: FileList | File[], folderId: number | null): Promise<AssetPayload[]> {
+export async function getAsset(id: number | string): Promise<AssetPayload> {
+    const { data } = await api.get(`${base}/media/${id}`);
+    return data.data as AssetPayload;
+}
+export async function uploadAssets(files: FileList | File[], folderId: number | null, category?: AssetCategory): Promise<AssetPayload[]> {
     const form = new FormData();
     Array.from(files).forEach((f) => form.append('files[]', f));
     if (folderId) form.append('folder_id', String(folderId));
+    if (category) form.append('category', category);
     const { data } = await api.post(`${base}/media`, form);
     return data.data as AssetPayload[];
 }
@@ -332,6 +360,10 @@ export async function updateAsset(
 }
 export async function deleteAsset(id: number): Promise<void> {
     await api.delete(`${base}/media/${id}`);
+}
+/** Deterministic URL for a private-category (photo/logo) asset — no extra fetch needed. */
+export function assetFileUrl(id: number | string, conversion?: 'thumb' | 'preview'): string {
+    return `${base}/media/${id}/file${conversion ? `?conversion=${conversion}` : ''}`;
 }
 
 /* -------------------------------------------------------------------- menus */

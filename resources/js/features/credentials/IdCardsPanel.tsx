@@ -5,6 +5,7 @@ import { Card, Button } from '@/components/ui';
 import { toApiError } from '@/lib/api';
 import { listClassConfigs } from '@/features/academic/api';
 import { listEmployees } from '@/features/hr/api';
+import { assetFileUrl } from '@/features/cms/api';
 import { listIdCardTemplates, generateIdCards, type CardData, type IdCardTemplateRow } from './api';
 import { PrintableDocument } from './PrintableDocument';
 
@@ -88,7 +89,7 @@ function IdCardsPrintView({ template, cards, onClose }: { template: IdCardTempla
                     <div key={i} className="rounded-xl border-2 p-4" style={{ borderColor: template.primary_color ?? '#5343e0' }}>
                         <div className="flex items-center gap-3">
                             <div className="grid h-16 w-16 shrink-0 place-items-center rounded-lg bg-slate-100 text-[10px] text-slate-400">
-                                {c.photo ? <img src={c.photo} alt="" className="h-full w-full rounded-lg object-cover" /> : 'Photo'}
+                                {c.photo ? <img src={assetFileUrl(c.photo, 'thumb')} alt="" className="h-full w-full rounded-lg object-cover" /> : 'Photo'}
                             </div>
                             <div className="min-w-0">
                                 {template.fields.includes('name') && <p className="truncate font-semibold">{c.name}</p>}

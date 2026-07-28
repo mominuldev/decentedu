@@ -27,7 +27,10 @@ class Asset extends Model implements HasMedia
 
     public const COLLECTION = 'file';
 
-    protected $fillable = ['name', 'alt_text', 'caption', 'media_folder_id', 'uploaded_by'];
+    /** Categories stored off the public disk, served only through the authenticated route. */
+    public const PRIVATE_CATEGORIES = ['photo', 'logo'];
+
+    protected $fillable = ['name', 'alt_text', 'caption', 'media_folder_id', 'uploaded_by', 'category'];
 
     public function registerMediaCollections(): void
     {
@@ -73,6 +76,11 @@ class Asset extends Model implements HasMedia
         return str_starts_with($this->file()?->mime_type ?? '', 'image/');
     }
 
+    public function isPrivate(): bool
+    {
+        return in_array($this->category, self::PRIVATE_CATEGORIES, true);
+    }
+
     /**
      * The canonical shape used everywhere an asset appears in API output.
      *
@@ -89,10 +97,30 @@ class Asset extends Model implements HasMedia
             'caption' => $this->caption,
             'mime_type' => $file?->mime_type,
             'size' => $file?->size,
-            'url' => $file?->getUrl(),
-            'thumb_url' => $this->isImage() ? $file?->getUrl('thumb') : null,
-            'preview_url' => $this->isImage() ? $file?->getUrl('preview') : null,
-            'srcset' => $this->isImage() ? ($file?->getSrcset('preview') ?: null) : null,
+            'url' => $this->urlFor(),
+            'thumb_url' => $this->isImage() ? $this->urlFor('thumb') : null,
+            'preview_url' => $this->isImage() ? $this->urlFor('preview') : null,
+            'srcset' => (! $this->isPrivate() && $this->isImage()) ? ($file?->getSrcset('preview') ?: null) : null,
         ];
+    }
+
+    /**
+     * Private-category assets live on the auth-gated 'local' disk and have no public URL —
+     * route through AssetController::serve() instead of Media::getUrl().
+     */
+    private function urlFor(?string $conversion = null): ?string
+    {
+        $file = $this->file();
+        if (! $file) {
+            return null;
+        }
+
+        if ($this->isPrivate()) {
+            $query = $conversion ? '?conversion='.$conversion : '';
+
+            return "/api/v1/cms/media/{$this->id}/file{$query}";
+        }
+
+        return $conversion ? $file->getUrl($conversion) : $file->getUrl();
     }
 }
