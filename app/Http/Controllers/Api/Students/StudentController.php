@@ -251,7 +251,7 @@ class StudentController extends Controller
         $student->update($data + ['updated_by' => auth()->id()]);
 
         return ApiResponse::success(
-            new StudentResource($student->load(['currentEnrollment', 'guardians'])),
+            new StudentResource($student->fresh(['currentEnrollment.classConfig', 'guardians'])),
             'Student updated successfully.'
         );
     }

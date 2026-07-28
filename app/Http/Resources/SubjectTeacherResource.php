@@ -20,18 +20,24 @@ class SubjectTeacherResource extends JsonResource
             'subject_id' => $this->subject_id,
             'class_config_id' => $this->class_config_id,
             'is_active' => $this->is_active,
-            'created_at' => $this->created_at?->toISOString(),
+            'created_at' => $this->created_at?->toIso8601String(),
 
             // Relationships
-            'subject' => $this->when($this->relationLoaded('subject') && $this->subject, [
-                'id' => $this->subject->id,
-                'name' => $this->subject->name,
-            ]),
+            'subject' => $this->when(
+                $this->relationLoaded('subject') && $this->subject,
+                fn () => [
+                    'id' => $this->subject->id,
+                    'name' => $this->subject->name,
+                ]
+            ),
 
-            'class_config' => $this->when($this->relationLoaded('classConfig') && $this->classConfig, [
-                'id' => $this->classConfig->id,
-                'name' => $this->classConfig->name,
-            ]),
+            'class_config' => $this->when(
+                $this->relationLoaded('classConfig') && $this->classConfig,
+                fn () => [
+                    'id' => $this->classConfig->id,
+                    'name' => $this->classConfig->label(),
+                ]
+            ),
         ];
     }
 }

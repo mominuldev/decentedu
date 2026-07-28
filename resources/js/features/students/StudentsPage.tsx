@@ -10,6 +10,7 @@ import { listSetup } from '@/features/academic/api';
 import { downloadReport } from '@/features/reporting/api';
 import { toApiError } from '@/lib/api';
 import { formatDate } from '@/lib/format';
+import { uploadUrl } from '@/lib/uploads';
 
 const selectClass = 'rounded-xl border border-border-strong bg-surface px-3.5 py-2.5 text-[14px] text-fg outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25';
 
@@ -260,7 +261,7 @@ function StudentDetailsView({
           <div className="flex items-start gap-6">
             {student.photo_path ? (
               <img
-                src={student.photo_path}
+                src={uploadUrl(student.photo_path)}
                 alt={student.name}
                 className="h-24 w-24 rounded-2xl object-cover border border-border"
               />

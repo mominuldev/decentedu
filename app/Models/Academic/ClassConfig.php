@@ -37,10 +37,16 @@ class ClassConfig extends Model
     /** Human label e.g. "Six · A · Day". */
     public function label(): string
     {
-        return collect([
-            $this->schoolClass?->name,
-            $this->section?->name,
-            $this->shift?->name,
-        ])->filter()->implode(' · ');
+        $parts = array_filter([
+            $this->relationLoaded('schoolClass') ? $this->schoolClass?->name : null,
+            $this->relationLoaded('section') ? $this->section?->name : null,
+            $this->relationLoaded('shift') ? $this->shift?->name : null,
+        ]);
+
+        if (! empty($parts)) {
+            return implode(' · ', $parts);
+        }
+
+        return "Class #{$this->id}";
     }
 }

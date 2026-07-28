@@ -97,7 +97,7 @@ function StudentFormBody({
     father_mobile: student?.father_mobile || '',
     mother_name: student?.mother_name || '',
     mother_mobile: student?.mother_mobile || '',
-    photo_asset_id: student?.photo_asset_id || undefined,
+    photo_path: student?.photo_path || '',
   }));
 
   const [guardians, setGuardians] = useState(() =>

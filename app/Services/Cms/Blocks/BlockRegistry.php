@@ -6,6 +6,7 @@ namespace App\Services\Cms\Blocks;
 
 use App\Enums\Cms\BlockType;
 use App\Services\Cms\Blocks\Types\AboutBlock;
+use App\Services\Cms\Blocks\Types\AnnouncementStripBlock;
 use App\Services\Cms\Blocks\Types\CardListBlock;
 use App\Services\Cms\Blocks\Types\CtaBlock;
 use App\Services\Cms\Blocks\Types\DividerBlock;
@@ -110,6 +111,7 @@ class BlockRegistry
             new TeachersBlock,
             new AboutBlock,
             new MilestonesTimelineBlock,
+            new AnnouncementStripBlock,
         ];
     }
 }

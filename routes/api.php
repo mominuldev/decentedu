@@ -31,6 +31,7 @@ use App\Http\Controllers\Api\Cms\Public\MenuController as PublicMenuController;
 use App\Http\Controllers\Api\Cms\Public\NoticeController as PublicNoticeController;
 use App\Http\Controllers\Api\Cms\Public\PageController as PublicPageController;
 use App\Http\Controllers\Api\Cms\Public\PostController as PublicPostController;
+use App\Http\Controllers\Api\Cms\Public\PublicResultController;
 use App\Http\Controllers\Api\Cms\Public\TermController as PublicTermController;
 use App\Http\Controllers\Api\Cms\RedirectController;
 use App\Http\Controllers\Api\Cms\TaxonomyController;
@@ -100,6 +101,14 @@ Route::prefix('v1')->group(function () use ($setupSlugs) {
         Route::get('events', [PublicEventController::class, 'index']);
         Route::get('events/{slug}', [PublicEventController::class, 'show']);
         Route::get('menus/{key}', [PublicMenuController::class, 'show']);
+
+        // Public result lookup (unauthenticated)
+        Route::prefix('results')->group(function () {
+            Route::get('options', [PublicResultController::class, 'options']);
+            Route::post('search', [PublicResultController::class, 'search']);
+            Route::post('marksheet/pdf', [PublicResultController::class, 'downloadPdf']);
+        });
+
         Route::get('pages/{path}', [PublicPageController::class, 'show'])->where('path', '.*');
     });
 

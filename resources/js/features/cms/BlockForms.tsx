@@ -82,6 +82,7 @@ export function BlockFields({ type, payload, onChange, blockTypes, depth = 0 }: 
                 <div className="space-y-3">
                     <Text label="EIIN" value={payload.eiin} onChange={(v) => set({ eiin: v })} />
                     <Text label="Heading" value={payload.heading} onChange={(v) => set({ heading: v })} />
+                    <Text label="Highlight heading" value={payload.highlight_heading} onChange={(v) => set({ highlight_heading: v })} />
                     <Area label="Subtitle" value={payload.subtitle} onChange={(v) => set({ subtitle: v })} />
                     <div className="grid grid-cols-2 gap-3">
                         <Text label="CTA One label" value={payload.cta_one_label} onChange={(v) => set({ cta_one_label: v })} />
@@ -104,6 +105,18 @@ export function BlockFields({ type, payload, onChange, blockTypes, depth = 0 }: 
             return <CardListFields payload={payload} onChange={onChange} />;
         case 'notice_board':
             return <NoticeBoardFields payload={payload} onChange={onChange} />;
+        case 'announcement_strip':
+            return (
+                <div className="space-y-3">
+                    <Text label="Title" value={payload.title} onChange={(v) => set({ title: v })} placeholder="Announcements" />
+                    <Select label="Notices mode" value={payload.notices_mode ?? 'latest'} options={['latest', 'important']} onChange={(v) => set({ notices_mode: v })} />
+                    <Text label="Limit" value={payload.limit ?? 3} onChange={(v) => set({ limit: Number(v) || 3 })} type="number" />
+                    <div className="grid grid-cols-2 gap-3">
+                        <Text label="CTA label" value={payload.cta_label} onChange={(v) => set({ cta_label: v })} />
+                        <Text label="CTA URL" value={payload.cta_url} onChange={(v) => set({ cta_url: v })} />
+                    </div>
+                </div>
+            );
         case 'quote':
             return <QuoteFields payload={payload} onChange={onChange} />;
         case 'teachers':

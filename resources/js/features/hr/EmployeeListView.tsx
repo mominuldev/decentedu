@@ -5,6 +5,7 @@ import { ConfirmDialog } from '@/components/Modal';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { type Employee } from './api';
 import { deleteEmployee } from './api';
+import { uploadUrl } from '@/lib/uploads';
 
 interface EmployeeListViewProps {
   employees: Employee[];
@@ -80,7 +81,7 @@ export function EmployeeListView({
                       <div className="flex items-center gap-3">
                         {employee.photo_path ? (
                           <img
-                            src={employee.photo_path}
+                            src={uploadUrl(employee.photo_path)}
                             alt={employee.name}
                             className="h-8 w-8 rounded-lg object-cover border border-border"
                           />

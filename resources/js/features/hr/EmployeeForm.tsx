@@ -91,7 +91,12 @@ export function EmployeeForm({ employee, onClose, onSaved }: EmployeeFormProps) 
 
   const addSubjectAssignment = () => {
     if (newAssignment.subject_id && newAssignment.class_config_id) {
-      setSubjectAssignments([...subjectAssignments, { ...newAssignment }]);
+      const exists = subjectAssignments.some(
+        a => Number(a.subject_id) === Number(newAssignment.subject_id) && Number(a.class_config_id) === Number(newAssignment.class_config_id)
+      );
+      if (!exists) {
+        setSubjectAssignments([...subjectAssignments, { ...newAssignment }]);
+      }
       setNewAssignment({ subject_id: 0, class_config_id: 0 });
       setShowAssignmentForm(false);
     }

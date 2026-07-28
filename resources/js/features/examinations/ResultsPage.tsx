@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { cn } from '@/lib/cn';
 import { ResultProcessingPanel } from './ResultProcessingPanel';
 import { ReportsPanel } from './ReportsPanel';
+import { PublicResultSearch } from './PublicResultSearch';
 
 const tabs = [
     { key: 'process', label: 'Result Processing', render: () => <ResultProcessingPanel /> },
     { key: 'reports', label: 'Reports', render: () => <ReportsPanel /> },
+    { key: 'public-search', label: 'Student Result Search', render: () => <PublicResultSearch /> },
 ];
 
 export default function ResultsPage() {

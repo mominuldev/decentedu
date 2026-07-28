@@ -19,6 +19,7 @@ class HeroBlock extends BaseBlockType
         return [
             'eiin' => ['nullable', 'string', 'max:50'],
             'heading' => ['required', 'string', 'max:255'],
+            'highlight_heading' => ['nullable', 'string', 'max:255'],
             'subtitle' => ['nullable', 'string', 'max:500'],
             'cta_one_label' => ['nullable', 'string', 'max:100'],
             'cta_one_url' => ['nullable', 'string', 'max:2048'],
@@ -39,6 +40,7 @@ class HeroBlock extends BaseBlockType
         return [
             'eiin' => $payload['eiin'] ?? null,
             'heading' => $payload['heading'] ?? null,
+            'highlight_heading' => $payload['highlight_heading'] ?? null,
             'subtitle' => $payload['subtitle'] ?? null,
             'cta_one_label' => $payload['cta_one_label'] ?? null,
             'cta_one_url' => $payload['cta_one_url'] ?? null,

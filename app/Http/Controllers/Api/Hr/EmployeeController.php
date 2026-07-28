@@ -129,20 +129,28 @@ class EmployeeController extends Controller
 
         // Create subject assignments if provided
         if (! empty($data['subject_assignments'])) {
-            foreach ($data['subject_assignments'] as $assignment) {
-                SubjectTeacher::create([
-                    'branch_id' => $branchId,
-                    'employee_id' => $employee->id,
-                    'subject_id' => $assignment['subject_id'],
-                    'class_config_id' => $assignment['class_config_id'],
-                    'is_active' => true,
-                    'created_by' => auth()->id(),
-                ]);
+            $assignments = collect($data['subject_assignments'])
+                ->unique(fn ($item) => $item['subject_id'].'-'.$item['class_config_id']);
+
+            foreach ($assignments as $assignment) {
+                SubjectTeacher::withTrashed()->updateOrCreate(
+                    [
+                        'employee_id' => $employee->id,
+                        'subject_id' => $assignment['subject_id'],
+                        'class_config_id' => $assignment['class_config_id'],
+                    ],
+                    [
+                        'branch_id' => $branchId,
+                        'is_active' => true,
+                        'deleted_at' => null,
+                        'created_by' => auth()->id(),
+                    ]
+                );
             }
         }
 
         return ApiResponse::success(
-            new EmployeeResource($employee->load(['designation', 'hrSection', 'subjectTeachers'])),
+            new EmployeeResource($employee->fresh(['designation', 'hrSection', 'subjectTeachers.subject', 'subjectTeachers.classConfig'])),
             'Employee created successfully.',
             status: 201
         );
@@ -171,16 +179,51 @@ class EmployeeController extends Controller
             'designation_id' => 'sometimes|required|exists:designations,id',
             'hr_section_id' => 'nullable|exists:hr_sections,id',
             'sex' => 'sometimes|required|in:male,female,other',
+            'religion' => 'nullable|string|max:100',
+            'dob' => 'nullable|date',
             'mobile' => 'nullable|string|max:20',
             'email' => 'nullable|email|max:255',
-            'status' => 'in:active,resigned,terminated,retired',
+            'nid' => 'nullable|string|max:50',
+            'photo_path' => 'nullable|string|max:500',
+            'present_address' => 'nullable|string',
+            'permanent_address' => 'nullable|string',
+            'joining_date' => 'sometimes|required|date',
             'leaving_date' => 'nullable|date',
+            'employment_type' => 'in:permanent,contract,temporary',
+            'status' => 'in:active,resigned,terminated,retired',
+            'qualifications' => 'nullable|array',
+
+            // Subject assignments for teachers
+            'subject_assignments' => 'nullable|array',
+            'subject_assignments.*.subject_id' => 'required|exists:subjects,id',
+            'subject_assignments.*.class_config_id' => 'required|exists:class_configs,id',
         ]);
 
-        $employee->update($data + ['updated_by' => auth()->id()]);
+        $employeeData = collect($data)->except(['subject_assignments'])->toArray();
+        $employee->update($employeeData + ['updated_by' => auth()->id()]);
+
+        if (array_key_exists('subject_assignments', $data)) {
+            $employee->subjectTeachers()->forceDelete();
+
+            if (! empty($data['subject_assignments'])) {
+                $assignments = collect($data['subject_assignments'])
+                    ->unique(fn ($item) => $item['subject_id'].'-'.$item['class_config_id']);
+
+                foreach ($assignments as $assignment) {
+                    SubjectTeacher::create([
+                        'branch_id' => $branchId,
+                        'employee_id' => $employee->id,
+                        'subject_id' => $assignment['subject_id'],
+                        'class_config_id' => $assignment['class_config_id'],
+                        'is_active' => true,
+                        'created_by' => auth()->id(),
+                    ]);
+                }
+            }
+        }
 
         return ApiResponse::success(
-            new EmployeeResource($employee->load(['designation', 'hrSection'])),
+            new EmployeeResource($employee->fresh(['designation', 'hrSection', 'subjectTeachers.subject', 'subjectTeachers.classConfig'])),
             'Employee updated successfully.'
         );
     }
@@ -205,14 +248,19 @@ class EmployeeController extends Controller
             'class_config_id' => 'required|exists:class_configs,id',
         ]);
 
-        $assignment = SubjectTeacher::create([
-            'branch_id' => $employee->branch_id,
-            'employee_id' => $employee->id,
-            'subject_id' => $data['subject_id'],
-            'class_config_id' => $data['class_config_id'],
-            'is_active' => true,
-            'created_by' => auth()->id(),
-        ]);
+        $assignment = SubjectTeacher::withTrashed()->updateOrCreate(
+            [
+                'employee_id' => $employee->id,
+                'subject_id' => $data['subject_id'],
+                'class_config_id' => $data['class_config_id'],
+            ],
+            [
+                'branch_id' => $employee->branch_id,
+                'is_active' => true,
+                'deleted_at' => null,
+                'created_by' => auth()->id(),
+            ]
+        );
 
         return ApiResponse::success(
             new SubjectTeacherResource($assignment->load(['subject', 'classConfig'])),

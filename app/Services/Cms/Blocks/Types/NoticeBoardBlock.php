@@ -95,7 +95,7 @@ class NoticeBoardBlock extends BaseBlockType
                 'slug' => $notice->slug,
                 'notice_date' => $notice->notice_date?->toDateString(),
                 'is_important' => $notice->is_important,
-                'excerpt' => $notice->body ? strip_tags(str($notice->body)->words(30)) : null,
+                'excerpt' => $notice->body ? strip_tags((string) str($notice->body)->words(30)) : null,
                 'attachment' => $notice->attachment?->toApiPayload(),
             ])->all(),
             'events_mode' => $eventsMode,
@@ -106,7 +106,7 @@ class NoticeBoardBlock extends BaseBlockType
                 'starts_at' => $event->starts_at?->toIso8601String(),
                 'ends_at' => $event->ends_at?->toIso8601String(),
                 'location' => $event->location,
-                'excerpt' => $event->body ? strip_tags(str($event->body)->words(30)) : null,
+                'excerpt' => $event->body ? strip_tags((string) str($event->body)->words(30)) : null,
                 'featured_image' => $event->featuredAsset?->toApiPayload(),
             ])->all(),
         ];

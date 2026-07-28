@@ -10,7 +10,7 @@ import {
     GripVertical, ChevronDown, ChevronRight, Eye, EyeOff, Trash2, Plus,
     LayoutTemplate, Type, Image as ImageIcon, Images, Video, MousePointerClick,
     HelpCircle, Code2, Rows3, PanelTop, ShoppingBag, Square, Info, Milestone,
-    Heading, Quote, GraduationCap, BellRing, LayoutGrid, Newspaper, SeparatorHorizontal, type LucideIcon,
+    Heading, Quote, GraduationCap, BellRing, LayoutGrid, Newspaper, SeparatorHorizontal, Megaphone, type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { BlockFields } from './BlockForms';
@@ -47,6 +47,7 @@ const BLOCK_ICONS: Record<string, LucideIcon> = {
     teachers: GraduationCap,
     about: Info,
     milestones_timeline: Milestone,
+    announcement_strip: Megaphone,
     product_grid: ShoppingBag,
 };
 const iconFor = (type: string): LucideIcon => BLOCK_ICONS[type] ?? Square;
@@ -59,6 +60,7 @@ function blockSummary(b: EditorBlock): string {
     switch (b.type) {
         case 'hero': return (p.heading as string) || '';
         case 'heading': return (p.title as string) || (p.heading as string) || (p.subtitle as string) || '';
+        case 'announcement_strip': return (p.title as string) || (p.heading as string) || 'Announcement Strip';
         case 'page_header': return (p.heading as string) || '';
         case 'rich_text': return stripHtml((p.content as string) ?? '');
         case 'html': return 'Custom HTML';

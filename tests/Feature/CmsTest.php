@@ -44,7 +44,7 @@ class CmsTest extends TestCase
             'template' => 'default',
             'status' => 'published',
             'blocks' => [
-                ['type' => 'hero', 'is_visible' => true, 'payload' => ['heading' => 'Hello']],
+                ['type' => 'hero', 'is_visible' => true, 'payload' => ['heading' => 'Hello', 'highlight_heading' => 'Highlighted']],
                 ['type' => 'section', 'is_visible' => true, 'payload' => [
                     'tag' => 'section',
                     'blocks' => [
@@ -59,6 +59,9 @@ class CmsTest extends TestCase
 
         $page = Page::firstWhere('slug', 'about-us');
         $this->assertSame(2, $page->blocks()->count());
+
+        $hero = $page->blocks()->where('type', 'hero')->first();
+        $this->assertSame('Highlighted', $hero->payload['highlight_heading']);
 
         $section = $page->blocks()->where('type', 'section')->first();
         $this->assertCount(1, $section->payload['blocks']);
@@ -721,5 +724,48 @@ class CmsTest extends TestCase
         $this->assertSame('Sarah Ahmed', $ctaData['author_name']);
         $this->assertSame('Alumni Class of 2022', $ctaData['author_designation']);
         $this->assertSame('* Results may vary based on individual effort.', $ctaData['disclaimer']);
+    }
+
+    public function test_announcement_strip_block_fetches_recent_three_notices(): void
+    {
+        $this->actingAsBranchUser();
+
+        for ($i = 1; $i <= 4; $i++) {
+            \App\Models\Cms\Notice::create([
+                'title' => "Notice {$i}",
+                'slug' => "notice-{$i}",
+                'body' => "Content for notice {$i}",
+                'status' => 'published',
+                'published_at' => now(),
+                'notice_date' => now()->addDays($i)->toDateString(),
+            ]);
+        }
+
+        $response = $this->postJson('/api/v1/cms/pages', [
+            'title' => 'Announcement Strip Page',
+            'template' => 'default',
+            'status' => 'published',
+            'blocks' => [
+                [
+                    'type' => 'announcement_strip',
+                    'is_visible' => true,
+                    'payload' => [
+                        'title' => 'Latest Announcements',
+                        'limit' => 3,
+                    ],
+                ],
+            ],
+        ]);
+
+        $response->assertStatus(201);
+
+        $publicResponse = $this->getJson('/api/v1/cms/public/pages/announcement-strip-page');
+        $publicResponse->assertOk();
+
+        $blockData = $publicResponse->json('data.blocks.0.data');
+        $this->assertSame('announcement_strip', $publicResponse->json('data.blocks.0.type'));
+        $this->assertSame('Latest Announcements', $blockData['title']);
+        $this->assertCount(3, $blockData['notices']);
+        $this->assertSame('Notice 4', $blockData['notices'][0]['title']);
     }
 }
