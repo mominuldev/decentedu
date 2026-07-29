@@ -124,3 +124,7 @@ export async function updateBranch(id: number, payload: BranchPayload): Promise<
     const { data } = await api.put(`${base}/settings/branches/${id}`, payload);
     return data.data as BranchRow;
 }
+
+export async function deleteBranch(id: number): Promise<void> {
+    await api.delete(`${base}/settings/branches/${id}`);
+}

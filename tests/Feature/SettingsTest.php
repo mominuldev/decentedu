@@ -165,4 +165,34 @@ class SettingsTest extends TestCase
             'name' => 'Updated Campus',
         ]);
     }
+
+    public function test_can_delete_branch(): void
+    {
+        $this->user->update(['organization_id' => $this->org->id]);
+
+        $other = Branch::create([
+            'organization_id' => $this->org->id,
+            'name' => 'Deletable Campus',
+            'code' => 'DEL',
+            'status' => true,
+        ]);
+
+        $response = $this->deleteJson("/api/v1/settings/branches/{$other->id}");
+
+        $response->assertStatus(200)
+            ->assertJsonPath('success', true);
+
+        $this->assertSoftDeleted('branches', ['id' => $other->id]);
+    }
+
+    public function test_cannot_delete_active_branch(): void
+    {
+        $this->user->update(['organization_id' => $this->org->id]);
+
+        // The active branch is set in session by setUp via withSession
+        $response = $this->deleteJson("/api/v1/settings/branches/{$this->branch->id}");
+
+        $response->assertStatus(422)
+            ->assertJsonPath('success', false);
+    }
 }

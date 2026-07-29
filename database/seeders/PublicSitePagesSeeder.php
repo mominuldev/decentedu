@@ -69,7 +69,7 @@ class PublicSitePagesSeeder extends Seeder
         $pages = [];
 
         // Top-level landing pages.
-        $pages['home'] = $this->page(null, 'home', 'প্রচ্ছদ', template: 'home');
+//        $pages['home'] = $this->page(null, 'home', 'প্রচ্ছদ', template: 'home');
         $pages['notices'] = $this->page(null, 'notices', 'নোটিশ ও বিজ্ঞপ্তি', excerpt: 'বিদ্যালয়ের সর্বশেষ নোটিশ ও বিজ্ঞপ্তি।');
         $pages['gallery'] = $this->page(null, 'gallery', 'ছবি গ্যালারি', excerpt: 'বিদ্যালয়ের ছবি গ্যালারি।');
         $pages['contact'] = $this->page(null, 'contact', 'যোগাযোগ', excerpt: 'বিদ্যালয়ের সাথে যোগাযোগ করুন।');

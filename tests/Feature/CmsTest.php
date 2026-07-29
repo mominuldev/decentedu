@@ -289,17 +289,25 @@ class CmsTest extends TestCase
 
         $this->putJson("/api/v1/cms/menus/{$menu['id']}/tree", [
             'items' => [
-                ['label' => 'Home', 'linkable_type' => 'page', 'linkable_id' => $page['id'], 'children' => [
-                    ['label' => 'External', 'url' => 'https://example.com'],
-                ]],
+                [
+                    'label' => 'About',
+                    'linkable_type' => null,
+                    'linkable_id' => null,
+                    'url' => null,
+                    'children' => [
+                        ['label' => 'Home', 'linkable_type' => 'page', 'linkable_id' => $page['id']],
+                        ['label' => 'External', 'url' => 'https://example.com'],
+                    ],
+                ],
             ],
         ])->assertOk();
 
         $reloaded = $this->getJson("/api/v1/cms/menus/{$menu['id']}")->json('data.items');
         $this->assertCount(1, $reloaded);
-        $this->assertSame('Home', $reloaded[0]['label']);
-        $this->assertCount(1, $reloaded[0]['children']);
-        $this->assertSame('/'.$page['path'], $reloaded[0]['resolved_url']);
+        $this->assertSame('About', $reloaded[0]['label']);
+        $this->assertNull($reloaded[0]['resolved_url']);
+        $this->assertCount(2, $reloaded[0]['children']);
+        $this->assertSame('/'.$page['path'], $reloaded[0]['children'][0]['resolved_url']);
     }
 
     public function test_public_page_endpoint_returns_rendered_blocks(): void
@@ -909,5 +917,41 @@ class CmsTest extends TestCase
 
         $finalTrashRes = $this->getJson('/api/v1/cms/pages?status=trashed');
         $this->assertCount(0, $finalTrashRes->json('data'));
+    }
+
+    public function test_gallery_block_renders_without_lazy_loading_violation(): void
+    {
+        $this->actingAsBranchUser();
+
+        // Create a gallery
+        $gallery = \App\Models\Cms\Gallery::create([
+            'branch_id' => $this->branch->id,
+            'title' => 'Sample Gallery',
+            'status' => 'published',
+        ]);
+
+        // Create a page with a gallery block
+        $pageResponse = $this->postJson('/api/v1/cms/pages', [
+            'title' => 'Gallery Page',
+            'template' => 'default',
+            'status' => 'published',
+            'blocks' => [
+                [
+                    'type' => 'gallery',
+                    'is_visible' => true,
+                    'payload' => [
+                        'mode' => 'recent',
+                        'limit' => 4,
+                    ],
+                ],
+            ],
+        ]);
+
+        $pageResponse->assertStatus(201);
+
+        // Fetch page via public API
+        $publicResponse = $this->getJson('/api/v1/cms/public/pages/gallery-page');
+        $publicResponse->assertOk();
+        $this->assertNotEmpty($publicResponse->json('data.blocks.0.data.galleries'));
     }
 }

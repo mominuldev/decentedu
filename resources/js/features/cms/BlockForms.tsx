@@ -5,7 +5,8 @@ import { cn } from '@/lib/cn';
 import { MediaPicker } from './MediaPicker';
 import { BlockEditor } from './BlockEditor';
 import { RichTextEditor } from './RichTextEditor';
-import { assetFileUrl, inputCls, labelCls, type AssetPayload, type BlockTypeOption, type EditorBlock } from './api';
+import { useQuery } from '@tanstack/react-query';
+import { assetFileUrl, inputCls, labelCls, listGalleries, type AssetPayload, type BlockTypeOption, type EditorBlock } from './api';
 
 type Payload = Record<string, unknown>;
 type Props = { payload: Payload; onChange: (p: Payload) => void };
@@ -159,6 +160,14 @@ export function BlockFields({ type, payload, onChange, blockTypes, depth = 0 }: 
             return <QuoteFields payload={payload} onChange={onChange} />;
         case 'teachers':
             return <TeachersFields payload={payload} onChange={onChange} />;
+        case 'result_form':
+            return (
+                <div className="space-y-3">
+                    <Text label="Subtitle" value={payload.subtitle} onChange={(v) => set({ subtitle: v })} />
+                    <Text label="Title" value={payload.title} onChange={(v) => set({ title: v })} placeholder="Student Result Search" />
+                    <Area label="Description" value={payload.description} onChange={(v) => set({ description: v })} />
+                </div>
+            );
         case 'page_header':
             return (
                 <div className="space-y-3">
@@ -285,32 +294,102 @@ function HeadingFields({ payload, onChange }: Props) {
 }
 
 function GalleryField({ payload, onChange }: Props) {
+    const [tab, setTab] = useState<'content' | 'images'>('content');
+    const set = (patch: Payload) => onChange({ ...payload, ...patch });
+    
     const [open, setOpen] = useState(false);
     const previews = (payload.asset_previews as AssetPayload[]) ?? [];
     const remove = (id: number) => {
         const ids = ((payload.asset_ids as number[]) ?? []).filter((x) => x !== id);
         onChange({ ...payload, asset_ids: ids, asset_previews: previews.filter((p) => p.id !== id) });
     };
+
+    const { data: allGalleries = [] } = useQuery({
+        queryKey: ['cms-all-galleries'],
+        queryFn: () => listGalleries({ sort: 'created_at', direction: 'desc' })
+    });
+
+    const galleryOptions = allGalleries.map(g => ({ value: String(g.id), label: g.title }));
+    const galleryIds = (payload.gallery_ids as number[]) ?? [];
+    const setGalleryIds = (next: number[]) => set({ gallery_ids: next });
+
     return (
-        <div className="space-y-2">
-            <label className={labelCls}>Images</label>
-            <div className="flex flex-wrap gap-2">
-                {previews.map((p) => (
-                    <div key={p.id} className="relative h-16 w-16 overflow-hidden rounded-lg border border-border">
-                        <img src={p.thumb_url ?? p.url ?? ''} alt="" className="h-full w-full object-cover" />
-                        <button type="button" onClick={() => remove(p.id)} className="absolute right-0.5 top-0.5 rounded-full bg-slate-950/60 p-0.5 text-white"><X size={12} /></button>
+        <div className="space-y-4">
+            <Tabs tabs={[{ key: 'content', label: 'Content' }, { key: 'images', label: 'Images' }]} active={tab} onChange={(k) => setTab(k as 'content' | 'images')} />
+            {tab === 'content' ? (
+                <div className="space-y-3">
+                    <Text label="Subtitle" value={payload.subtitle} onChange={(v) => set({ subtitle: v })} />
+                    <Text label="Title" value={payload.title} onChange={(v) => set({ title: v })} />
+                    <Area label="Description" value={payload.description} onChange={(v) => set({ description: v })} />
+                    <div className="grid grid-cols-2 gap-3">
+                        <Text label="CTA Label" value={payload.cta_label} onChange={(v) => set({ cta_label: v })} />
+                        <Text label="CTA URL" value={payload.cta_url} onChange={(v) => set({ cta_url: v })} />
                     </div>
-                ))}
-                <Button variant="outline" size="sm" type="button" onClick={() => setOpen(true)}><Plus size={15} /> Add</Button>
-            </div>
-            <MediaPicker open={open} onClose={() => setOpen(false)} multiple category="cms"
-                onPick={(assets) => {
-                    const existing = (payload.asset_ids as number[]) ?? [];
-                    const merged = [...previews];
-                    const ids = [...existing];
-                    assets.forEach((a) => { if (!ids.includes(a.id)) { ids.push(a.id); merged.push(a); } });
-                    onChange({ ...payload, asset_ids: ids, asset_previews: merged });
-                }} />
+                    <div className="rounded-xl border border-border p-3 space-y-3">
+                        <h4 className="text-sm font-medium">CMS Galleries</h4>
+                        <Select
+                            label="Source"
+                            value={payload.mode ?? 'recent'}
+                            options={['recent', 'selected']}
+                            onChange={(v) => set({ mode: v })}
+                        />
+                        {payload.mode !== 'selected' && (
+                            <Text label="Limit" value={payload.limit ?? 4} onChange={(v) => set({ limit: Number(v) || 4 })} type="number" min="1" max="20" />
+                        )}
+                        {payload.mode === 'selected' && (
+                            <div className="space-y-2">
+                                <label className={labelCls}>Selected Galleries</label>
+                                {galleryIds.map((gId, i) => (
+                                    <div key={i} className="flex items-center gap-2">
+                                        <div className="flex-1">
+                                            <Select
+                                                label=""
+                                                value={String(gId)}
+                                                options={galleryOptions}
+                                                onChange={(v) => setGalleryIds(galleryIds.map((x, xi) => xi === i ? Number(v) : x))}
+                                            />
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => setGalleryIds(galleryIds.filter((_, x) => x !== i))}
+                                            className="mt-1 flex-shrink-0 rounded text-faint hover:text-rose-500"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </div>
+                                ))}
+                                <Button variant="outline" size="sm" type="button" onClick={() => setGalleryIds([...galleryIds, allGalleries[0]?.id || 0])}>
+                                    <Plus size={15} /> Add Gallery
+                                </Button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            ) : (
+                <div className="space-y-3">
+                    <div className="space-y-2">
+                        <label className={labelCls}>Images (Manual override)</label>
+                        <div className="flex flex-wrap gap-2">
+                            {previews.map((p) => (
+                                <div key={p.id} className="relative h-16 w-16 overflow-hidden rounded-lg border border-border">
+                                    <img src={p.thumb_url ?? p.url ?? ''} alt="" className="h-full w-full object-cover" />
+                                    <button type="button" onClick={() => remove(p.id)} className="absolute right-0.5 top-0.5 rounded-full bg-slate-950/60 p-0.5 text-white"><X size={12} /></button>
+                                </div>
+                            ))}
+                            <Button variant="outline" size="sm" type="button" onClick={() => setOpen(true)}><Plus size={15} /> Add</Button>
+                        </div>
+                        <MediaPicker open={open} onClose={() => setOpen(false)} multiple category="cms"
+                            onPick={(assets) => {
+                                const existing = (payload.asset_ids as number[]) ?? [];
+                                const merged = [...previews];
+                                const ids = [...existing];
+                                assets.forEach((a) => { if (!ids.includes(a.id)) { ids.push(a.id); merged.push(a); } });
+                                onChange({ ...payload, asset_ids: ids, asset_previews: merged });
+                            }} />
+                    </div>
+                    <Text label="Columns" value={payload.columns} onChange={(v) => set({ columns: Number(v) || null })} type="number" min="1" max="6" placeholder="3" />
+                </div>
+            )}
         </div>
     );
 }

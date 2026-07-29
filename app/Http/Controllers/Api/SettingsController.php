@@ -182,12 +182,6 @@ class SettingsController extends Controller
         $branch = Branch::find($branchId);
 
         return ApiResponse::success([
-            'php_version' => PHP_VERSION,
-            'laravel_version' => app()->version(),
-            'db_driver' => config('database.default'),
-            'cache_driver' => config('cache.default'),
-            'session_driver' => config('session.driver'),
-            'environment' => app()->environment(),
             'server_time' => now()->toIso8601String(),
             'timezone' => config('app.timezone'),
             'active_branch' => [
@@ -218,6 +212,23 @@ class SettingsController extends Controller
         $user->update($data);
 
         return ApiResponse::success(AuthPayload::for($user, $request), 'Profile updated successfully.');
+    }
+
+    /** Soft-delete a branch by ID (Super Admin only). Cannot delete the currently active branch. */
+    public function deleteBranch(Request $request, int $id): JsonResponse
+    {
+        $orgId = $request->user()->organization_id;
+        $branch = Branch::where('organization_id', $orgId)->findOrFail($id);
+
+        // Safety: prevent deleting the branch the user is currently operating in.
+        $activeBranchId = $request->session()->get('active_branch_id');
+        if ($activeBranchId && (int) $activeBranchId === $branch->id) {
+            return ApiResponse::error('You cannot delete your currently active branch. Switch to another branch first.', 'ACTIVE_BRANCH', 422);
+        }
+
+        $branch->delete();
+
+        return ApiResponse::success(null, 'Branch deleted successfully.');
     }
 
     /** Serialize a Branch model to a consistent API shape. */

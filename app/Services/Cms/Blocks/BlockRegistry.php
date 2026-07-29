@@ -21,6 +21,7 @@ use App\Services\Cms\Blocks\Types\NoticeBoardBlock;
 use App\Services\Cms\Blocks\Types\PageHeaderBlock;
 use App\Services\Cms\Blocks\Types\PostsListBlock;
 use App\Services\Cms\Blocks\Types\QuoteBlock;
+use App\Services\Cms\Blocks\Types\ResultFormBlock;
 use App\Services\Cms\Blocks\Types\RichTextBlock;
 use App\Services\Cms\Blocks\Types\SectionBlock;
 use App\Services\Cms\Blocks\Types\TeachersBlock;
@@ -112,6 +113,7 @@ class BlockRegistry
             new AboutBlock,
             new MilestonesTimelineBlock,
             new AnnouncementStripBlock,
+            new ResultFormBlock,
         ];
     }
 }

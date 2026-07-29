@@ -1,5 +1,5 @@
 import { useSearchParams } from 'react-router-dom';
-import { FileText, Newspaper, Tags, Image, Menu as MenuIcon, CornerUpRight, Megaphone, CalendarDays, Images } from 'lucide-react';
+import { FileText, Newspaper, Tags, Image, Menu as MenuIcon, CornerUpRight, Megaphone, CalendarDays, Images, Settings } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { PagesPanel } from './PagesPanel';
 import { PostsPanel } from './PostsPanel';
@@ -10,6 +10,7 @@ import { MenusPanel } from './MenusPanel';
 import { NoticesPanel } from './NoticesPanel';
 import { EventsPanel } from './EventsPanel';
 import { RedirectsPanel } from './RedirectsPanel';
+import { SettingsPanel } from './SettingsPanel';
 
 const sections = [
     { key: 'pages', label: 'Pages', icon: FileText, render: () => <PagesPanel /> },
@@ -21,6 +22,7 @@ const sections = [
     { key: 'media', label: 'Media', icon: Image, render: () => <MediaPanel /> },
     { key: 'menus', label: 'Menus', icon: MenuIcon, render: () => <MenusPanel /> },
     { key: 'redirects', label: 'Redirects', icon: CornerUpRight, render: () => <RedirectsPanel /> },
+    { key: 'settings', label: 'Settings', icon: Settings, render: () => <SettingsPanel /> },
 ] as const;
 
 type SectionKey = (typeof sections)[number]['key'];

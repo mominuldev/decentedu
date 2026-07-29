@@ -10,7 +10,7 @@ import {
     GripVertical, ChevronDown, ChevronRight, Eye, EyeOff, Trash2, Plus, Copy,
     LayoutTemplate, Type, Image as ImageIcon, Images, Video, MousePointerClick,
     HelpCircle, Code2, Rows3, PanelTop, ShoppingBag, Square, Info, Milestone,
-    Heading, Quote, GraduationCap, BellRing, LayoutGrid, Newspaper, SeparatorHorizontal, Megaphone, type LucideIcon,
+    Heading, Quote, GraduationCap, BellRing, LayoutGrid, Newspaper, SeparatorHorizontal, Megaphone, Search, type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { ConfirmDialog } from '@/components/Modal';
@@ -49,6 +49,7 @@ const BLOCK_ICONS: Record<string, LucideIcon> = {
     about: Info,
     milestones_timeline: Milestone,
     announcement_strip: Megaphone,
+    result_form: Search,
     product_grid: ShoppingBag,
 };
 const iconFor = (type: string): LucideIcon => BLOCK_ICONS[type] ?? Square;
@@ -66,7 +67,7 @@ function blockSummary(b: EditorBlock): string {
         case 'rich_text': return stripHtml((p.content as string) ?? '');
         case 'html': return 'Custom HTML';
         case 'image': return (p.caption as string) || ((p.asset_id_preview as AssetPayload)?.name ?? '');
-        case 'gallery': return `${((p.asset_ids as unknown[]) ?? []).length} images`;
+        case 'gallery': return (p.title as string) || (p.subtitle as string) || `${((p.asset_ids as unknown[]) ?? []).length} images`;
         case 'video_embed': return (p.title as string) || (p.url as string) || '';
         case 'cta': return (p.title as string) || (p.heading as string) || '';
         case 'about': return (p.title as string) || (p.heading as string) || '';
@@ -75,6 +76,7 @@ function blockSummary(b: EditorBlock): string {
         case 'notice_board': return (p.heading as string) || (p.title as string) || '';
         case 'quote': return (p.name as string) || (p.quote_message as string) || '';
         case 'teachers': return (p.title as string) || (p.heading as string) || '';
+        case 'result_form': return (p.title as string) || (p.subtitle as string) || 'Student Result Search';
         case 'faq': return `${((p.items as unknown[]) ?? []).length} questions`;
         case 'posts_list': return `${(p.mode as string) ?? 'latest'} · ${(p.limit as number) ?? 3}`;
         case 'divider': return (p.style as string) ?? 'line';

@@ -676,6 +676,97 @@ export async function duplicateGallery(idOrSlug: number | string): Promise<Galle
     return data.data as GalleryRow;
 }
 
+/* -------------------------------------------------------------- site settings */
+
+export interface SiteSettingDetail {
+    id: number;
+    site_title: string;
+    site_tagline: string | null;
+    site_description: string | null;
+    header_logo_asset_id: number | null;
+    header_logo: AssetPayload | null;
+    footer_logo_asset_id: number | null;
+    footer_logo: AssetPayload | null;
+    favicon_asset_id: number | null;
+    favicon: AssetPayload | null;
+    contact_email: string | null;
+    contact_phone: string | null;
+    contact_address: string | null;
+    facebook_url: string | null;
+    twitter_url: string | null;
+    linkedin_url: string | null;
+    youtube_url: string | null;
+    instagram_url: string | null;
+    google_analytics_code: string | null;
+    google_tag_manager_code: string | null;
+    meta_keywords: string | null;
+    additional_settings: Record<string, unknown> | null;
+    created_at: string | null;
+    updated_at: string | null;
+}
+
+export interface SiteSettingPayload {
+    site_title: string;
+    site_tagline?: string | null;
+    site_description?: string | null;
+    header_logo_asset_id?: number | null;
+    footer_logo_asset_id?: number | null;
+    favicon_asset_id?: number | null;
+    contact_email?: string | null;
+    contact_phone?: string | null;
+    contact_address?: string | null;
+    facebook_url?: string | null;
+    twitter_url?: string | null;
+    linkedin_url?: string | null;
+    youtube_url?: string | null;
+    instagram_url?: string | null;
+    google_analytics_code?: string | null;
+    google_tag_manager_code?: string | null;
+    meta_keywords?: string | null;
+    additional_settings?: Record<string, unknown> | null;
+}
+
+export async function getSiteSettings(): Promise<SiteSettingDetail> {
+    const { data } = await api.get(`${base}/site-settings`);
+    return data.data as SiteSettingDetail;
+}
+
+export async function updateSiteSettings(payload: SiteSettingPayload): Promise<SiteSettingDetail> {
+    const { data } = await api.put(`${base}/site-settings`, payload);
+    return data.data as SiteSettingDetail;
+}
+
+export async function resetSiteSettings(): Promise<SiteSettingDetail> {
+    const { data } = await api.post(`${base}/site-settings/reset`);
+    return data.data as SiteSettingDetail;
+}
+
+export async function exportSiteSettings(): Promise<void> {
+    const response = await api.get(`${base}/site-settings/export`, {
+        responseType: 'blob',
+    });
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `site-settings-${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+}
+
+export async function importSiteSettings(file: File): Promise<SiteSettingDetail> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const { data } = await api.post(`${base}/site-settings/import`, formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
+    return data.data as SiteSettingDetail;
+}
+
 /* ---------------------------------------------------------------- ui tokens */
 
 export const inputCls =

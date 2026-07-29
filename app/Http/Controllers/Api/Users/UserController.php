@@ -54,8 +54,8 @@ class UserController extends Controller
         $this->syncBranchesAndRole($user, $data['branch_ids'], $data['default_branch_id'] ?? null, $data['role']);
 
         return ApiResponse::success(
-            $this->present($user->fresh('branches')) + ['temporary_password' => $temporaryPassword],
-            'User created. Share the temporary password securely — it will not be shown again.',
+            $this->present($user->fresh('branches')),
+            'User created. Temporary password: ' . $temporaryPassword . ' — It will not be shown again.',
             status: 201,
         );
     }

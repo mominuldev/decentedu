@@ -7,11 +7,13 @@ import { cn } from '@/lib/cn';
 
 interface ResultOptions {
   academic_years: Array<{ id: number; name: string; is_current: boolean }>;
+  sections: Array<{ id: number; name: string }>;
   class_configs: Array<{
     id: number;
     label: string;
     class_name: string;
     section_name: string;
+    section_id: number | null;
     shift_name: string;
   }>;
   exams: Array<{ id: number; name: string }>;
@@ -27,6 +29,8 @@ interface StudentResult {
     class_name: string;
     section_name: string;
     shift_name: string;
+    fathers_name: string | null;
+    mothers_name: string | null;
   };
   exam: {
     id: number;
@@ -59,6 +63,7 @@ interface StudentResult {
 interface SearchFormData {
   academic_year_id: string;
   class_config_id: string;
+  section_id: string;
   exam_id: string;
   roll_no: string;
 }
@@ -67,6 +72,7 @@ export function PublicResultSearch() {
   const [formData, setFormData] = useState<SearchFormData>({
     academic_year_id: '',
     class_config_id: '',
+    section_id: '',
     exam_id: '',
     roll_no: '',
   });
@@ -88,9 +94,14 @@ export function PublicResultSearch() {
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.academic_year_id || !formData.class_config_id ||
-        !formData.exam_id || !formData.roll_no.trim()) {
-      setSearchError('Please fill in all fields');
+    if (!formData.academic_year_id || !formData.exam_id || !formData.roll_no.trim()) {
+      setSearchError('Please fill in all required fields');
+      return;
+    }
+
+    // Validate that at least class or section is selected
+    if (!formData.class_config_id && !formData.section_id) {
+      setSearchError('Please select either Class/Section or Section');
       return;
     }
 
@@ -101,7 +112,8 @@ export function PublicResultSearch() {
     try {
       const res = await api.post('/api/v1/site/results/search', {
         academic_year_id: Number(formData.academic_year_id),
-        class_config_id: Number(formData.class_config_id),
+        class_config_id: formData.class_config_id ? Number(formData.class_config_id) : null,
+        section_id: formData.section_id ? Number(formData.section_id) : null,
         exam_id: Number(formData.exam_id),
         roll_no: formData.roll_no.trim(),
       });
@@ -122,7 +134,8 @@ export function PublicResultSearch() {
     try {
       const response = await api.post('/api/v1/site/results/marksheet/pdf', {
         academic_year_id: searchResult.academic_year.id,
-        class_config_id: Number(formData.class_config_id),
+        class_config_id: formData.class_config_id ? Number(formData.class_config_id) : null,
+        section_id: formData.section_id ? Number(formData.section_id) : null,
         exam_id: searchResult.exam.id,
         roll_no: searchResult.student.roll_no,
       }, {
@@ -158,10 +171,10 @@ export function PublicResultSearch() {
     <div className="space-y-6">
       <div className="rounded-lg border border-border bg-bg p-6">
         <form onSubmit={handleSearch} className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
             {/* Academic Year */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-fg">Academic Year</label>
+              <label className="text-sm font-medium text-fg">Academic Year *</label>
               <select
                 value={formData.academic_year_id}
                 onChange={(e) => setFormData({ ...formData, academic_year_id: e.target.value })}
@@ -177,22 +190,39 @@ export function PublicResultSearch() {
               </select>
             </div>
 
-            {/* Class & Section */}
+            {/* Section Filter */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-fg">Class & Section</label>
+              <label className="text-sm font-medium text-fg">Section (A,B,C,D)</label>
+              <select
+                value={formData.section_id}
+                onChange={(e) => setFormData({ ...formData, section_id: e.target.value, class_config_id: '' })}
+                className="w-full rounded-md border border-border bg-bg px-3 py-2 text-sm text-fg focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              >
+                <option value="">All Sections</option>
+                {options?.sections.map((section) => (
+                  <option key={section.id} value={section.id}>
+                    {section.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Class & Section (Optional, populated when section is selected) */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-fg">Specific Class/Section</label>
               <select
                 value={formData.class_config_id}
-                onChange={(e) => setFormData({ ...formData, class_config_id: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, class_config_id: e.target.value, section_id: '' })}
                 className="w-full rounded-md border border-border bg-bg px-3 py-2 text-sm text-fg focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-                required
               >
-                <option value="">Select Class</option>
+                <option value="">Select Specific Class</option>
                 {options?.class_configs.map((config) => (
                   <option key={config.id} value={config.id}>
                     {config.label}
                   </option>
                 ))}
               </select>
+              <p className="text-xs text-muted">Leave empty to search by section only</p>
             </div>
 
             {/* Exam */}
@@ -322,6 +352,16 @@ export function PublicResultSearch() {
                 <p className="text-xs font-medium text-muted uppercase">Academic Year</p>
                 <p className="mt-1 text-sm font-medium text-fg">{searchResult.academic_year.name}</p>
               </div>
+              {(searchResult.student.fathers_name || searchResult.student.mothers_name) && (
+                <div className="md:col-span-2 lg:col-span-2">
+                  <p className="text-xs font-medium text-muted uppercase">Parents</p>
+                  <p className="mt-1 text-sm font-medium text-fg">
+                    {searchResult.student.fathers_name && `Father: ${searchResult.student.fathers_name}`}
+                    {searchResult.student.fathers_name && searchResult.student.mothers_name && ' | '}
+                    {searchResult.student.mothers_name && `Mother: ${searchResult.student.mothers_name}`}
+                  </p>
+                </div>
+              )}
             </div>
 
             {searchResult.summary && (

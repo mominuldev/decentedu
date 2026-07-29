@@ -62,13 +62,17 @@ class MenuTreeRequest extends FormRequest
             }
 
             $hasLinkable = ! empty($item['linkable_type']) && ! empty($item['linkable_id']);
-            $hasUrl = ! empty($item['url']);
+            $hasUrl = isset($item['url']) && is_string($item['url']) && trim($item['url']) !== '';
 
-            if ($hasLinkable === $hasUrl) {
-                $validator->errors()->add("{$key}.url", 'Each item must link to either content or a custom URL — not both, not neither.');
+            if ($hasLinkable && $hasUrl) {
+                $validator->errors()->add("{$key}.url", 'Menu item cannot link to both content and a custom URL.');
             }
 
-            if ($hasLinkable && ! in_array($item['linkable_type'], self::ALLOWED_LINKABLES, true)) {
+            if (! empty($item['linkable_type']) && empty($item['linkable_id'])) {
+                $validator->errors()->add("{$key}.linkable_id", 'Content target ID is required when selecting content.');
+            }
+
+            if (! empty($item['linkable_type']) && ! in_array($item['linkable_type'], self::ALLOWED_LINKABLES, true)) {
                 $validator->errors()->add("{$key}.linkable_type", 'Invalid link target type.');
             }
 

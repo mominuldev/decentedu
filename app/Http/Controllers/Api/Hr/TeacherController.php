@@ -17,7 +17,7 @@ class TeacherController extends Controller
     public function index(Request $request): JsonResponse
     {
         $query = Employee::query()
-            ->with(['designation', 'hrSection', 'subjectTeachers.subject', 'subjectTeachers.classConfig'])
+            ->with(['designation', 'hrSection', 'subjectTeachers.subject', 'subjectTeachers.classConfig.schoolClass', 'subjectTeachers.classConfig.shift', 'subjectTeachers.classConfig.section'])
             ->teachers(); // Only employees with subject assignments
 
         // Search
@@ -95,7 +95,7 @@ class TeacherController extends Controller
     public function show(int $id): JsonResponse
     {
         $teacher = Employee::query()
-            ->with(['designation', 'hrSection', 'subjectTeachers.subject', 'subjectTeachers.classConfig.academicYear'])
+            ->with(['designation', 'hrSection', 'subjectTeachers.subject', 'subjectTeachers.classConfig.schoolClass', 'subjectTeachers.classConfig.shift', 'subjectTeachers.classConfig.section'])
             ->teachers()
             ->findOrFail($id);
 
@@ -115,7 +115,7 @@ class TeacherController extends Controller
             ->findOrFail($id);
 
         $classes = $teacher->subjectTeachers()
-            ->with('classConfig.academicYear', 'classConfig.shift', 'classConfig.section', 'subject')
+            ->with('classConfig.schoolClass', 'classConfig.shift', 'classConfig.section', 'subject')
             ->where('is_active', true)
             ->get()
             ->groupBy('class_config_id');

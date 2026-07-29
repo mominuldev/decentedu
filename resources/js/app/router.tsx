@@ -27,6 +27,7 @@ import PostFormPage from '@/features/cms/PostFormPage';
 import NoticeFormPage from '@/features/cms/NoticeFormPage';
 import EventFormPage from '@/features/cms/EventFormPage';
 import GalleryFormPage from '@/features/cms/GalleryFormPage';
+import SiteSettingsFormPage from '@/features/cms/SiteSettingsFormPage';
 import UsersPage from '@/features/users/UsersPage';
 import AuditLogPage from '@/features/audit/AuditLogPage';
 import SettingsPage from '@/features/settings/SettingsPage';
@@ -77,6 +78,7 @@ export const router = createBrowserRouter([
     { path: '/cms/events/:slug/edit', element: page(<EventFormPage />) },
     { path: '/cms/galleries/new', element: page(<GalleryFormPage />) },
     { path: '/cms/galleries/:slug/edit', element: page(<GalleryFormPage />) },
+    { path: '/cms/settings/edit', element: page(<SiteSettingsFormPage />) },
     { path: '/users', element: page(<UsersPage />) },
     { path: '/audit-log', element: page(<AuditLogPage />) },
     { path: '/print/routine/:classConfigId', element: <ProtectedRoute><PrintClassRoutinePage /></ProtectedRoute> },

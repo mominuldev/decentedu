@@ -61,10 +61,13 @@ class Gallery extends Model
 
     public function toApiPayload(): array
     {
-        $coverAsset = $this->coverAsset?->toApiPayload();
+        $coverAsset = $this->relationLoaded('coverAsset')
+            ? $this->coverAsset?->toApiPayload()
+            : ($this->cover_asset_id ? Asset::query()->with('media')->find($this->cover_asset_id)?->toApiPayload() : null);
+
         $imageIds = is_array($this->images) ? array_map('intval', array_filter($this->images)) : [];
         $galleryAssets = !empty($imageIds)
-            ? Asset::query()->whereIn('id', $imageIds)->get()->map(fn (Asset $a) => $a->toApiPayload())->values()->all()
+            ? Asset::query()->with('media')->whereIn('id', $imageIds)->get()->map(fn (Asset $a) => $a->toApiPayload())->values()->all()
             : [];
 
         $statusStr = $this->status instanceof ContentStatus

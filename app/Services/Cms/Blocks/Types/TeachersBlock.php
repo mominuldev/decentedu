@@ -76,17 +76,41 @@ class TeachersBlock extends BaseBlockType
         $teachers = $query->limit($limit)->get();
 
         return $teachers->map(function ($teacher) {
+            // Resolve photo URL from Asset if photo_path is an Asset ID
+            $photoUrl = null;
+            if ($teacher->photo_path) {
+                $asset = \App\Models\Cms\Asset::find($teacher->photo_path);
+                if ($asset) {
+                    $photoUrl = $this->getPublicAssetUrl($asset);
+                }
+            }
+
             return [
                 'id' => $teacher->id,
                 'name' => $teacher->name,
                 'name_bn' => $teacher->name_bn,
                 'employee_uid' => $teacher->employee_uid,
-                'photo_path' => $teacher->photo_path,
+                'photo_url' => $photoUrl,
+                'photo_path' => $photoUrl,
                 'designation' => $teacher->designation?->name,
                 'hr_section' => $teacher->hrSection?->name,
                 'employment_type' => $teacher->employment_type,
                 'joining_date' => $teacher->joining_date?->format('Y-m-d'),
             ];
         })->toArray();
+    }
+
+    /**
+     * Get public URL for an asset (for use in public site rendering)
+     */
+    private function getPublicAssetUrl(\App\Models\Cms\Asset $asset): ?string
+    {
+        if (!$asset->isPrivate()) {
+            $payload = $asset->toApiPayload();
+            return $payload['preview_url'] ?? $payload['url'] ?? null;
+        }
+
+        // For private assets, use the public site route
+        return "/api/v1/site/media/{$asset->id}/file?conversion=preview";
     }
 }

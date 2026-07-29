@@ -102,10 +102,40 @@ class PublicResultTest extends TestCase
         $response->assertJsonStructure([
             'data' => [
                 'academic_years',
+                'sections',
                 'class_configs',
                 'exams',
             ],
         ]);
+    }
+
+    public function test_can_search_student_result_by_section_only(): void
+    {
+        $summary = new StudentExamSummary([
+            'student_id' => $this->enrollment->student_id,
+            'class_config_id' => $this->classConfig->id,
+            'exam_id' => $this->exam->id,
+            'total_marks' => 500,
+            'total_obtained' => 400,
+            'gpa' => 4.00,
+            'is_pass' => true,
+        ]);
+        $summary->branch_id = $this->branch->id;
+        $summary->save();
+
+        $response = $this->postJson('/api/v1/site/results/search', [
+            'academic_year_id' => $this->academicYear->id,
+            'section_id' => $this->classConfig->section_id,
+            'exam_id' => $this->exam->id,
+            'roll_no' => '101',
+        ]);
+
+        $response->assertOk();
+        $response->assertJson(['success' => true]);
+
+        $data = $response->json('data');
+        $this->assertEquals('101', $data['student']['roll_no']);
+        $this->assertEquals(4.00, $data['summary']['gpa']);
     }
 
     public function test_can_search_student_result_with_valid_roll_number(): void
@@ -241,11 +271,11 @@ class PublicResultTest extends TestCase
     {
         $response = $this->postJson('/api/v1/site/results/search', [
             'academic_year_id' => $this->academicYear->id,
-            // Missing class_config_id, exam_id, roll_no
+            // Missing exam_id, roll_no (class_config_id / section_id are optional alternatives)
         ]);
 
         $response->assertStatus(422);
-        $response->assertJsonValidationErrors(['class_config_id', 'exam_id', 'roll_no']);
+        $response->assertJsonValidationErrors(['exam_id', 'roll_no']);
     }
 
     public function test_can_download_marksheet_pdf(): void
@@ -284,6 +314,43 @@ class PublicResultTest extends TestCase
 
         $response->assertOk();
         // PDF should be returned as a stream
+        $this->assertNotEmpty($response->getContent());
+    }
+
+    public function test_can_download_marksheet_pdf_by_section_only(): void
+    {
+        $grade = new Grade(['name' => 'A', 'grade_point' => 4.0, 'mark_from' => 70, 'mark_to' => 79]);
+        $grade->branch_id = $this->branch->id;
+        $grade->class_id = $this->classConfig->class_id;
+        $grade->save();
+
+        $subject = new \App\Models\Academic\Subject(['name' => 'Physics', 'code' => 'PHY', 'status' => true]);
+        $subject->branch_id = $this->branch->id;
+        $subject->save();
+
+        $result = new StudentExamResult([
+            'student_id' => $this->enrollment->student_id,
+            'class_config_id' => $this->classConfig->id,
+            'exam_id' => $this->exam->id,
+            'subject_id' => $subject->id,
+            'total_marks' => 100,
+            'obtained_marks' => 85,
+            'grade_id' => $grade->id,
+            'grade_point' => 5.0,
+            'is_pass' => true,
+            'is_absent' => false,
+        ]);
+        $result->branch_id = $this->branch->id;
+        $result->save();
+
+        $response = $this->postJson('/api/v1/site/results/marksheet/pdf', [
+            'academic_year_id' => $this->academicYear->id,
+            'section_id' => $this->classConfig->section_id,
+            'exam_id' => $this->exam->id,
+            'roll_no' => '101',
+        ]);
+
+        $response->assertOk();
         $this->assertNotEmpty($response->getContent());
     }
 

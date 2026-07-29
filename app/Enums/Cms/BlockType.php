@@ -26,6 +26,7 @@ enum BlockType: string
     case About = 'about';
     case MilestonesTimeline = 'milestones_timeline';
     case AnnouncementStrip = 'announcement_strip';
+    case ResultForm = 'result_form';
 
     public function label(): string
     {
@@ -50,6 +51,7 @@ enum BlockType: string
             self::About => 'About',
             self::MilestonesTimeline => 'Milestones Timeline',
             self::AnnouncementStrip => 'Notice Strip',
+            self::ResultForm => 'Result Form',
         };
     }
 }

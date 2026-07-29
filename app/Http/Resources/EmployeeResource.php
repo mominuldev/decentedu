@@ -26,7 +26,8 @@ class EmployeeResource extends JsonResource
             'mobile' => $this->mobile,
             'email' => $this->email,
             'nid' => $this->nid,
-            'photo_path' => $this->photo_path,
+            'photo_url' => $this->photoUrl(),
+            'photo_path' => $this->photoUrl(),
             'present_address' => $this->present_address,
             'permanent_address' => $this->permanent_address,
             'joining_date' => $this->joining_date?->toIso8601String(),
@@ -59,5 +60,29 @@ class EmployeeResource extends JsonResource
                 fn () => SubjectTeacherResource::collection($this->subjectTeachers),
             ),
         ];
+    }
+
+    /**
+     * Resolve the photo URL from Asset if photo_path is an Asset ID
+     */
+    private function photoUrl(): ?string
+    {
+        if (empty($this->photo_path)) {
+            return null;
+        }
+
+        $asset = \App\Models\Cms\Asset::find($this->photo_path);
+        if (!$asset) {
+            return null;
+        }
+
+        // For private assets (photos, logos), use the public site route
+        if ($asset->isPrivate()) {
+            return "/api/v1/site/media/{$asset->id}/file?conversion=preview";
+        }
+
+        // For public assets, use the direct URL
+        $payload = $asset->toApiPayload();
+        return $payload['preview_url'] ?? $payload['url'] ?? null;
     }
 }

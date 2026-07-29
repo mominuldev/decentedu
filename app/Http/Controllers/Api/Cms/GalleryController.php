@@ -16,7 +16,7 @@ class GalleryController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $query = Gallery::query()->with(['coverAsset']);
+        $query = Gallery::query()->with(['coverAsset.media']);
 
         if ($request->boolean('trashed') || $request->input('status') === 'trashed') {
             $query->onlyTrashed();
@@ -65,14 +65,14 @@ class GalleryController extends Controller
             'updated_by' => $request->user()?->id,
         ]);
 
-        $gallery->load('coverAsset');
+        $gallery->load('coverAsset.media');
 
         return ApiResponse::success($gallery->toApiPayload(), 'Gallery created successfully.', status: 201);
     }
 
     public function show(int|string $id): JsonResponse
     {
-        $gallery = $this->findGallery($id)->load(['coverAsset']);
+        $gallery = $this->findGallery($id)->load(['coverAsset.media']);
 
         return ApiResponse::success($gallery->toApiPayload(), 'Gallery retrieved.');
     }
@@ -93,7 +93,7 @@ class GalleryController extends Controller
         ]);
 
         $gallery->refresh();
-        $gallery->load('coverAsset');
+        $gallery->load('coverAsset.media');
 
         return ApiResponse::success($gallery->toApiPayload(), 'Gallery updated successfully.');
     }
@@ -136,7 +136,7 @@ class GalleryController extends Controller
             'updated_by' => request()->user()?->id,
         ]);
 
-        $duplicate->load('coverAsset');
+        $duplicate->load('coverAsset.media');
 
         return ApiResponse::success($duplicate->toApiPayload(), 'Gallery duplicated as draft.', status: 201);
     }

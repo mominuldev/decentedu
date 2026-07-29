@@ -35,6 +35,7 @@ use App\Http\Controllers\Api\Cms\Public\PostController as PublicPostController;
 use App\Http\Controllers\Api\Cms\Public\PublicResultController;
 use App\Http\Controllers\Api\Cms\Public\TermController as PublicTermController;
 use App\Http\Controllers\Api\Cms\RedirectController;
+use App\Http\Controllers\Api\Cms\SiteSettingController;
 use App\Http\Controllers\Api\Cms\TaxonomyController;
 use App\Http\Controllers\Api\Cms\TermController;
 use App\Http\Controllers\Api\Credentials\CertificateController;
@@ -102,6 +103,9 @@ Route::prefix('v1')->group(function () use ($setupSlugs) {
         Route::get('events/{slug}', [PublicEventController::class, 'show']);
         Route::get('menus/{key}', [PublicMenuController::class, 'show']);
 
+        // Public media files (teacher photos, logos, etc.)
+        Route::get('media/{id}/file', [AssetController::class, 'servePublic'])->whereNumber('id');
+
         // Public result lookup (unauthenticated)
         Route::prefix('results')->group(function () {
             Route::get('options', [PublicResultController::class, 'options']);
@@ -130,6 +134,7 @@ Route::prefix('v1')->group(function () use ($setupSlugs) {
             Route::get('branches', [SettingsController::class, 'listBranches']);
             Route::post('branches', [SettingsController::class, 'createBranch']);
             Route::match(['put', 'patch'], 'branches/{id}', [SettingsController::class, 'updateBranch'])->whereNumber('id');
+            Route::delete('branches/{id}', [SettingsController::class, 'deleteBranch'])->whereNumber('id');
         });
 
         // ---- Users & Roles -----------------------------------------------------
@@ -435,7 +440,7 @@ Route::prefix('v1')->group(function () use ($setupSlugs) {
             Route::get('batches', [SendController::class, 'batches']);
             Route::get('batches/{id}', [SendController::class, 'show'])->whereNumber('id');
             Route::get('balance', [SendController::class, 'balance']);
-            Route::post('balance/topup', [SendController::class, 'topup']);
+            Route::post('balance/topup', [SendController::class, 'topup'])->middleware('throttle:sms');
         });
 
         // ---- Credentials module ---------------------------------------------------
@@ -567,6 +572,13 @@ Route::prefix('v1')->group(function () use ($setupSlugs) {
             Route::post('redirects', [RedirectController::class, 'store']);
             Route::match(['put', 'patch'], 'redirects/{id}', [RedirectController::class, 'update'])->whereNumber('id');
             Route::delete('redirects/{id}', [RedirectController::class, 'destroy'])->whereNumber('id');
+
+            // Site Settings
+            Route::get('site-settings', [SiteSettingController::class, 'show']);
+            Route::match(['put', 'patch'], 'site-settings', [SiteSettingController::class, 'update']);
+            Route::post('site-settings/reset', [SiteSettingController::class, 'reset']);
+            Route::get('site-settings/export', [SiteSettingController::class, 'export']);
+            Route::post('site-settings/import', [SiteSettingController::class, 'import']);
         });
 
         // Shared media library — not gated by cms.manage at the route level, since it also

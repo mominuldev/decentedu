@@ -21,7 +21,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class PublicResultController extends Controller
 {
-    /** Get options (Years, Class Configs, Exams) for public search. */
+    /** Get options (Years, Sections, Class Configs, Exams) for public search. */
     public function options(Request $request): JsonResponse
     {
         $branchId = app(BranchContext::class)->id() ?? config('cms.public_branch_id', 1);
@@ -32,6 +32,13 @@ class PublicResultController extends Controller
             ->orderByDesc('id')
             ->get(['id', 'name', 'is_current']);
 
+        // Get sections for filtering (A, B, C, D, etc.)
+        $sections = \App\Models\Academic\Section::where('branch_id', $branchId)
+            ->where('status', true)
+            ->orderBy('position')
+            ->orderBy('id')
+            ->get(['id', 'name']);
+
         $classConfigs = ClassConfig::with(['schoolClass:id,name', 'section:id,name', 'shift:id,name'])
             ->where('branch_id', $branchId)
             ->where('status', true)
@@ -41,6 +48,7 @@ class PublicResultController extends Controller
                 'label' => $c->label(),
                 'class_name' => $c->schoolClass?->name,
                 'section_name' => $c->section?->name,
+                'section_id' => $c->section_id,
                 'shift_name' => $c->shift?->name,
             ]);
 
@@ -51,42 +59,55 @@ class PublicResultController extends Controller
 
         return ApiResponse::success([
             'academic_years' => $academicYears,
+            'sections' => $sections,
             'class_configs' => $classConfigs,
             'exams' => $exams,
         ], 'Result search options retrieved.');
     }
 
-    /** Search individual student result by roll, year, class_config & exam. */
+    /** Search individual student result by roll, year, class_config, exam & optional section. */
     public function search(Request $request): JsonResponse
     {
         $data = $request->validate([
             'academic_year_id' => ['required', 'integer'],
-            'class_config_id' => ['required', 'integer'],
+            'class_config_id' => ['nullable', 'integer'],
+            'section_id' => ['nullable', 'integer'],
             'exam_id' => ['required', 'integer'],
             'roll_no' => ['required', 'string'],
         ]);
 
-        $enrollment = Enrollment::with(['student', 'classConfig.schoolClass', 'classConfig.section', 'classConfig.shift'])
+        $query = Enrollment::with(['student', 'classConfig.schoolClass', 'classConfig.section', 'classConfig.shift'])
             ->where('academic_year_id', $data['academic_year_id'])
-            ->where('class_config_id', $data['class_config_id'])
             ->where(function ($q) use ($data) {
                 $q->where('roll', $data['roll_no'])
                   ->orWhereHas('student', fn ($sq) => $sq->where('student_uid', $data['roll_no']));
-            })
-            ->first();
+            });
+
+        // Filter by class_config if provided, otherwise by section
+        if (!empty($data['class_config_id'])) {
+            $query->where('class_config_id', $data['class_config_id']);
+        } elseif (!empty($data['section_id'])) {
+            // Get all class configs for this section
+            $classConfigIds = ClassConfig::where('section_id', $data['section_id'])
+                ->where('branch_id', app(BranchContext::class)->id() ?? config('cms.public_branch_id', 1))
+                ->pluck('id');
+            $query->whereIn('class_config_id', $classConfigIds);
+        }
+
+        $enrollment = $query->first();
 
         if (! $enrollment || ! $enrollment->student) {
             return ApiResponse::error('No student found matching the provided Roll / Student ID in this class and year.', 'NOT_FOUND', 404);
         }
 
         $summary = StudentExamSummary::where('student_id', $enrollment->student_id)
-            ->where('class_config_id', $data['class_config_id'])
+            ->where('class_config_id', $enrollment->class_config_id)
             ->where('exam_id', $data['exam_id'])
             ->first();
 
         $subjectResults = StudentExamResult::with(['subject', 'grade'])
             ->where('student_id', $enrollment->student_id)
-            ->where('class_config_id', $data['class_config_id'])
+            ->where('class_config_id', $enrollment->class_config_id)
             ->where('exam_id', $data['exam_id'])
             ->get();
 
@@ -107,6 +128,8 @@ class PublicResultController extends Controller
                 'class_name' => $enrollment->classConfig?->schoolClass?->name,
                 'section_name' => $enrollment->classConfig?->section?->name,
                 'shift_name' => $enrollment->classConfig?->shift?->name,
+                'fathers_name' => $enrollment->student->fathers_name,
+                'mothers_name' => $enrollment->student->mothers_name,
             ],
             'exam' => [
                 'id' => $exam?->id,
@@ -142,18 +165,28 @@ class PublicResultController extends Controller
     {
         $data = $request->validate([
             'academic_year_id' => ['required', 'integer'],
-            'class_config_id' => ['required', 'integer'],
+            'class_config_id' => ['nullable', 'integer'],
+            'section_id' => ['nullable', 'integer'],
             'exam_id' => ['required', 'integer'],
             'roll_no' => ['required', 'string'],
         ]);
 
-        $enrollment = Enrollment::where('academic_year_id', $data['academic_year_id'])
-            ->where('class_config_id', $data['class_config_id'])
+        $query = Enrollment::where('academic_year_id', $data['academic_year_id'])
             ->where(function ($q) use ($data) {
                 $q->where('roll', $data['roll_no'])
                   ->orWhereHas('student', fn ($sq) => $sq->where('student_uid', $data['roll_no']));
-            })
-            ->first();
+            });
+
+        if (!empty($data['class_config_id'])) {
+            $query->where('class_config_id', $data['class_config_id']);
+        } elseif (!empty($data['section_id'])) {
+            $classConfigIds = ClassConfig::where('section_id', $data['section_id'])
+                ->where('branch_id', app(BranchContext::class)->id() ?? config('cms.public_branch_id', 1))
+                ->pluck('id');
+            $query->whereIn('class_config_id', $classConfigIds);
+        }
+
+        $enrollment = $query->first();
 
         if (! $enrollment) {
             return ApiResponse::error('No student found matching the provided details.', 'NOT_FOUND', 404);
@@ -161,7 +194,7 @@ class PublicResultController extends Controller
 
         $definition = app(MarksheetReport::class);
         $reportData = $definition->data([
-            'class_config_id' => $data['class_config_id'],
+            'class_config_id' => $enrollment->class_config_id,
             'exam_id' => $data['exam_id'],
         ]);
 

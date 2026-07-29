@@ -28,7 +28,7 @@ return [
 
     'allowed_origins_patterns' => [],
 
-    'allowed_headers' => ['*'],
+    'allowed_headers' => ['content-type', 'accept', 'x-requested-with', 'authorization', 'x-xsrf-token'],
 
     'exposed_headers' => [],
 

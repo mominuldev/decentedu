@@ -26,7 +26,7 @@ abstract class BaseBlockType implements BlockTypeContract
             return null;
         }
 
-        return Asset::query()->find((int) $id)?->toApiPayload();
+        return Asset::query()->with('media')->find((int) $id)?->toApiPayload();
     }
 
     /**
@@ -40,7 +40,7 @@ abstract class BaseBlockType implements BlockTypeContract
         $ids = array_values(array_map(intval(...), array_filter($ids, is_numeric(...))));
 
         /** @var Collection<int, Asset> $assets */
-        $assets = Asset::query()->findMany($ids)->keyBy('id');
+        $assets = Asset::query()->with('media')->findMany($ids)->keyBy('id');
 
         return array_values(array_filter(array_map(
             fn (int $id): ?array => $assets->get($id)?->toApiPayload(),

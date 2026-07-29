@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Plus, Pencil, Building2, Loader2, Inbox } from 'lucide-react';
+import { Plus, Pencil, Trash2, Building2, Loader2, Inbox } from 'lucide-react';
 import { Card, Button, Badge } from '@/components/ui';
-import { Modal } from '@/components/Modal';
+import { Modal, ConfirmDialog } from '@/components/Modal';
 import { Toast, type ToastState } from '@/components/Toast';
 import { toApiError } from '@/lib/api';
 import { cn } from '@/lib/cn';
 import { useAuth } from '@/features/auth/AuthProvider';
 import {
-    listBranches, createBranch, updateBranch,
+    listBranches, createBranch, updateBranch, deleteBranch,
     type BranchRow, type BranchPayload,
 } from './api';
 
@@ -19,6 +19,7 @@ export function BranchesPanel() {
 
     const [creating, setCreating] = useState(false);
     const [editing, setEditing] = useState<BranchRow | null>(null);
+    const [deleting, setDeleting] = useState<BranchRow | null>(null);
     const [toast, setToast] = useState<ToastState | null>(null);
 
     const { data: branches = [], isLoading } = useQuery({
@@ -27,6 +28,20 @@ export function BranchesPanel() {
     });
 
     const invalidate = () => qc.invalidateQueries({ queryKey: ['settings', 'branches'] });
+
+    const destroy = useMutation({
+        mutationFn: (id: number) => deleteBranch(id),
+        onSuccess: () => {
+            invalidate();
+            setDeleting(null);
+            setToast({ tone: 'success', message: 'Branch deleted successfully.' });
+        },
+        onError: (e: any) => {
+            setDeleting(null);
+            const msg = e?.response?.data?.message || 'Failed to delete branch.';
+            setToast({ tone: 'error', message: msg });
+        },
+    });
 
     return (
         <div className="space-y-6">
@@ -109,7 +124,7 @@ export function BranchesPanel() {
                                             </Badge>
                                         </td>
                                         <td className="px-5 py-3">
-                                            <div className="flex justify-end">
+                                            <div className="flex justify-end gap-1">
                                                 <button
                                                     onClick={() => setEditing(b)}
                                                     className="rounded-lg p-1.5 text-faint hover:bg-surface-2 hover:text-brand-600"
@@ -117,6 +132,15 @@ export function BranchesPanel() {
                                                 >
                                                     <Pencil size={16} />
                                                 </button>
+                                                {isSuperAdmin && (
+                                                    <button
+                                                        onClick={() => setDeleting(b)}
+                                                        className="rounded-lg p-1.5 text-faint hover:bg-surface-2 hover:text-rose-500"
+                                                        aria-label={`Delete ${b.name}`}
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>
@@ -140,6 +164,15 @@ export function BranchesPanel() {
                     onError={(msg) => setToast({ tone: 'error', message: msg })}
                 />
             )}
+
+            <ConfirmDialog
+                open={!!deleting}
+                onClose={() => setDeleting(null)}
+                onConfirm={() => deleting && destroy.mutate(deleting.id)}
+                busy={destroy.isPending}
+                title="Delete branch"
+                message={`"${deleting?.name}" will be permanently removed and all its data will be inaccessible. This cannot be undone. Continue?`}
+            />
         </div>
     );
 }

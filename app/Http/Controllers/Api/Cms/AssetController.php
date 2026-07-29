@@ -176,6 +176,26 @@ class AssetController extends Controller
         return response()->file($path);
     }
 
+    /**
+     * Public endpoint for serving media files (teacher photos, logos, etc.) on the public site.
+     * No authentication required. Only serves private-category assets.
+     */
+    public function servePublic(Request $request, int $id): BinaryFileResponse
+    {
+        $asset = Asset::query()->findOrFail($id);
+        abort_unless($asset->isPrivate(), 404);
+
+        $media = $asset->file();
+        abort_if(! $media, 404);
+
+        $conversion = $request->string('conversion')->value();
+        $path = ($conversion !== '' && $media->hasGeneratedConversion($conversion))
+            ? $media->getPath($conversion)
+            : $media->getPath();
+
+        return response()->file($path);
+    }
+
     private function category(Request $request): string
     {
         return $request->string('category')->value() ?: 'cms';
