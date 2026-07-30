@@ -18,7 +18,6 @@ use App\Http\Controllers\Api\Attendance\TimeConfigController;
 use App\Http\Controllers\Api\Audit\AuditLogController;
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\BranchController;
-use App\Http\Controllers\Api\SettingsController;
 use App\Http\Controllers\Api\Cms\AssetController;
 use App\Http\Controllers\Api\Cms\EventController;
 use App\Http\Controllers\Api\Cms\GalleryController;
@@ -63,14 +62,15 @@ use App\Http\Controllers\Api\Fees\FeeTimeConfigController;
 use App\Http\Controllers\Api\Fees\FeeWaiverConfigController;
 use App\Http\Controllers\Api\Fees\SetupController as FeesSetupController;
 use App\Http\Controllers\Api\Hr\EmployeeController;
-use App\Http\Controllers\Api\Hr\TeacherController;
 use App\Http\Controllers\Api\Hr\SetupController as HrSetupController;
+use App\Http\Controllers\Api\Hr\TeacherController;
 use App\Http\Controllers\Api\Messaging\ContactController;
 use App\Http\Controllers\Api\Messaging\SendController;
 use App\Http\Controllers\Api\Messaging\TemplateController;
 use App\Http\Controllers\Api\Reporting\ReportController;
 use App\Http\Controllers\Api\Routines\ClassRoutineController;
 use App\Http\Controllers\Api\Routines\PeriodController;
+use App\Http\Controllers\Api\SettingsController;
 use App\Http\Controllers\Api\Students\StudentController;
 use App\Http\Controllers\Api\Users\RoleController;
 use App\Http\Controllers\Api\Users\UserController;
@@ -106,9 +106,11 @@ Route::prefix('v1')->group(function () use ($setupSlugs) {
         // Public media files (teacher photos, logos, etc.)
         Route::get('media/{id}/file', [AssetController::class, 'servePublic'])->whereNumber('id');
 
-        // Public result lookup (unauthenticated)
-        Route::prefix('results')->group(function () {
+        // Public result lookup (unauthenticated, rate-limited)
+        Route::prefix('results')->middleware('throttle:60,1')->group(function () {
             Route::get('options', [PublicResultController::class, 'options']);
+            Route::get('stats', [PublicResultController::class, 'stats']);
+            Route::get('grading-scale', [PublicResultController::class, 'gradingScale']);
             Route::post('search', [PublicResultController::class, 'search']);
             Route::post('marksheet/pdf', [PublicResultController::class, 'downloadPdf']);
         });
