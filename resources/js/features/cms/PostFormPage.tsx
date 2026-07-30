@@ -6,12 +6,13 @@ import { Card, Button } from '@/components/ui';
 import { toApiError } from '@/lib/api';
 import {
     getPost, getPostMeta, createPost, updatePost,
-    inputCls, type PostDetail, type PostPayload, type SeoData, type AssetPayload, type EditorBlock,
+    inputCls, type PostPayload, type SeoData, type AssetPayload, type EditorBlock,
 } from './api';
 import { BlockEditor } from './BlockEditor';
 import { SeoFields } from './SeoFields';
 import { RichTextEditor } from './RichTextEditor';
 import { Tabs, Field, Loading } from './PagesPanel';
+import { FileUpload } from '@/components/FileUpload';
 import { useToast } from '@/components/Toast';
 
 const EMPTY: PostPayload = { title: '', status: 'draft', body: '', terms: [], tags: [], blocks: [], seo: {} };
@@ -28,6 +29,7 @@ export default function PostFormPage() {
     const [form, setForm] = useState<PostPayload>(EMPTY);
     const [seo, setSeo] = useState<SeoData>({});
     const [ogImage, setOgImage] = useState<AssetPayload | null>(null);
+    const [featuredAsset, setFeaturedAsset] = useState<AssetPayload | null>(null);
     const [blocks, setBlocks] = useState<EditorBlock[]>([]);
     const [tagInput, setTagInput] = useState('');
     const [errors, setErrors] = useState<Record<string, string[]>>({});
@@ -48,6 +50,7 @@ export default function PostFormPage() {
             });
             setSeo(p.seo ?? {});
             setOgImage(p.seo_og_image);
+            setFeaturedAsset(p.featured_asset);
             setBlocks(p.blocks);
             return p;
         },
@@ -123,6 +126,17 @@ export default function PostFormPage() {
                                 <Field label="Body">
                                     <RichTextEditor value={form.body ?? ''} onChange={(html) => set({ body: html })} />
                                 </Field>
+                                <FileUpload
+                                    label="Featured image"
+                                    category="cms"
+                                    imageOnly
+                                    value={form.featured_asset_id ?? null}
+                                    previewUrl={featuredAsset?.thumb_url ?? featuredAsset?.url ?? null}
+                                    onChange={(assetId, asset) => {
+                                        set({ featured_asset_id: assetId ? Number(assetId) : null });
+                                        setFeaturedAsset(asset ?? null);
+                                    }}
+                                />
                                 <label className="flex items-center gap-2 text-[13px] text-fg">
                                     <input type="checkbox" checked={!!form.is_featured} onChange={(e) => set({ is_featured: e.target.checked })} /> Featured post
                                 </label>

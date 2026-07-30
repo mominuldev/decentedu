@@ -43,11 +43,16 @@ interface AssetPayload {
     mime_type: string | null;
     size: number | null;
     url: string | null;              // Full URL (category-dependent)
-    thumb_url: string | null;        // Thumbnail URL (images only)
-    preview_url: string | null;      // Preview URL (images only)
+    thumb_url: string | null;        // Thumbnail URL (images only; falls back to url)
+    preview_url: string | null;      // Preview URL (images only; falls back to url)
     srcset: string | null;          // Responsive image srcset (public images only)
 }
 ```
+
+`thumb_url` / `preview_url` are only conversion URLs when that conversion actually exists on
+disk. Formats the image driver cannot rasterise (SVG, ICO) get the original file's URL instead,
+so a client can always render `thumb_url` for an image without checking for a 404. Non-images
+(PDF, video, audio) stay `null` on both.
 
 ## Frontend Usage Examples
 

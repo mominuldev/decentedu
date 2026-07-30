@@ -678,6 +678,12 @@ export async function duplicateGallery(idOrSlug: number | string): Promise<Galle
 
 /* -------------------------------------------------------------- site settings */
 
+/** One footer link column: an authored heading over an existing menu's items. */
+export interface FooterMenuColumn {
+    title: string;
+    menu_id: number | null;
+}
+
 export interface SiteSettingDetail {
     id: number;
     site_title: string;
@@ -689,9 +695,19 @@ export interface SiteSettingDetail {
     footer_logo: AssetPayload | null;
     favicon_asset_id: number | null;
     favicon: AssetPayload | null;
+    eiin: string | null;
+    header_topbar_cta_label: string | null;
+    header_topbar_cta_url: string | null;
+    header_cta_label: string | null;
+    header_cta_url: string | null;
     contact_email: string | null;
     contact_phone: string | null;
     contact_address: string | null;
+    footer_description: string | null;
+    footer_menus: FooterMenuColumn[];
+    /** Sanitized HTML from the WYSIWYG — the bottom-bar copyright line. */
+    footer_copyright: string | null;
+    footer_bottom_menu_id: number | null;
     facebook_url: string | null;
     twitter_url: string | null;
     linkedin_url: string | null;
@@ -712,9 +728,18 @@ export interface SiteSettingPayload {
     header_logo_asset_id?: number | null;
     footer_logo_asset_id?: number | null;
     favicon_asset_id?: number | null;
+    eiin?: string | null;
+    header_topbar_cta_label?: string | null;
+    header_topbar_cta_url?: string | null;
+    header_cta_label?: string | null;
+    header_cta_url?: string | null;
     contact_email?: string | null;
     contact_phone?: string | null;
     contact_address?: string | null;
+    footer_description?: string | null;
+    footer_menus?: FooterMenuColumn[];
+    footer_copyright?: string | null;
+    footer_bottom_menu_id?: number | null;
     facebook_url?: string | null;
     twitter_url?: string | null;
     linkedin_url?: string | null;

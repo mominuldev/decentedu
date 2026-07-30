@@ -24,11 +24,29 @@ return new class extends Migration
             $table->foreignId('header_logo_asset_id')->nullable()->constrained('assets')->nullOnDelete();
             $table->foreignId('footer_logo_asset_id')->nullable()->constrained('assets')->nullOnDelete();
             $table->foreignId('favicon_asset_id')->nullable()->constrained('assets')->nullOnDelete();
+            $table->string('eiin', 20)->nullable();
+
+            // Header call-to-action buttons: one in the utility top bar, one beside the
+            // main nav. Both halves are needed for the public site to render a button.
+            $table->string('header_topbar_cta_label')->nullable();
+            $table->string('header_topbar_cta_url', 500)->nullable();
+            $table->string('header_cta_label')->nullable();
+            $table->string('header_cta_url', 500)->nullable();
 
             // Contact Information
             $table->string('contact_email')->nullable();
             $table->string('contact_phone')->nullable();
             $table->string('contact_address')->nullable();
+
+            // Footer
+            $table->text('footer_description')->nullable();
+            // Repeater of footer link columns: [{ "title": "Quick Links", "menu_id": 3 }].
+            // Ordered as authored — the array index is the column order on the site.
+            $table->json('footer_menus')->nullable();
+            // Rich text (sanitized HTML) for the copyright line in the footer's bottom bar,
+            // and the menu rendered beside it (privacy policy, terms and conditions, …).
+            $table->text('footer_copyright')->nullable();
+            $table->foreignId('footer_bottom_menu_id')->nullable()->constrained('menus')->nullOnDelete();
 
             // Social Media
             $table->string('facebook_url')->nullable();

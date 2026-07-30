@@ -9,6 +9,7 @@ import {
     inputCls, TAXONOMY_OBJECT_TYPES, type TaxonomyObjectType, type TaxonomyRow, type TermRow, type TermPayload,
 } from './api';
 import { Field, Loading, Empty } from './PagesPanel';
+import { FileUpload } from '@/components/FileUpload';
 
 export function TaxonomiesPanel() {
     const qc = useQueryClient();
@@ -158,7 +159,7 @@ function TermsManager({ taxonomy, onEditTaxonomy, onDeleteTaxonomy }: { taxonomy
 }
 
 function TermForm({ taxonomyId, term, parents, onClose, onSaved }: { taxonomyId: number; term: TermRow | null; parents: TermRow[]; onClose: () => void; onSaved: () => void }) {
-    const [form, setForm] = useState<TermPayload>({ taxonomy_id: taxonomyId, name: term?.name ?? '', slug: term?.slug ?? '', parent_id: term?.parent_id ?? null, description: term?.description ?? '' });
+    const [form, setForm] = useState<TermPayload>({ taxonomy_id: taxonomyId, name: term?.name ?? '', slug: term?.slug ?? '', parent_id: term?.parent_id ?? null, description: term?.description ?? '', featured_asset_id: term?.featured_asset_id ?? null });
     const [errors, setErrors] = useState<Record<string, string[]>>({});
     const [error, setError] = useState<string | null>(null);
     const save = useMutation({
@@ -181,6 +182,13 @@ function TermForm({ taxonomyId, term, parents, onClose, onSaved }: { taxonomyId:
                     </select>
                 </Field>
                 <Field label="Description"><textarea rows={2} className={inputCls} value={form.description ?? ''} onChange={(e) => set({ description: e.target.value })} /></Field>
+                <FileUpload
+                    label="Featured image"
+                    category="cms"
+                    imageOnly
+                    value={form.featured_asset_id ?? null}
+                    onChange={(assetId) => set({ featured_asset_id: assetId ? Number(assetId) : null })}
+                />
             </div>
         </Modal>
     );

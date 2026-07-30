@@ -12,6 +12,7 @@ import {
 import { BlockEditor } from './BlockEditor';
 import { SeoFields } from './SeoFields';
 import { Tabs, Field, Loading } from './PagesPanel';
+import { FileUpload } from '@/components/FileUpload';
 
 const EMPTY: PagePayload = { title: '', template: 'default', status: 'draft', blocks: [], seo: {} };
 
@@ -30,6 +31,7 @@ export default function PageFormPage() {
     const [form, setForm] = useState<PagePayload>(EMPTY);
     const [seo, setSeo] = useState<SeoData>({});
     const [ogImage, setOgImage] = useState<AssetPayload | null>(null);
+    const [featuredAsset, setFeaturedAsset] = useState<AssetPayload | null>(null);
     const [blocks, setBlocks] = useState<EditorBlock[]>([]);
     const [errors, setErrors] = useState<Record<string, string[]>>({});
     const [error, setError] = useState<string | null>(null);
@@ -55,6 +57,7 @@ export default function PageFormPage() {
         });
         setSeo(p.seo ?? {});
         setOgImage(p.seo_og_image);
+        setFeaturedAsset(p.featured_asset);
         setBlocks(p.blocks);
     };
 
@@ -147,6 +150,17 @@ export default function PageFormPage() {
                                 <Field label="Excerpt">
                                     <textarea rows={2} className={inputCls} value={form.excerpt ?? ''} onChange={(e) => set({ excerpt: e.target.value })} />
                                 </Field>
+                                <FileUpload
+                                    label="Featured image"
+                                    category="cms"
+                                    imageOnly
+                                    value={form.featured_asset_id ?? null}
+                                    previewUrl={featuredAsset?.thumb_url ?? featuredAsset?.url ?? null}
+                                    onChange={(assetId, asset) => {
+                                        set({ featured_asset_id: assetId ? Number(assetId) : null });
+                                        setFeaturedAsset(asset ?? null);
+                                    }}
+                                />
                             </div>
                         )}
 

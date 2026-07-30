@@ -8,7 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Cms\SiteSettings\SiteSettingRequest;
 use App\Models\Cms\SiteSetting;
 use App\Support\ApiResponse;
-use App\Support\BranchContext;
+use App\Support\HtmlSanitizer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -27,6 +27,14 @@ class SiteSettingController extends Controller
         $settings = SiteSetting::forBranch();
         $data = $request->validated();
         $userId = $request->user()->id;
+
+        // Rich text from the WYSIWYG: sanitize on write, because this HTML is what the
+        // public site renders with dangerouslySetInnerHTML.
+        if (array_key_exists('footer_copyright', $data)) {
+            $data['footer_copyright'] = filled($data['footer_copyright'])
+                ? HtmlSanitizer::clean($data['footer_copyright'])
+                : null;
+        }
 
         $settings->fill([
             ...collect($data)->except(['header_logo', 'footer_logo', 'favicon'])->all(),
@@ -64,9 +72,18 @@ class SiteSettingController extends Controller
             'header_logo_asset_id' => null,
             'footer_logo_asset_id' => null,
             'favicon_asset_id' => null,
+            'eiin' => null,
+            'header_topbar_cta_label' => null,
+            'header_topbar_cta_url' => null,
+            'header_cta_label' => null,
+            'header_cta_url' => null,
             'contact_email' => null,
             'contact_phone' => null,
             'contact_address' => null,
+            'footer_description' => null,
+            'footer_menus' => null,
+            'footer_copyright' => null,
+            'footer_bottom_menu_id' => null,
             'facebook_url' => null,
             'twitter_url' => null,
             'linkedin_url' => null,
@@ -90,7 +107,7 @@ class SiteSettingController extends Controller
 
         $headers = [
             'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="site-settings-' . date('Y-m-d') . '.csv"',
+            'Content-Disposition' => 'attachment; filename="site-settings-'.date('Y-m-d').'.csv"',
         ];
 
         return new StreamedResponse(function () use ($settings) {
@@ -101,7 +118,7 @@ class SiteSettingController extends Controller
                 'Setting Key',
                 'Setting Value',
                 'Category',
-                'Description'
+                'Description',
             ]);
 
             // Settings data as key-value pairs
@@ -109,9 +126,19 @@ class SiteSettingController extends Controller
                 ['site_title', $settings->site_title, 'Basic', 'Site Title'],
                 ['site_tagline', $settings->site_tagline ?? '', 'Basic', 'Site Tagline'],
                 ['site_description', $settings->site_description ?? '', 'Basic', 'Site Description'],
+                ['eiin', $settings->eiin ?? '', 'Branding', 'EIIN'],
+                ['header_topbar_cta_label', $settings->header_topbar_cta_label ?? '', 'Branding', 'Header Topbar CTA Label'],
+                ['header_topbar_cta_url', $settings->header_topbar_cta_url ?? '', 'Branding', 'Header Topbar CTA URL'],
+                ['header_cta_label', $settings->header_cta_label ?? '', 'Branding', 'Header CTA Label'],
+                ['header_cta_url', $settings->header_cta_url ?? '', 'Branding', 'Header CTA URL'],
                 ['contact_email', $settings->contact_email ?? '', 'Contact', 'Contact Email'],
                 ['contact_phone', $settings->contact_phone ?? '', 'Contact', 'Contact Phone'],
                 ['contact_address', $settings->contact_address ?? '', 'Contact', 'Contact Address'],
+                // footer_menus is a repeater and footer_bottom_menu_id a branch-local row
+                // id — neither belongs in a flat, portable key/value CSV, so export/import
+                // leave them untouched.
+                ['footer_description', $settings->footer_description ?? '', 'Footer', 'Footer Description'],
+                ['footer_copyright', $settings->footer_copyright ?? '', 'Footer', 'Footer Copyright (HTML)'],
                 ['facebook_url', $settings->facebook_url ?? '', 'Social Media', 'Facebook URL'],
                 ['twitter_url', $settings->twitter_url ?? '', 'Social Media', 'Twitter URL'],
                 ['linkedin_url', $settings->linkedin_url ?? '', 'Social Media', 'LinkedIn URL'],
@@ -147,7 +174,7 @@ class SiteSettingController extends Controller
             fgetcsv($handle);
 
             while (($row = fgetcsv($handle)) !== false) {
-                if (count($row) >= 2 && !empty($row[0])) {
+                if (count($row) >= 2 && ! empty($row[0])) {
                     $csvData[$row[0]] = $row[1];
                 }
             }
@@ -159,9 +186,16 @@ class SiteSettingController extends Controller
             'site_title' => 'site_title',
             'site_tagline' => 'site_tagline',
             'site_description' => 'site_description',
+            'eiin' => 'eiin',
+            'header_topbar_cta_label' => 'header_topbar_cta_label',
+            'header_topbar_cta_url' => 'header_topbar_cta_url',
+            'header_cta_label' => 'header_cta_label',
+            'header_cta_url' => 'header_cta_url',
             'contact_email' => 'contact_email',
             'contact_phone' => 'contact_phone',
             'contact_address' => 'contact_address',
+            'footer_description' => 'footer_description',
+            'footer_copyright' => 'footer_copyright',
             'facebook_url' => 'facebook_url',
             'twitter_url' => 'twitter_url',
             'linkedin_url' => 'linkedin_url',
@@ -184,6 +218,19 @@ class SiteSettingController extends Controller
                     } elseif (filter_var($value, FILTER_VALIDATE_URL) && str_starts_with($value, 'https://')) {
                         $updateData[$dbField] = $value;
                     }
+
+                    continue;
+                }
+
+                // CTA targets render as public hrefs; import bypasses the FormRequest, so
+                // apply the same site-relative-or-http(s) restriction here.
+                if (in_array($dbField, ['header_topbar_cta_url', 'header_cta_url'])) {
+                    if ($value === '') {
+                        $updateData[$dbField] = null;
+                    } elseif (preg_match('/^(https?:\/\/|\/)/i', $value)) {
+                        $updateData[$dbField] = $value;
+                    }
+
                     continue;
                 }
 
@@ -194,6 +241,15 @@ class SiteSettingController extends Controller
                     } elseif (filter_var($value, FILTER_VALIDATE_EMAIL)) {
                         $updateData[$dbField] = $value;
                     }
+
+                    continue;
+                }
+
+                // Rich text: keep the markup, but purify it the same way the update
+                // endpoint does rather than strip_tags-ing it down to plain text.
+                if ($dbField === 'footer_copyright') {
+                    $updateData[$dbField] = $value === '' ? null : HtmlSanitizer::clean($value);
+
                     continue;
                 }
 
@@ -205,11 +261,12 @@ class SiteSettingController extends Controller
                         // Remove potentially dangerous characters, keep only safe tracking code patterns
                         $updateData[$dbField] = preg_replace('/[^a-zA-Z0-9\-_\.UA\-]/', '', $value);
                     }
+
                     continue;
                 }
 
                 // Convert empty strings to null for appropriate fields
-                if ($value === '' && in_array($dbField, ['site_tagline', 'site_description', 'contact_phone', 'contact_address', 'meta_keywords'])) {
+                if ($value === '' && in_array($dbField, ['site_tagline', 'site_description', 'eiin', 'header_topbar_cta_label', 'header_cta_label', 'contact_phone', 'contact_address', 'footer_description', 'meta_keywords'])) {
                     $updateData[$dbField] = null;
                 } else {
                     // Basic sanitization for text fields

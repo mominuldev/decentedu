@@ -43,7 +43,7 @@ return [
     'uploads' => [
         'max_kb' => 20480,
         'accepted_mimes' => [
-            'jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg',
+            'jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg', 'ico',
             'pdf', 'doc', 'docx', 'xls', 'xlsx', 'csv',
             'mp4', 'webm', 'mp3',
         ],

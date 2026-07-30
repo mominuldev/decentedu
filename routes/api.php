@@ -32,6 +32,7 @@ use App\Http\Controllers\Api\Cms\Public\NoticeController as PublicNoticeControll
 use App\Http\Controllers\Api\Cms\Public\PageController as PublicPageController;
 use App\Http\Controllers\Api\Cms\Public\PostController as PublicPostController;
 use App\Http\Controllers\Api\Cms\Public\PublicResultController;
+use App\Http\Controllers\Api\Cms\Public\SiteSettingController as PublicSiteSettingController;
 use App\Http\Controllers\Api\Cms\Public\TermController as PublicTermController;
 use App\Http\Controllers\Api\Cms\RedirectController;
 use App\Http\Controllers\Api\Cms\SiteSettingController;
@@ -92,6 +93,7 @@ Route::prefix('v1')->group(function () use ($setupSlugs) {
     // the only difference is how the branch is resolved (config vs. session). The
     // pages/{path} wildcard is last so it can't swallow the sibling collection routes.
     Route::prefix('site')->middleware('public-branch')->group(function () {
+        Route::get('settings', [PublicSiteSettingController::class, 'show']);
         Route::get('pages', [PublicPageController::class, 'index']);
         Route::get('posts', [PublicPostController::class, 'index']);
         Route::get('posts/{slug}', [PublicPostController::class, 'show']);

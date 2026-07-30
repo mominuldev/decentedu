@@ -98,10 +98,31 @@ class Asset extends Model implements HasMedia
             'mime_type' => $file?->mime_type,
             'size' => $file?->size,
             'url' => $this->urlFor(),
-            'thumb_url' => $this->isImage() ? $this->urlFor('thumb') : null,
-            'preview_url' => $this->isImage() ? $this->urlFor('preview') : null,
-            'srcset' => (! $this->isPrivate() && $this->isImage()) ? ($file?->getSrcset('preview') ?: null) : null,
+            'thumb_url' => $this->conversionUrl('thumb'),
+            'preview_url' => $this->conversionUrl('preview'),
+            'srcset' => ($this->hasConversion('preview') && ! $this->isPrivate())
+                ? ($file?->getSrcset('preview') ?: null)
+                : null,
         ];
+    }
+
+    /**
+     * Conversion URL for an image, falling back to the original file. Formats the image driver
+     * cannot rasterise (SVG, or anything whose conversion has not run yet) have no derivative
+     * on disk, so advertising one would hand the client a 404 image.
+     */
+    private function conversionUrl(string $conversion): ?string
+    {
+        if (! $this->isImage()) {
+            return null;
+        }
+
+        return $this->hasConversion($conversion) ? $this->urlFor($conversion) : $this->urlFor();
+    }
+
+    private function hasConversion(string $conversion): bool
+    {
+        return (bool) $this->file()?->hasGeneratedConversion($conversion);
     }
 
     /**

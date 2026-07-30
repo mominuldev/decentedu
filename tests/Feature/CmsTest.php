@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Branch;
 use App\Models\Cms\Asset;
 use App\Models\Cms\Block;
+use App\Models\Cms\Gallery;
 use App\Models\Cms\Notice;
 use App\Models\Cms\Page;
 use App\Models\Cms\Post;
@@ -14,6 +15,7 @@ use App\Models\Cms\Term;
 use App\Models\Organization;
 use App\Support\BranchContext;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
 
 class CmsTest extends TestCase
@@ -739,7 +741,7 @@ class CmsTest extends TestCase
         $this->actingAsBranchUser();
 
         for ($i = 1; $i <= 4; $i++) {
-            \App\Models\Cms\Notice::create([
+            Notice::create([
                 'title' => "Notice {$i}",
                 'slug' => "notice-{$i}",
                 'body' => "Content for notice {$i}",
@@ -919,12 +921,121 @@ class CmsTest extends TestCase
         $this->assertCount(0, $finalTrashRes->json('data'));
     }
 
+    public function test_uploaded_image_is_returned_with_a_generated_thumbnail(): void
+    {
+        $this->actingAsBranchUser();
+
+        $response = $this->post('/api/v1/cms/media', [
+            'files' => [UploadedFile::fake()->image('hero.png', 400, 300)],
+        ]);
+
+        $response->assertStatus(201);
+        $asset = $response->json('data.0');
+        $this->assertSame('hero', $asset['name']);
+        $this->assertSame('image/png', $asset['mime_type']);
+        $this->assertStringContainsString('conversions/hero-thumb.webp', $asset['thumb_url']);
+    }
+
+    /**
+     * SVG (and any format the image driver cannot rasterise) has no derivative on disk, so the
+     * payload must point at the original file rather than advertise a 404 conversion URL.
+     */
+    public function test_asset_payload_falls_back_to_the_original_file_when_no_conversion_exists(): void
+    {
+        $this->actingAsBranchUser();
+
+        $svg = '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><rect width="10" height="10"/></svg>';
+        $response = $this->post('/api/v1/cms/media', [
+            'files' => [UploadedFile::fake()->createWithContent('logo.svg', $svg)],
+        ]);
+
+        $response->assertStatus(201);
+        $asset = $response->json('data.0');
+        $this->assertSame($asset['url'], $asset['thumb_url']);
+        $this->assertSame($asset['url'], $asset['preview_url']);
+        $this->assertNull($asset['srcset']);
+
+        // A non-image keeps null previews.
+        $doc = $this->post('/api/v1/cms/media', [
+            'files' => [UploadedFile::fake()->create('prospectus.pdf', 8, 'application/pdf')],
+        ]);
+        $this->assertNull($doc->json('data.0.thumb_url'));
+    }
+
+    public function test_favicon_sized_formats_are_accepted_by_the_uploader(): void
+    {
+        $this->actingAsBranchUser();
+
+        $this->post('/api/v1/cms/media', [
+            'files' => [UploadedFile::fake()->create('favicon.ico', 4, 'image/vnd.microsoft.icon')],
+        ])->assertStatus(201);
+    }
+
+    public function test_site_setting_logos_round_trip_through_the_media_library(): void
+    {
+        $this->actingAsBranchUser();
+
+        $upload = $this->post('/api/v1/cms/media', [
+            'files' => [UploadedFile::fake()->image('logo.png', 240, 80)],
+        ])->assertStatus(201);
+        $assetId = $upload->json('data.0.id');
+
+        $this->putJson('/api/v1/cms/site-settings', [
+            'site_title' => 'Decent School',
+            'header_logo_asset_id' => $assetId,
+            'favicon_asset_id' => $assetId,
+        ])->assertOk();
+
+        $response = $this->getJson('/api/v1/cms/site-settings')->assertOk();
+        $this->assertSame($assetId, $response->json('data.header_logo_asset_id'));
+        $this->assertSame('logo', $response->json('data.header_logo.name'));
+        $this->assertNotNull($response->json('data.header_logo.thumb_url'));
+        $this->assertSame($assetId, $response->json('data.favicon_asset_id'));
+
+        // Clearing a logo must be persisted, not ignored as "not provided".
+        $this->putJson('/api/v1/cms/site-settings', [
+            'site_title' => 'Decent School',
+            'header_logo_asset_id' => null,
+        ])->assertOk();
+        $this->assertNull($this->getJson('/api/v1/cms/site-settings')->json('data.header_logo_asset_id'));
+    }
+
+    public function test_pages_posts_and_terms_accept_a_featured_image(): void
+    {
+        $this->actingAsBranchUser();
+
+        $assetId = $this->post('/api/v1/cms/media', [
+            'files' => [UploadedFile::fake()->image('featured.png', 800, 400)],
+        ])->assertStatus(201)->json('data.0.id');
+
+        $page = $this->postJson('/api/v1/cms/pages', [
+            'title' => 'Featured Page', 'template' => 'default', 'status' => 'draft',
+            'featured_asset_id' => $assetId,
+        ])->assertStatus(201);
+        $this->assertSame($assetId, $page->json('data.featured_asset_id'));
+        $this->assertNotNull($page->json('data.featured_asset.thumb_url'));
+
+        $post = $this->postJson('/api/v1/cms/posts', [
+            'title' => 'Featured Post', 'status' => 'draft', 'featured_asset_id' => $assetId,
+        ])->assertStatus(201);
+        $this->assertSame($assetId, $post->json('data.featured_asset_id'));
+
+        $taxonomy = Taxonomy::create(['name' => 'Category', 'hierarchical' => false, 'object_types' => ['post']]);
+        $this->postJson('/api/v1/cms/terms', [
+            'taxonomy_id' => $taxonomy->id, 'name' => 'Sports', 'featured_asset_id' => $assetId,
+        ])->assertStatus(201);
+        $this->assertSame(
+            $assetId,
+            $this->getJson("/api/v1/cms/taxonomies/{$taxonomy->id}")->json('data.terms.0.featured_asset_id'),
+        );
+    }
+
     public function test_gallery_block_renders_without_lazy_loading_violation(): void
     {
         $this->actingAsBranchUser();
 
         // Create a gallery
-        $gallery = \App\Models\Cms\Gallery::create([
+        $gallery = Gallery::create([
             'branch_id' => $this->branch->id,
             'title' => 'Sample Gallery',
             'status' => 'published',
@@ -953,5 +1064,96 @@ class CmsTest extends TestCase
         $publicResponse = $this->getJson('/api/v1/cms/public/pages/gallery-page');
         $publicResponse->assertOk();
         $this->assertNotEmpty($publicResponse->json('data.blocks.0.data.galleries'));
+    }
+
+    public function test_site_settings_store_eiin_and_header_ctas(): void
+    {
+        $this->actingAsBranchUser();
+
+        $response = $this->putJson('/api/v1/cms/site-settings', [
+            'site_title' => 'Namosanker Bati High School',
+            'eiin' => '824502',
+            'header_topbar_cta_label' => 'Online Result',
+            'header_topbar_cta_url' => '/results',
+            'header_cta_label' => 'Apply for Admission',
+            'header_cta_url' => 'https://admission.example.test',
+        ]);
+
+        $response->assertOk();
+        $this->assertSame('824502', $response->json('data.eiin'));
+        $this->assertSame('/results', $response->json('data.header_topbar_cta_url'));
+        $this->assertSame('Apply for Admission', $response->json('data.header_cta_label'));
+    }
+
+    public function test_site_settings_store_footer_description_and_menu_columns(): void
+    {
+        $this->actingAsBranchUser();
+
+        $menu = $this->postJson('/api/v1/cms/menus', ['name' => 'Quick Links', 'key' => 'footer-quick'])->json('data');
+
+        $response = $this->putJson('/api/v1/cms/site-settings', [
+            'site_title' => 'Namosanker Bati High School',
+            'footer_description' => 'A historic secondary institution in Chapainawabganj.',
+            'footer_menus' => [
+                ['title' => 'Quick Links', 'menu_id' => $menu['id']],
+            ],
+        ]);
+
+        $response->assertOk();
+        $this->assertSame('A historic secondary institution in Chapainawabganj.', $response->json('data.footer_description'));
+        $this->assertSame(
+            [['title' => 'Quick Links', 'menu_id' => $menu['id']]],
+            $response->json('data.footer_menus')
+        );
+    }
+
+    public function test_site_settings_sanitize_the_copyright_html_and_store_the_bottom_menu(): void
+    {
+        $this->actingAsBranchUser();
+
+        $menu = $this->postJson('/api/v1/cms/menus', ['name' => 'Legal', 'key' => 'footer-bottom'])->json('data');
+
+        $response = $this->putJson('/api/v1/cms/site-settings', [
+            'site_title' => 'Namosanker Bati High School',
+            'footer_copyright' => '<p>© 2026 <strong>School</strong></p><script>alert(1)</script>',
+            'footer_bottom_menu_id' => $menu['id'],
+        ]);
+
+        $response->assertOk();
+        // The WYSIWYG output is rendered as HTML by the public site, so it is purified on write.
+        $this->assertSame('<p>© 2026 <strong>School</strong></p>', $response->json('data.footer_copyright'));
+        $this->assertSame($menu['id'], $response->json('data.footer_bottom_menu_id'));
+    }
+
+    public function test_footer_bottom_menu_must_be_an_existing_menu(): void
+    {
+        $this->actingAsBranchUser();
+
+        $this->putJson('/api/v1/cms/site-settings', [
+            'site_title' => 'Namosanker Bati High School',
+            'footer_bottom_menu_id' => 9999,
+        ])->assertStatus(422)->assertJsonValidationErrors('footer_bottom_menu_id');
+    }
+
+    public function test_footer_menu_column_requires_a_title_and_an_existing_menu(): void
+    {
+        $this->actingAsBranchUser();
+
+        $this->putJson('/api/v1/cms/site-settings', [
+            'site_title' => 'Namosanker Bati High School',
+            'footer_menus' => [
+                ['title' => '', 'menu_id' => 9999],
+            ],
+        ])->assertStatus(422)->assertJsonValidationErrors(['footer_menus.0.title', 'footer_menus.0.menu_id']);
+    }
+
+    public function test_header_cta_link_rejects_non_http_schemes(): void
+    {
+        $this->actingAsBranchUser();
+
+        $this->putJson('/api/v1/cms/site-settings', [
+            'site_title' => 'Namosanker Bati High School',
+            'header_cta_url' => 'javascript:alert(1)',
+        ])->assertStatus(422)->assertJsonValidationErrors('header_cta_url');
     }
 }

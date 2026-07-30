@@ -6,6 +6,7 @@ namespace App\Models\Cms;
 
 use App\Models\Concerns\BelongsToBranch;
 use App\Models\User;
+use App\Support\BranchContext;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -24,9 +25,18 @@ class SiteSetting extends Model
         'header_logo_asset_id',
         'footer_logo_asset_id',
         'favicon_asset_id',
+        'eiin',
+        'header_topbar_cta_label',
+        'header_topbar_cta_url',
+        'header_cta_label',
+        'header_cta_url',
         'contact_email',
         'contact_phone',
         'contact_address',
+        'footer_description',
+        'footer_menus',
+        'footer_copyright',
+        'footer_bottom_menu_id',
         'facebook_url',
         'twitter_url',
         'linkedin_url',
@@ -44,6 +54,7 @@ class SiteSetting extends Model
     {
         return [
             'additional_settings' => 'array',
+            'footer_menus' => 'array',
         ];
     }
 
@@ -72,6 +83,16 @@ class SiteSetting extends Model
     }
 
     /**
+     * The menu shown beside the copyright line (privacy policy, terms and conditions, …).
+     *
+     * @return BelongsTo<Menu, $this>
+     */
+    public function footerBottomMenu(): BelongsTo
+    {
+        return $this->belongsTo(Menu::class, 'footer_bottom_menu_id');
+    }
+
+    /**
      * @return BelongsTo<User, $this>
      */
     public function creator(): BelongsTo
@@ -93,7 +114,7 @@ class SiteSetting extends Model
     public static function forBranch(): self
     {
         return self::firstOrCreate(
-            ['branch_id' => app(\App\Support\BranchContext::class)->idOrFail()],
+            ['branch_id' => app(BranchContext::class)->idOrFail()],
             [
                 'site_title' => config('app.name', 'Safe Eduman'),
                 'created_by' => auth()->id(),
@@ -119,9 +140,18 @@ class SiteSetting extends Model
             'footer_logo' => $this->footerLogo?->toApiPayload(),
             'favicon_asset_id' => $this->favicon_asset_id,
             'favicon' => $this->favicon?->toApiPayload(),
+            'eiin' => $this->eiin,
+            'header_topbar_cta_label' => $this->header_topbar_cta_label,
+            'header_topbar_cta_url' => $this->header_topbar_cta_url,
+            'header_cta_label' => $this->header_cta_label,
+            'header_cta_url' => $this->header_cta_url,
             'contact_email' => $this->contact_email,
             'contact_phone' => $this->contact_phone,
             'contact_address' => $this->contact_address,
+            'footer_description' => $this->footer_description,
+            'footer_menus' => $this->footer_menus ?? [],
+            'footer_copyright' => $this->footer_copyright,
+            'footer_bottom_menu_id' => $this->footer_bottom_menu_id,
             'facebook_url' => $this->facebook_url,
             'twitter_url' => $this->twitter_url,
             'linkedin_url' => $this->linkedin_url,
