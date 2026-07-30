@@ -26,6 +26,8 @@ class SiteSetting extends Model
         'footer_logo_asset_id',
         'favicon_asset_id',
         'eiin',
+        'color_scheme',
+        'brand_colors',
         'header_topbar_cta_label',
         'header_topbar_cta_url',
         'header_cta_label',
@@ -55,6 +57,7 @@ class SiteSetting extends Model
         return [
             'additional_settings' => 'array',
             'footer_menus' => 'array',
+            'brand_colors' => 'array',
         ];
     }
 
@@ -141,6 +144,8 @@ class SiteSetting extends Model
             'favicon_asset_id' => $this->favicon_asset_id,
             'favicon' => $this->favicon?->toApiPayload(),
             'eiin' => $this->eiin,
+            'color_scheme' => $this->color_scheme,
+            'brand_colors' => $this->brand_colors,
             'header_topbar_cta_label' => $this->header_topbar_cta_label,
             'header_topbar_cta_url' => $this->header_topbar_cta_url,
             'header_cta_label' => $this->header_cta_label,
@@ -164,5 +169,23 @@ class SiteSetting extends Model
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];
+    }
+
+    /**
+     * Preset colors with the admin's per-token overrides layered on top. Falls back to the
+     * configured default preset when the branch has never chosen one, and drops override
+     * keys that aren't real tokens so a stale payload can't inject arbitrary CSS.
+     *
+     * @return array<string, string>
+     */
+    public function resolvedThemeColors(): array
+    {
+        $schemes = config('cms.color_schemes', []);
+        $defaultKey = config('cms.default_color_scheme', 'forest');
+        $key = $this->color_scheme ?: $defaultKey;
+        $base = $schemes[$key]['colors'] ?? $schemes[$defaultKey]['colors'] ?? [];
+        $overrides = array_intersect_key($this->brand_colors ?? [], $base);
+
+        return array_merge($base, $overrides);
     }
 }

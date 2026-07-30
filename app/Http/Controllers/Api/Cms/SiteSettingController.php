@@ -22,6 +22,15 @@ class SiteSettingController extends Controller
         return ApiResponse::success($settings->toApiPayload(), 'Site settings retrieved.');
     }
 
+    /**
+     * The curated color-scheme presets (label, description, token map), for the admin's
+     * Branding tab swatch picker. Source of truth is config('cms.color_schemes').
+     */
+    public function colorSchemes(): JsonResponse
+    {
+        return ApiResponse::success(config('cms.color_schemes', []), 'Color schemes retrieved.');
+    }
+
     public function update(SiteSettingRequest $request): JsonResponse
     {
         $settings = SiteSetting::forBranch();
@@ -73,6 +82,8 @@ class SiteSettingController extends Controller
             'footer_logo_asset_id' => null,
             'favicon_asset_id' => null,
             'eiin' => null,
+            'color_scheme' => null,
+            'brand_colors' => null,
             'header_topbar_cta_label' => null,
             'header_topbar_cta_url' => null,
             'header_cta_label' => null,
@@ -127,6 +138,8 @@ class SiteSettingController extends Controller
                 ['site_tagline', $settings->site_tagline ?? '', 'Basic', 'Site Tagline'],
                 ['site_description', $settings->site_description ?? '', 'Basic', 'Site Description'],
                 ['eiin', $settings->eiin ?? '', 'Branding', 'EIIN'],
+                ['color_scheme', $settings->color_scheme ?? '', 'Branding', 'Color Scheme'],
+                ['brand_colors', $settings->brand_colors ? json_encode($settings->brand_colors) : '', 'Branding', 'Color Overrides (JSON)'],
                 ['header_topbar_cta_label', $settings->header_topbar_cta_label ?? '', 'Branding', 'Header Topbar CTA Label'],
                 ['header_topbar_cta_url', $settings->header_topbar_cta_url ?? '', 'Branding', 'Header Topbar CTA URL'],
                 ['header_cta_label', $settings->header_cta_label ?? '', 'Branding', 'Header CTA Label'],
@@ -187,6 +200,8 @@ class SiteSettingController extends Controller
             'site_tagline' => 'site_tagline',
             'site_description' => 'site_description',
             'eiin' => 'eiin',
+            'color_scheme' => 'color_scheme',
+            'brand_colors' => 'brand_colors',
             'header_topbar_cta_label' => 'header_topbar_cta_label',
             'header_topbar_cta_url' => 'header_topbar_cta_url',
             'header_cta_label' => 'header_cta_label',
@@ -249,6 +264,37 @@ class SiteSettingController extends Controller
                 // endpoint does rather than strip_tags-ing it down to plain text.
                 if ($dbField === 'footer_copyright') {
                     $updateData[$dbField] = $value === '' ? null : HtmlSanitizer::clean($value);
+
+                    continue;
+                }
+
+                // Color scheme: only a known preset key survives; anything else is dropped
+                // rather than saved, since an unknown key would break resolvedThemeColors().
+                if ($dbField === 'color_scheme') {
+                    if ($value === '') {
+                        $updateData[$dbField] = null;
+                    } elseif (array_key_exists($value, config('cms.color_schemes', []))) {
+                        $updateData[$dbField] = $value;
+                    }
+
+                    continue;
+                }
+
+                // Color overrides: a JSON object of token => hex. Non-token keys and
+                // non-hex values are stripped rather than rejecting the whole row.
+                if ($dbField === 'brand_colors') {
+                    if ($value === '') {
+                        $updateData[$dbField] = null;
+                    } else {
+                        $decoded = json_decode($value, true);
+                        if (is_array($decoded)) {
+                            $tokens = config('cms.color_schemes.'.config('cms.default_color_scheme', 'forest').'.colors', []);
+                            $updateData[$dbField] = array_filter(
+                                array_intersect_key($decoded, $tokens),
+                                fn ($v): bool => is_string($v) && preg_match('/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $v) === 1
+                            );
+                        }
+                    }
 
                     continue;
                 }

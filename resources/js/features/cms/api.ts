@@ -696,6 +696,9 @@ export interface SiteSettingDetail {
     favicon_asset_id: number | null;
     favicon: AssetPayload | null;
     eiin: string | null;
+    color_scheme: string | null;
+    /** Per-token hex overrides on top of the chosen (or default) preset. */
+    brand_colors: Record<string, string> | null;
     header_topbar_cta_label: string | null;
     header_topbar_cta_url: string | null;
     header_cta_label: string | null;
@@ -729,6 +732,8 @@ export interface SiteSettingPayload {
     footer_logo_asset_id?: number | null;
     favicon_asset_id?: number | null;
     eiin?: string | null;
+    color_scheme?: string | null;
+    brand_colors?: Record<string, string> | null;
     header_topbar_cta_label?: string | null;
     header_topbar_cta_url?: string | null;
     header_cta_label?: string | null;
@@ -749,6 +754,18 @@ export interface SiteSettingPayload {
     google_tag_manager_code?: string | null;
     meta_keywords?: string | null;
     additional_settings?: Record<string, unknown> | null;
+}
+
+/** One curated color-scheme preset: display copy plus its 15-token color map. */
+export interface ColorScheme {
+    label: string;
+    description: string;
+    colors: Record<string, string>;
+}
+
+export async function listColorSchemes(): Promise<Record<string, ColorScheme>> {
+    const { data } = await api.get(`${base}/site-settings/color-schemes`);
+    return data.data as Record<string, ColorScheme>;
 }
 
 export async function getSiteSettings(): Promise<SiteSettingDetail> {

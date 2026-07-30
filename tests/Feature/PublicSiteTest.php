@@ -238,6 +238,34 @@ class PublicSiteTest extends TestCase
             ->assertJsonPath('data.favicon', null);
     }
 
+    public function test_theme_colors_fall_back_to_the_default_preset_when_the_branch_has_no_settings(): void
+    {
+        $response = $this->getJson('/api/v1/site/settings')->assertOk();
+
+        $this->assertSame(config('cms.default_color_scheme'), $response->json('data.color_scheme'));
+        $this->assertSame(
+            config('cms.color_schemes.'.config('cms.default_color_scheme').'.colors'),
+            $response->json('data.theme_colors')
+        );
+    }
+
+    public function test_theme_colors_resolve_a_chosen_preset_with_overrides_layered_on_top(): void
+    {
+        app(BranchContext::class)->set($this->branch->id);
+        SiteSetting::create([
+            'site_title' => 'Namosanker Bati High School',
+            'color_scheme' => 'teal',
+            'brand_colors' => ['primary' => '#123abc'],
+        ]);
+        app(BranchContext::class)->set(null);
+
+        $response = $this->getJson('/api/v1/site/settings')->assertOk();
+
+        $this->assertSame('teal', $response->json('data.color_scheme'));
+        $expected = array_merge(config('cms.color_schemes.teal.colors'), ['primary' => '#123abc']);
+        $this->assertSame($expected, $response->json('data.theme_colors'));
+    }
+
     public function test_requires_no_authentication(): void
     {
         $this->makeNotice($this->branch, [

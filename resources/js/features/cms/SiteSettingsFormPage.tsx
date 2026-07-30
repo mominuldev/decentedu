@@ -4,15 +4,15 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
     ArrowLeft, Loader2, Globe, Mail, MapPin, Phone, Download, Upload, Plus, Trash2,
     ChevronUp, ChevronDown, PanelBottom, PanelTop, Image as ImageIcon, Share2, LineChart,
-    RotateCcw, Settings2, Link2, AlertCircle,
+    RotateCcw, Settings2, Link2, AlertCircle, Check,
 } from 'lucide-react';
-import { Card, Button } from '@/components/ui';
+import { Card, Button, IconButton } from '@/components/ui';
 import { Modal } from '@/components/Modal';
 import { toApiError } from '@/lib/api';
 import {
     getSiteSettings, updateSiteSettings, resetSiteSettings, exportSiteSettings, importSiteSettings,
-    listMenus, inputCls, labelCls,
-    type SiteSettingDetail, type SiteSettingPayload, type AssetPayload, type FooterMenuColumn,
+    listMenus, listColorSchemes, inputCls, labelCls,
+    type SiteSettingDetail, type SiteSettingPayload, type AssetPayload, type FooterMenuColumn, type ColorScheme,
 } from './api';
 import { FileUpload } from '@/components/FileUpload';
 import { RichTextEditor } from './RichTextEditor';
@@ -27,6 +27,8 @@ const EMPTY: SiteSettingPayload = {
     footer_logo_asset_id: null,
     favicon_asset_id: null,
     eiin: '',
+    color_scheme: null,
+    brand_colors: null,
     header_topbar_cta_label: '',
     header_topbar_cta_url: '',
     header_cta_label: '',
@@ -99,9 +101,9 @@ const SECTIONS: {
     },
     {
         key: 'branding', label: 'Branding', icon: ImageIcon,
-        title: 'Logos and favicon',
-        desc: 'Images shown in the site header, footer and browser tab.',
-        fields: ['header_logo_asset_id', 'footer_logo_asset_id', 'favicon_asset_id'],
+        title: 'Logos and colors',
+        desc: 'Images and the color scheme used across the public site.',
+        fields: ['header_logo_asset_id', 'footer_logo_asset_id', 'favicon_asset_id', 'color_scheme', 'brand_colors'],
     },
     {
         key: 'header', label: 'Header', icon: PanelTop,
@@ -184,6 +186,93 @@ function IconInput({ icon: Icon, ...rest }: {
     );
 }
 
+/** The 15 public-site theme tokens, grouped for the Branding pane's override panel. */
+const TOKEN_GROUPS: { title: string; tokens: { key: string; label: string }[] }[] = [
+    {
+        title: 'Brand',
+        tokens: [
+            { key: 'primary', label: 'Primary' },
+            { key: 'primary-dark', label: 'Primary (dark)' },
+            { key: 'secondary', label: 'Secondary' },
+            { key: 'secondary-dark', label: 'Secondary (dark)' },
+            { key: 'accent', label: 'Accent' },
+        ],
+    },
+    {
+        title: 'Surfaces & text',
+        tokens: [
+            { key: 'background', label: 'Background' },
+            { key: 'cream', label: 'Cream band' },
+            { key: 'surface', label: 'Surface' },
+            { key: 'text', label: 'Body text' },
+            { key: 'muted', label: 'Muted text' },
+            { key: 'border', label: 'Border' },
+        ],
+    },
+    {
+        title: 'Contrast',
+        tokens: [
+            { key: 'primary-foreground', label: 'Primary text' },
+            { key: 'secondary-foreground', label: 'Secondary text' },
+            { key: 'accent-foreground', label: 'Accent text' },
+            { key: 'success', label: 'Success' },
+        ],
+    },
+];
+
+/** <input type="color"> only accepts 6-digit hex, so a shorthand value is expanded for
+ *  binding; anything else (partial input, garbage) passes through untouched so the text
+ *  field doesn't fight the user mid-keystroke. */
+function normalizeHex(value: string): string {
+    const m = /^#([0-9a-fA-F])([0-9a-fA-F])([0-9a-fA-F])$/.exec(value);
+    return m ? `#${m[1]}${m[1]}${m[2]}${m[2]}${m[3]}${m[3]}` : value;
+}
+
+/** Swatch + hex card for one theme token, sized to sit five-across in the override grid.
+ *  Shows the preset's value until overridden; the revert button clears the override (rather
+ *  than writing the preset value back in), so a later preset change still flows through
+ *  instead of getting stuck on an old color. */
+function ColorField({ label, presetValue, value, onChange }: {
+    label: string;
+    presetValue: string;
+    value: string | null | undefined;
+    onChange: (next: string | null) => void;
+}) {
+    const current = value ?? presetValue;
+    const swatch = normalizeHex(current);
+    return (
+        <div className="relative rounded-lg border border-border p-2.5">
+            {value != null && (
+                <IconButton
+                    type="button"
+                    title="Revert to preset color"
+                    onClick={() => onChange(null)}
+                    className="absolute right-1 top-1 h-6 w-6"
+                >
+                    <RotateCcw size={12} />
+                </IconButton>
+            )}
+            <label className="relative block h-10 w-full cursor-pointer overflow-hidden rounded-md border border-border" title="Click to pick a color">
+                <span className="absolute inset-0" style={{ backgroundColor: swatch }} />
+                <input
+                    type="color"
+                    value={/^#([0-9a-fA-F]{6})$/.test(swatch) ? swatch : '#000000'}
+                    onChange={(e) => onChange(e.target.value)}
+                    className="absolute -inset-2 cursor-pointer opacity-0"
+                    aria-label={`${label} color picker`}
+                />
+            </label>
+            <p className="mt-1.5 truncate text-[12px] font-medium text-fg" title={label}>{label}</p>
+            <input
+                className={`${inputCls} mt-1 py-1 font-mono text-[11.5px]`}
+                value={current}
+                onChange={(e) => onChange(e.target.value)}
+                placeholder={presetValue}
+            />
+        </div>
+    );
+}
+
 function MenuItem({ icon: Icon, onClick, disabled, danger, children }: {
     icon: ComponentType<IconProps>;
     onClick: () => void;
@@ -253,6 +342,36 @@ export default function SiteSettingsFormPage() {
     // Same key MenusPanel uses, so the picker reuses an already-warm list.
     const { data: menus = [] } = useQuery({ queryKey: ['cms-menus'], queryFn: listMenus });
 
+    const { data: colorSchemes } = useQuery({ queryKey: ['cms-color-schemes'], queryFn: listColorSchemes });
+    const effectiveScheme = form.color_scheme || 'forest';
+    const [pendingScheme, setPendingScheme] = useState<string | null>(null);
+
+    /** Switching preset clears overrides — a hex authored against green rarely still
+     *  makes sense against navy — but only warns when there's actually something to lose. */
+    const selectScheme = (key: string) => {
+        if (key === effectiveScheme) return;
+        if (form.brand_colors && Object.keys(form.brand_colors).length > 0) {
+            setPendingScheme(key);
+        } else {
+            set({ color_scheme: key });
+        }
+    };
+
+    const setColorOverride = (tokenKey: string, next: string | null) => {
+        const merged = { ...(form.brand_colors ?? {}) };
+        if (next === null) {
+            delete merged[tokenKey];
+        } else {
+            merged[tokenKey] = next;
+        }
+        set({ brand_colors: Object.keys(merged).length > 0 ? merged : undefined });
+    };
+
+    const previewColors: Record<string, string> = {
+        ...(colorSchemes?.[effectiveScheme]?.colors ?? {}),
+        ...(form.brand_colors ?? {}),
+    };
+
     /** Serialized form state, used to tell "no changes yet" from "unsaved changes". */
     const fingerprint = (
         f: SiteSettingPayload,
@@ -268,6 +387,8 @@ export default function SiteSettingsFormPage() {
             footer_logo_asset_id: s.footer_logo_asset_id || undefined,
             favicon_asset_id: s.favicon_asset_id || undefined,
             eiin: s.eiin || '',
+            color_scheme: s.color_scheme || null,
+            brand_colors: s.brand_colors || undefined,
             header_topbar_cta_label: s.header_topbar_cta_label || '',
             header_topbar_cta_url: s.header_topbar_cta_url || '',
             header_cta_label: s.header_cta_label || '',
@@ -569,33 +690,130 @@ export default function SiteSettingsFormPage() {
 
                             {section === 'branding' && (
                                 <div className="space-y-5">
-                                    <FileUpload
-                                        label="Header Logo"
-                                        category="cms"
-                                        imageOnly
-                                        hint="Wide logo for the site header"
-                                        value={headerLogo?.id ?? null}
-                                        previewUrl={headerLogo?.thumb_url ?? headerLogo?.url ?? null}
-                                        onChange={(_id, asset) => setHeaderLogo(asset ?? null)}
-                                    />
-                                    <FileUpload
-                                        label="Footer Logo"
-                                        category="cms"
-                                        imageOnly
-                                        hint="Often a light version of the header logo"
-                                        value={footerLogo?.id ?? null}
-                                        previewUrl={footerLogo?.thumb_url ?? footerLogo?.url ?? null}
-                                        onChange={(_id, asset) => setFooterLogo(asset ?? null)}
-                                    />
-                                    <FileUpload
-                                        label="Favicon"
-                                        category="cms"
-                                        imageOnly
-                                        hint="Square image (PNG, SVG or ICO)"
-                                        value={favicon?.id ?? null}
-                                        previewUrl={favicon?.thumb_url ?? favicon?.url ?? null}
-                                        onChange={(_id, asset) => setFavicon(asset ?? null)}
-                                    />
+                                    <div className="grid gap-4 sm:grid-cols-2">
+                                        <FileUpload
+                                            label="Header Logo"
+                                            category="cms"
+                                            imageOnly
+                                            hint="Wide logo for the site header"
+                                            value={headerLogo?.id ?? null}
+                                            previewUrl={headerLogo?.thumb_url ?? headerLogo?.url ?? null}
+                                            onChange={(_id, asset) => setHeaderLogo(asset ?? null)}
+                                        />
+                                        <FileUpload
+                                            label="Footer Logo"
+                                            category="cms"
+                                            imageOnly
+                                            hint="Often a light version of the header logo"
+                                            value={footerLogo?.id ?? null}
+                                            previewUrl={footerLogo?.thumb_url ?? footerLogo?.url ?? null}
+                                            onChange={(_id, asset) => setFooterLogo(asset ?? null)}
+                                        />
+                                        <FileUpload
+                                            label="Favicon"
+                                            category="cms"
+                                            imageOnly
+                                            hint="Square image (PNG, SVG or ICO)"
+                                            value={favicon?.id ?? null}
+                                            previewUrl={favicon?.thumb_url ?? favicon?.url ?? null}
+                                            onChange={(_id, asset) => setFavicon(asset ?? null)}
+                                        />
+                                    </div>
+
+                                    <Field label="Color scheme" error={errors.color_scheme} hint="Applied across the public site — header, footer, buttons and links.">
+                                        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                                            {Object.entries(colorSchemes ?? {}).map(([key, scheme]: [string, ColorScheme]) => {
+                                                const isActive = key === effectiveScheme;
+                                                return (
+                                                    <button
+                                                        key={key}
+                                                        type="button"
+                                                        onClick={() => selectScheme(key)}
+                                                        className={`cursor-pointer rounded-xl border p-3 text-left transition-colors ${
+                                                            isActive ? 'border-brand-500 ring-2 ring-brand-500/30' : 'border-border hover:border-brand-300'
+                                                        }`}
+                                                        style={{ backgroundColor: scheme.colors.background }}
+                                                    >
+                                                        <div className="mb-2 flex gap-1">
+                                                            {['primary', 'primary-dark', 'secondary', 'cream', 'surface'].map((t) => (
+                                                                <span
+                                                                    key={t}
+                                                                    className="h-5 w-5 rounded-full border border-black/10"
+                                                                    style={{ backgroundColor: scheme.colors[t] }}
+                                                                />
+                                                            ))}
+                                                        </div>
+                                                        <p className="text-[13px] font-semibold" style={{ color: scheme.colors.text }}>{scheme.label}</p>
+                                                        <p className="mt-0.5 text-[11.5px]" style={{ color: scheme.colors.muted }}>{scheme.description}</p>
+                                                        {isActive && (
+                                                            <span
+                                                                className="mt-2 inline-flex items-center gap-1 text-[11px] font-medium"
+                                                                style={{ color: scheme.colors.primary }}
+                                                            >
+                                                                <Check size={12} /> Selected
+                                                            </span>
+                                                        )}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </Field>
+
+                                    <Group title="Customize colors" hint="Override individual colors on top of the selected scheme.">
+                                        <div className="space-y-5">
+                                            {TOKEN_GROUPS.map((group) => (
+                                                <div key={group.title}>
+                                                    <p className="mb-2 text-[11.5px] font-semibold uppercase tracking-wide text-faint">{group.title}</p>
+                                                    <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
+                                                        {group.tokens.map((token) => (
+                                                            <ColorField
+                                                                key={token.key}
+                                                                label={token.label}
+                                                                presetValue={colorSchemes?.[effectiveScheme]?.colors[token.key] ?? '#000000'}
+                                                                value={form.brand_colors?.[token.key]}
+                                                                onChange={(next) => setColorOverride(token.key, next)}
+                                                            />
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </Group>
+
+                                    <div>
+                                        <p className={labelCls}>Live preview</p>
+                                        <div
+                                            className="overflow-hidden rounded-xl border p-4"
+                                            style={{ borderColor: previewColors.border, backgroundColor: previewColors.background }}
+                                        >
+                                            <p className="text-[15px] font-semibold" style={{ color: previewColors.text }}>
+                                                Namoshankarbati High School
+                                            </p>
+                                            <p className="mt-1 text-[13px]" style={{ color: previewColors.muted }}>
+                                                This is how body text reads against the chosen background.
+                                            </p>
+                                            <div className="mt-3 flex flex-wrap gap-2">
+                                                <span
+                                                    className="rounded-lg px-3 py-1.5 text-[13px] font-medium"
+                                                    style={{ backgroundColor: previewColors.primary, color: previewColors['primary-foreground'] }}
+                                                >
+                                                    Primary button
+                                                </span>
+                                                <span
+                                                    className="rounded-lg px-3 py-1.5 text-[13px] font-medium"
+                                                    style={{ backgroundColor: previewColors.secondary, color: previewColors['secondary-foreground'] }}
+                                                >
+                                                    Secondary button
+                                                </span>
+                                            </div>
+                                            <div
+                                                className="mt-3 rounded-lg border p-3 text-[12.5px]"
+                                                style={{ borderColor: previewColors.border, backgroundColor: previewColors.surface, color: previewColors.text }}
+                                            >
+                                                A surface card with <span style={{ color: previewColors.primary }}>a link</span> inside it.
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             )}
 
@@ -866,6 +1084,29 @@ export default function SiteSettingsFormPage() {
                 }
             >
                 <p className="text-[14px] text-muted">You have edits on this page that have not been saved yet.</p>
+            </Modal>
+
+            <Modal
+                open={pendingScheme !== null}
+                onClose={() => setPendingScheme(null)}
+                title="Switch color scheme?"
+                footer={
+                    <>
+                        <Button variant="outline" onClick={() => setPendingScheme(null)}>Cancel</Button>
+                        <Button
+                            onClick={() => {
+                                if (pendingScheme) set({ color_scheme: pendingScheme, brand_colors: undefined });
+                                setPendingScheme(null);
+                            }}
+                        >
+                            Switch scheme
+                        </Button>
+                    </>
+                }
+            >
+                <p className="text-[14px] text-muted">
+                    Your custom color overrides were made for the current scheme and will be cleared when you switch.
+                </p>
             </Modal>
         </div>
     );

@@ -16,6 +16,9 @@ class SiteSettingRequest extends FormRequest
      */
     private const LINK_REGEX = 'regex:/^(https?:\/\/|\/)/i';
 
+    /** 3- or 6-digit hex color, as accepted by an <input type="color"> after normalization. */
+    private const HEX_REGEX = 'regex:/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/';
+
     public function authorize(): bool
     {
         return true;
@@ -39,6 +42,18 @@ class SiteSettingRequest extends FormRequest
             'footer_logo_asset_id' => ['nullable', 'integer', Rule::exists('assets', 'id')->where('branch_id', $branchId)],
             'favicon_asset_id' => ['nullable', 'integer', Rule::exists('assets', 'id')->where('branch_id', $branchId)],
             'eiin' => ['nullable', 'string', 'max:20'],
+
+            // Color scheme: a curated preset key, plus optional per-token hex overrides on
+            // top of it. Unknown override keys are rejected here rather than silently
+            // dropped, so the admin sees why a save failed.
+            'color_scheme' => ['nullable', 'string', Rule::in(array_keys(config('cms.color_schemes', [])))],
+            'brand_colors' => ['nullable', 'array', function ($attribute, $value, $fail): void {
+                $unknown = array_diff(array_keys($value), array_keys($this->themeTokens()));
+                if ($unknown !== []) {
+                    $fail('Unknown color token(s): '.implode(', ', $unknown).'.');
+                }
+            }],
+            'brand_colors.*' => ['nullable', 'string', self::HEX_REGEX],
 
             // Header call-to-action buttons. The URLs render as public hrefs, so they are
             // restricted to site-relative paths or http(s) — never javascript:/data:.
@@ -79,6 +94,20 @@ class SiteSettingRequest extends FormRequest
     }
 
     /**
+     * The token map of the branch's currently-selected preset (or the default preset, when
+     * none is chosen yet) — used to validate that `brand_colors` only overrides real tokens.
+     *
+     * @return array<string, string>
+     */
+    private function themeTokens(): array
+    {
+        $schemes = config('cms.color_schemes', []);
+        $key = $this->input('color_scheme') ?: config('cms.default_color_scheme', 'forest');
+
+        return $schemes[$key]['colors'] ?? $schemes[config('cms.default_color_scheme', 'forest')]['colors'] ?? [];
+    }
+
+    /**
      * @return array<string, string>
      */
     public function messages(): array
@@ -100,6 +129,8 @@ class SiteSettingRequest extends FormRequest
             'linkedin_url.url' => 'Please enter a valid URL.',
             'youtube_url.url' => 'Please enter a valid URL.',
             'instagram_url.url' => 'Please enter a valid URL.',
+            'color_scheme.in' => 'Choose one of the available color schemes.',
+            'brand_colors.*.regex' => 'Enter a valid hex color, e.g. #04702f.',
         ];
     }
 }

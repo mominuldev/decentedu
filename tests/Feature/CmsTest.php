@@ -1156,4 +1156,77 @@ class CmsTest extends TestCase
             'header_cta_url' => 'javascript:alert(1)',
         ])->assertStatus(422)->assertJsonValidationErrors('header_cta_url');
     }
+
+    public function test_site_settings_store_a_color_scheme_and_per_token_overrides(): void
+    {
+        $this->actingAsBranchUser();
+
+        $response = $this->putJson('/api/v1/cms/site-settings', [
+            'site_title' => 'Namosanker Bati High School',
+            'color_scheme' => 'teal',
+            'brand_colors' => ['primary' => '#123abc'],
+        ]);
+
+        $response->assertOk();
+        $this->assertSame('teal', $response->json('data.color_scheme'));
+        $this->assertSame(['primary' => '#123abc'], $response->json('data.brand_colors'));
+    }
+
+    public function test_site_settings_rejects_an_unknown_color_scheme(): void
+    {
+        $this->actingAsBranchUser();
+
+        $this->putJson('/api/v1/cms/site-settings', [
+            'site_title' => 'Namosanker Bati High School',
+            'color_scheme' => 'not-a-real-scheme',
+        ])->assertStatus(422)->assertJsonValidationErrors('color_scheme');
+    }
+
+    public function test_site_settings_rejects_a_non_hex_color_override(): void
+    {
+        $this->actingAsBranchUser();
+
+        $this->putJson('/api/v1/cms/site-settings', [
+            'site_title' => 'Namosanker Bati High School',
+            'brand_colors' => ['primary' => 'not-a-hex'],
+        ])->assertStatus(422)->assertJsonValidationErrors('brand_colors.primary');
+    }
+
+    public function test_site_settings_rejects_an_unknown_color_override_key(): void
+    {
+        $this->actingAsBranchUser();
+
+        $this->putJson('/api/v1/cms/site-settings', [
+            'site_title' => 'Namosanker Bati High School',
+            'brand_colors' => ['not_a_token' => '#123abc'],
+        ])->assertStatus(422)->assertJsonValidationErrors('brand_colors');
+    }
+
+    public function test_reset_site_settings_clears_the_color_scheme_and_overrides(): void
+    {
+        $this->actingAsBranchUser();
+
+        $this->putJson('/api/v1/cms/site-settings', [
+            'site_title' => 'Namosanker Bati High School',
+            'color_scheme' => 'navy',
+            'brand_colors' => ['primary' => '#123abc'],
+        ])->assertOk();
+
+        $response = $this->postJson('/api/v1/cms/site-settings/reset');
+        $response->assertOk();
+        $this->assertNull($response->json('data.color_scheme'));
+        $this->assertNull($response->json('data.brand_colors'));
+    }
+
+    public function test_color_schemes_endpoint_lists_the_curated_presets(): void
+    {
+        $this->actingAsBranchUser();
+
+        $response = $this->getJson('/api/v1/cms/site-settings/color-schemes');
+
+        $response->assertOk();
+        $this->assertArrayHasKey('forest', $response->json('data'));
+        $this->assertSame('Forest & Crimson', $response->json('data.forest.label'));
+        $this->assertArrayHasKey('primary', $response->json('data.forest.colors'));
+    }
 }

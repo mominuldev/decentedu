@@ -46,6 +46,8 @@ class SiteSettingController extends Controller
             'footer_logo' => $this->asset($s?->footerLogo),
             'favicon' => $this->asset($s?->favicon),
             'eiin' => $s?->eiin,
+            'color_scheme' => $s?->color_scheme ?: config('cms.default_color_scheme'),
+            'theme_colors' => $s?->resolvedThemeColors() ?? config('cms.color_schemes.'.config('cms.default_color_scheme').'.colors', []),
             'header_topbar_cta' => $this->cta($s?->header_topbar_cta_label, $s?->header_topbar_cta_url),
             'header_cta' => $this->cta($s?->header_cta_label, $s?->header_cta_url),
             'contact_email' => $s?->contact_email,

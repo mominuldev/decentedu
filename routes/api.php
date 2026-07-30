@@ -583,6 +583,7 @@ Route::prefix('v1')->group(function () use ($setupSlugs) {
             Route::post('site-settings/reset', [SiteSettingController::class, 'reset']);
             Route::get('site-settings/export', [SiteSettingController::class, 'export']);
             Route::post('site-settings/import', [SiteSettingController::class, 'import']);
+            Route::get('site-settings/color-schemes', [SiteSettingController::class, 'colorSchemes']);
         });
 
         // Shared media library — not gated by cms.manage at the route level, since it also
