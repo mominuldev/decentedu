@@ -294,7 +294,7 @@ function HeadingFields({ payload, onChange }: Props) {
 }
 
 function GalleryField({ payload, onChange }: Props) {
-    const [tab, setTab] = useState<'content' | 'images'>('content');
+    const [tab, setTab] = useState<'content' | 'images' | 'style'>('content');
     const set = (patch: Payload) => onChange({ ...payload, ...patch });
     
     const [open, setOpen] = useState(false);
@@ -315,7 +315,15 @@ function GalleryField({ payload, onChange }: Props) {
 
     return (
         <div className="space-y-4">
-            <Tabs tabs={[{ key: 'content', label: 'Content' }, { key: 'images', label: 'Images' }]} active={tab} onChange={(k) => setTab(k as 'content' | 'images')} />
+            <Tabs
+                tabs={[
+                    { key: 'content', label: 'Content' },
+                    { key: 'images', label: 'Images' },
+                    { key: 'style', label: 'Style' },
+                ]}
+                active={tab}
+                onChange={(k) => setTab(k as 'content' | 'images' | 'style')}
+            />
             {tab === 'content' ? (
                 <div className="space-y-3">
                     <Text label="Subtitle" value={payload.subtitle} onChange={(v) => set({ subtitle: v })} />
@@ -365,7 +373,7 @@ function GalleryField({ payload, onChange }: Props) {
                         )}
                     </div>
                 </div>
-            ) : (
+            ) : tab === 'images' ? (
                 <div className="space-y-3">
                     <div className="space-y-2">
                         <label className={labelCls}>Images (Manual override)</label>
@@ -388,6 +396,15 @@ function GalleryField({ payload, onChange }: Props) {
                             }} />
                     </div>
                     <Text label="Columns" value={payload.columns} onChange={(v) => set({ columns: Number(v) || null })} type="number" min="1" max="6" placeholder="3" />
+                </div>
+            ) : (
+                <div className="space-y-3">
+                    <Select
+                        label="Text align"
+                        value={payload.text_align ?? 'left'}
+                        options={['left', 'center', 'right']}
+                        onChange={(v) => set({ text_align: v })}
+                    />
                 </div>
             )}
         </div>

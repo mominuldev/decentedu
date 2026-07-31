@@ -1053,6 +1053,7 @@ class CmsTest extends TestCase
                     'payload' => [
                         'mode' => 'recent',
                         'limit' => 4,
+                        'text_align' => 'center',
                     ],
                 ],
             ],
@@ -1064,6 +1065,7 @@ class CmsTest extends TestCase
         $publicResponse = $this->getJson('/api/v1/cms/public/pages/gallery-page');
         $publicResponse->assertOk();
         $this->assertNotEmpty($publicResponse->json('data.blocks.0.data.galleries'));
+        $this->assertEquals('center', $publicResponse->json('data.blocks.0.data.text_align'));
     }
 
     public function test_site_settings_store_eiin_and_header_ctas(): void

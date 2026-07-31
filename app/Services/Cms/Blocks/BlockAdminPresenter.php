@@ -78,6 +78,11 @@ class BlockAdminPresenter
             $payload['text_align'] ??= 'center';
         }
 
+        // Add defaults for gallery block
+        if ($blockType === 'gallery') {
+            $payload['text_align'] ??= 'left';
+        }
+
         return $payload;
     }
 }

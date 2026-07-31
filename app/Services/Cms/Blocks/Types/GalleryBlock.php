@@ -29,6 +29,7 @@ class GalleryBlock extends BaseBlockType
             'asset_ids' => ['nullable', 'array'],
             'asset_ids.*' => ['integer', Rule::exists('assets', 'id')],
             'columns' => ['nullable', 'integer', 'between:1,6'],
+            'text_align' => ['nullable', Rule::in(['left', 'center', 'right'])],
         ];
     }
 
@@ -60,6 +61,7 @@ class GalleryBlock extends BaseBlockType
             'galleries' => $galleriesData,
             'images' => $this->assetsPayload($payload['asset_ids'] ?? []),
             'columns' => (int) ($payload['columns'] ?? 3),
+            'text_align' => $payload['text_align'] ?? 'left',
         ];
     }
 }
