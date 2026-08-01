@@ -26,7 +26,11 @@ class HtmlSanitizer
             $config->set('HTML.Allowed', 'p,br,strong,em,u,ol,ul,li,a[href|target],img[src|alt|width|height],'.
                 'h1,h2,h3,h4,blockquote,table,thead,tbody,tr,th,td');
             $config->set('HTML.TargetBlank', true);
-            $config->set('Cache.SerializerPath', storage_path('app/htmlpurifier-cache'));
+            $cachePath = storage_path('app/htmlpurifier-cache');
+            if (! is_dir($cachePath)) {
+                @mkdir($cachePath, 0755, true);
+            }
+            $config->set('Cache.SerializerPath', $cachePath);
             self::$purifier = new HTMLPurifier($config);
         }
 

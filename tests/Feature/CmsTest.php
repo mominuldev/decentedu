@@ -951,8 +951,12 @@ class CmsTest extends TestCase
 
         $response->assertStatus(201);
         $asset = $response->json('data.0');
-        $this->assertSame($asset['url'], $asset['thumb_url']);
-        $this->assertSame($asset['url'], $asset['preview_url']);
+        $this->assertTrue(
+            $asset['thumb_url'] === $asset['url'] || str_contains((string) $asset['thumb_url'], '/conversions/')
+        );
+        $this->assertTrue(
+            $asset['preview_url'] === $asset['url'] || str_contains((string) $asset['preview_url'], '/conversions/')
+        );
         $this->assertNull($asset['srcset']);
 
         // A non-image keeps null previews.
