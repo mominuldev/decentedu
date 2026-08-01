@@ -100,7 +100,7 @@ jobs:
     if: github.event.inputs.environment == 'production'
     environment:
       name: production
-      url: https://app.decentedu.example
+      url: https://portal.decentthemes.com
     steps:
       - name: Check production is configured
         id: check
