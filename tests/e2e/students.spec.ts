@@ -12,13 +12,17 @@ test.describe('Register a student and see it in the list', () => {
 
         const uid = `E2E-${Date.now()}`;
         const roll = `${Date.now()}`.slice(-6);
-        await page.getByLabel('Student UID *', { exact: true }).fill(uid);
-        await page.getByLabel('Name *', { exact: true }).fill('Playwright Test Student');
-        await page.getByLabel("Father's Name *", { exact: true }).fill('Test Father');
-        await page.getByLabel("Mother's Name *", { exact: true }).fill('Test Mother');
-        await selectOnceLoaded(page, 'Academic Year *');
-        await selectOnceLoaded(page, 'Class *');
-        await page.getByLabel('Roll Number *', { exact: true }).fill(roll);
+        await page.locator('#field-student-uid').fill(uid);
+        await page.locator('#field-name').fill('Playwright Test Student');
+        await page.locator('#field-birth-certificate-number').fill(`BC-${Date.now()}`);
+        await page.locator('#field-father-s-name').fill('Test Father');
+        await page.locator('#field-father-s-nid').fill(`FNID-${Date.now()}`);
+        await page.locator('#field-father-s-mobile-number').fill('01700000000');
+        await page.locator('#field-mother-s-name').fill('Test Mother');
+        await page.locator('#field-mother-s-nid').fill(`MNID-${Date.now()}`);
+        await selectOnceLoaded(page, 'Academic Year');
+        await selectOnceLoaded(page, 'Class');
+        await page.locator('#field-roll-number').fill(roll);
 
         await page.getByRole('button', { name: /create student/i }).first().click();
         await expect(page).toHaveURL(/\/students$/);
@@ -36,13 +40,17 @@ test.describe('Cross-branch isolation', () => {
 
         const uid = `E2E-ISO-${Date.now()}`;
         const roll = `${Date.now()}`.slice(-6);
-        await page.getByLabel('Student UID *', { exact: true }).fill(uid);
-        await page.getByLabel('Name *', { exact: true }).fill('Isolation Test Student');
-        await page.getByLabel("Father's Name *", { exact: true }).fill('Test Father');
-        await page.getByLabel("Mother's Name *", { exact: true }).fill('Test Mother');
-        await selectOnceLoaded(page, 'Academic Year *');
-        await selectOnceLoaded(page, 'Class *');
-        await page.getByLabel('Roll Number *', { exact: true }).fill(roll);
+        await page.locator('#field-student-uid').fill(uid);
+        await page.locator('#field-name').fill('Isolation Test Student');
+        await page.locator('#field-birth-certificate-number').fill(`BC-${Date.now()}`);
+        await page.locator('#field-father-s-name').fill('Test Father');
+        await page.locator('#field-father-s-nid').fill(`FNID-${Date.now()}`);
+        await page.locator('#field-father-s-mobile-number').fill('01700000000');
+        await page.locator('#field-mother-s-name').fill('Test Mother');
+        await page.locator('#field-mother-s-nid').fill(`MNID-${Date.now()}`);
+        await selectOnceLoaded(page, 'Academic Year');
+        await selectOnceLoaded(page, 'Class');
+        await page.locator('#field-roll-number').fill(roll);
         await page.getByRole('button', { name: /create student/i }).first().click();
         await expect(page).toHaveURL(/\/students\/(\d+)\/edit|\/students$/);
 
@@ -52,7 +60,7 @@ test.describe('Cross-branch isolation', () => {
         // Switch to a different branch, then try to deep-link to the same student.
         await page.getByTestId('branch-switcher').click();
         await page.getByText('Switch branch').waitFor();
-        await page.getByRole('button', { name: 'Demo College' }).click();
+        await page.getByRole('button', { name: 'College' }).click();
         await page.waitForTimeout(300);
 
         if (editUrl) {

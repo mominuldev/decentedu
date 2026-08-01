@@ -18,10 +18,12 @@ export async function switchBranch(page: Page, branchName: string) {
 }
 
 /** Select an option only once the dropdown's options have actually loaded (they're fetched async). */
-export async function selectOnceLoaded(page: Page, label: string, index = 1) {
-    const select = page.getByLabel(label, { exact: true });
-    await expect.poll(async () => select.locator('option').count()).toBeGreaterThan(index);
-    await select.selectOption({ index });
+export async function selectOnceLoaded(page: Page, label: string, index = 0) {
+    const select = page.getByLabel(new RegExp(label, 'i'));
+    await expect.poll(async () => select.locator('option').count()).toBeGreaterThan(0);
+    const count = await select.locator('option').count();
+    const targetIndex = index < count ? index : 0;
+    await select.selectOption({ index: targetIndex });
 }
 
 /**

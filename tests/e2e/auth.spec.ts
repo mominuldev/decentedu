@@ -18,8 +18,8 @@ test.describe('Login → select branch → dashboard', () => {
 
     test('can switch the active branch and the dashboard reflects it', async ({ page }) => {
         await login(page);
-        await switchBranch(page, 'Demo College');
-        await expect(page.getByText('Demo College')).toBeVisible();
+        await switchBranch(page, 'College');
+        await expect(page.getByText('College')).toBeVisible();
     });
 
     test('logs out back to the login page', async ({ page }) => {

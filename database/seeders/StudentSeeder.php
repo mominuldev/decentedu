@@ -72,50 +72,54 @@ class StudentSeeder extends Seeder
                     $gender = $faker->randomElement(['male', 'female']);
                     $banglaName = $this->generateBanglaName($gender, $faker);
 
-                    // Create student
-                    $student = Student::create([
-                        'branch_id' => $branch->id,
-                        'student_uid' => $this->generateStudentUid($branch->id, $classConfig->id, $rollNumber),
-                        'name' => $faker->name($gender === 'male' ? 'male' : 'female'),
-                        'name_bn' => $banglaName,
-                        'sex' => $gender,
-                        'religion' => $faker->randomElement(['islam', 'hindu', 'christian', 'buddhist']),
-                        'blood_group' => $faker->randomElement(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']),
-                        'dob' => $faker->dateTimeBetween('2006-01-01', '2010-12-31')->format('Y-m-d'),
-                        'birth_certificate_no' => $faker->numerify('#################'),
-                        'fathers_name' => $faker->name('male'),
-                        'mothers_name' => $faker->name('female'),
-                        'father_nid' => $faker->numerify('##########'),
-                        'mother_nid' => $faker->numerify('##########'),
-                        'mobile' => $faker->phoneNumber(),
-                        'father_mobile' => $faker->phoneNumber(),
-                        'mother_mobile' => $faker->phoneNumber(),
-                        'photo_path' => null, // Can be set later
-                        'present_address' => $faker->address(),
-                        'permanent_address' => $faker->address(),
-                        'status' => 'active',
-                        'created_by' => 1,
-                        'updated_by' => 1,
-                    ]);
+                    $uid = $this->generateStudentUid($branch->id, $classConfig->id, $rollNumber);
+                    $student = Student::firstOrCreate(
+                        ['branch_id' => $branch->id, 'student_uid' => $uid],
+                        [
+                            'name' => $faker->name($gender === 'male' ? 'male' : 'female'),
+                            'name_bn' => $banglaName,
+                            'sex' => $gender,
+                            'religion' => $faker->randomElement(['islam', 'hindu', 'christian', 'buddhist']),
+                            'blood_group' => $faker->randomElement(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']),
+                            'dob' => $faker->dateTimeBetween('2006-01-01', '2010-12-31')->format('Y-m-d'),
+                            'birth_certificate_no' => $faker->numerify('#################'),
+                            'fathers_name' => $faker->name('male'),
+                            'mothers_name' => $faker->name('female'),
+                            'father_nid' => $faker->numerify('##########'),
+                            'mother_nid' => $faker->numerify('##########'),
+                            'mobile' => $faker->phoneNumber(),
+                            'father_mobile' => $faker->phoneNumber(),
+                            'mother_mobile' => $faker->phoneNumber(),
+                            'photo_path' => null, // Can be set later
+                            'present_address' => $faker->address(),
+                            'permanent_address' => $faker->address(),
+                            'status' => 'active',
+                            'created_by' => 1,
+                            'updated_by' => 1,
+                        ]);
 
                     // Create enrollment
                     $group = $faker->randomElement([null, $groups->random()?->id]);
                     $category = $faker->randomElement([null, $categories->random()?->id]);
 
-                    Enrollment::create([
-                        'branch_id' => $branch->id,
-                        'student_id' => $student->id,
-                        'academic_year_id' => $academicYear->id,
-                        'class_config_id' => $classConfig->id,
-                        'group_id' => $group,
-                        'category_id' => $category,
-                        'roll' => str_pad($rollNumber, 3, '0', STR_PAD_LEFT),
-                        'is_current' => true,
-                        'enrolled_at' => now()->format('Y-m-d'),
-                        'left_at' => null,
-                        'created_by' => 1,
-                        'updated_by' => 1,
-                    ]);
+                    Enrollment::firstOrCreate(
+                        [
+                            'branch_id' => $branch->id,
+                            'class_config_id' => $classConfig->id,
+                            'roll' => str_pad((string) $rollNumber, 3, '0', STR_PAD_LEFT),
+                        ],
+                        [
+                            'student_id' => $student->id,
+                            'academic_year_id' => $academicYear->id,
+                            'group_id' => $group,
+                            'category_id' => $category,
+                            'is_current' => true,
+                            'enrolled_at' => now()->format('Y-m-d'),
+                            'left_at' => null,
+                            'created_by' => 1,
+                            'updated_by' => 1,
+                        ],
+                    );
 
                     // Create guardians
                     $this->createGuardians($student, $branch->id, $faker);
@@ -209,42 +213,49 @@ class StudentSeeder extends Seeder
                 $rollCounter++;
                 $gender = $faker->randomElement(['male', 'female']);
 
-                $student = Student::create([
-                    'branch_id' => $branch->id,
-                    'student_uid' => 'SP-'.strtoupper($status).'-'.str_pad($i + 1, 3, '0', STR_PAD_LEFT),
-                    'name' => $faker->name($gender === 'male' ? 'male' : 'female'),
-                    'name_bn' => $this->generateBanglaName($gender, $faker),
-                    'sex' => $gender,
-                    'religion' => $faker->randomElement(['islam', 'hindu', 'christian']),
-                    'blood_group' => $faker->randomElement(['A+', 'B+', 'O+']),
-                    'dob' => $faker->dateTimeBetween('2000-01-01', '2008-12-31')->format('Y-m-d'),
-                    'birth_certificate_no' => $faker->numerify('#################'),
-                    'fathers_name' => $faker->name('male'),
-                    'mothers_name' => $faker->name('female'),
-                    'father_nid' => $faker->numerify('##########'),
-                    'mother_nid' => $faker->numerify('##########'),
-                    'mobile' => $faker->phoneNumber(),
-                    'photo_path' => null,
-                    'present_address' => $faker->address(),
-                    'permanent_address' => $faker->address(),
-                    'status' => $status,
-                    'created_by' => 1,
-                    'updated_by' => 1,
-                ]);
+                $uid = 'SP-'.strtoupper($status).'-'.str_pad((string) ($i + 1), 3, '0', STR_PAD_LEFT);
+                $student = Student::firstOrCreate(
+                    ['branch_id' => $branch->id, 'student_uid' => $uid],
+                    [
+                        'name' => $faker->name($gender === 'male' ? 'male' : 'female'),
+                        'name_bn' => $this->generateBanglaName($gender, $faker),
+                        'sex' => $gender,
+                        'religion' => $faker->randomElement(['islam', 'hindu', 'christian']),
+                        'blood_group' => $faker->randomElement(['A+', 'B+', 'O+']),
+                        'dob' => $faker->dateTimeBetween('2000-01-01', '2008-12-31')->format('Y-m-d'),
+                        'birth_certificate_no' => $faker->numerify('#################'),
+                        'fathers_name' => $faker->name('male'),
+                        'mothers_name' => $faker->name('female'),
+                        'father_nid' => $faker->numerify('##########'),
+                        'mother_nid' => $faker->numerify('##########'),
+                        'mobile' => $faker->phoneNumber(),
+                        'photo_path' => null,
+                        'present_address' => $faker->address(),
+                        'permanent_address' => $faker->address(),
+                        'status' => $status,
+                        'created_by' => 1,
+                        'updated_by' => 1,
+                    ],
+                );
 
                 // Create a historical enrollment
-                Enrollment::create([
-                    'branch_id' => $branch->id,
-                    'student_id' => $student->id,
-                    'academic_year_id' => $academicYear->id,
-                    'class_config_id' => $classConfigs->random()->id,
-                    'roll' => (string) $rollCounter,
-                    'is_current' => false,
-                    'enrolled_at' => $faker->dateTimeBetween('2024-01-01', '2024-12-31')->format('Y-m-d'),
-                    'left_at' => $status === 'passed_out' ? null : $faker->dateTimeBetween('2024-06-01', '2024-12-31')->format('Y-m-d'),
-                    'created_by' => 1,
-                    'updated_by' => 1,
-                ]);
+                $classConfig = $classConfigs->random();
+                Enrollment::firstOrCreate(
+                    [
+                        'student_id' => $student->id,
+                        'academic_year_id' => $academicYear->id,
+                    ],
+                    [
+                        'branch_id' => $branch->id,
+                        'class_config_id' => $classConfig->id,
+                        'roll' => (string) $rollCounter,
+                        'is_current' => false, // Not current since they are transferred/left/passed_out
+                        'enrolled_at' => '2024-01-01',
+                        'left_at' => $status !== 'passed_out' ? '2024-12-31' : null,
+                        'created_by' => 1,
+                        'updated_by' => 1,
+                    ],
+                );
             }
 
             $this->command->info("Created {$specialStudents} {$status} students");

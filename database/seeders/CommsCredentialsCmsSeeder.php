@@ -182,18 +182,24 @@ class CommsCredentialsCmsSeeder extends Seeder
         $adminId = auth()->id();
 
         // ---- A hierarchical page tree, with a block-composed "About" page ----------------
-        $home = Page::firstOrCreate(
-            ['branch_id' => $branchId, 'parent_id' => null, 'slug' => 'home'],
-            ['title' => 'Home', 'path' => 'home', 'template' => 'home', 'status' => 'published',
+        $home = Page::withTrashed()->firstOrCreate(
+            ['branch_id' => $branchId, 'path' => 'home'],
+            ['title' => 'Home', 'slug' => 'home', 'template' => 'home', 'status' => 'published',
                 'published_at' => now(), 'created_by' => $adminId, 'updated_by' => $adminId],
         );
+        if ($home->trashed()) {
+            $home->restore();
+        }
 
-        $about = Page::firstOrCreate(
-            ['branch_id' => $branchId, 'parent_id' => null, 'slug' => 'about-us'],
-            ['title' => 'About Us', 'path' => 'about-us', 'template' => 'default', 'status' => 'published',
+        $about = Page::withTrashed()->firstOrCreate(
+            ['branch_id' => $branchId, 'path' => 'about-us'],
+            ['title' => 'About Us', 'slug' => 'about-us', 'template' => 'default', 'status' => 'published',
                 'excerpt' => 'Learn about our institution.', 'published_at' => now(),
                 'created_by' => $adminId, 'updated_by' => $adminId],
         );
+        if ($about->trashed()) {
+            $about->restore();
+        }
 
         if ($about->blocks()->count() === 0) {
             $about->blocks()->create([
@@ -208,11 +214,14 @@ class CommsCredentialsCmsSeeder extends Seeder
         }
 
         // A child page to exercise nested paths.
-        Page::firstOrCreate(
-            ['branch_id' => $branchId, 'parent_id' => $about->id, 'slug' => 'our-team'],
-            ['title' => 'Our Team', 'path' => 'about-us/our-team', 'template' => 'default',
+        $team = Page::withTrashed()->firstOrCreate(
+            ['branch_id' => $branchId, 'slug' => 'our-team'],
+            ['title' => 'Our Team', 'parent_id' => $about->id, 'path' => 'about-us/our-team', 'template' => 'default',
                 'status' => 'published', 'published_at' => now(), 'created_by' => $adminId, 'updated_by' => $adminId],
         );
+        if ($team->trashed()) {
+            $team->restore();
+        }
 
         // ---- Taxonomy + terms -------------------------------------------------------------
         $categories = Taxonomy::firstOrCreate(
@@ -223,13 +232,16 @@ class CommsCredentialsCmsSeeder extends Seeder
         $notices = Term::firstOrCreate(['taxonomy_id' => $categories->id, 'slug' => 'notices'], ['name' => 'Notices']);
 
         // ---- Blog posts, categorised ------------------------------------------------------
-        $admission = Post::firstOrCreate(
+        $admission = Post::withTrashed()->firstOrCreate(
             ['branch_id' => $branchId, 'slug' => 'admission-notice'],
             ['title' => 'Admission Notice', 'excerpt' => 'Admissions are now open.',
                 'body' => '<p>Admissions are now open for the new academic year.</p>', 'author_id' => $adminId,
                 'status' => 'published', 'is_featured' => true, 'reading_time' => 1, 'published_at' => now(),
                 'created_by' => $adminId, 'updated_by' => $adminId],
         );
+        if ($admission->trashed()) {
+            $admission->restore();
+        }
         $admission->terms()->syncWithoutDetaching([$notices->id]);
 
         $sports = Post::firstOrCreate(

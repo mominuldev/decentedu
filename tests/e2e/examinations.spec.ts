@@ -95,7 +95,7 @@ test.describe('Configure exam → input marks → process result → view marksh
             page.waitForResponse((r) => r.url().includes('/api/v1/examinations/results/general-process') && r.ok()),
             page.getByRole('button', { name: /run general process/i }).click(),
         ]);
-        await expect(page.getByText(/subject results processed/i)).toBeVisible();
+        await expect(page.getByText('General process: 1 subject results processed.')).toBeVisible();
 
         // Marksheet totals/pass-fail come from the merit process (StudentExamSummary), not
         // general process alone — run it too before checking the report.
@@ -105,7 +105,7 @@ test.describe('Configure exam → input marks → process result → view marksh
             page.waitForResponse((r) => r.url().includes('/api/v1/examinations/results/merit-process') && r.ok()),
             page.getByRole('button', { name: /run merit process/i }).click(),
         ]);
-        await expect(page.getByText(/students processed/i)).toBeVisible();
+        await expect(page.getByText('Merit process: 1 students processed.')).toBeVisible();
 
         // Marksheet report shows the processed, passing result.
         await page.getByRole('button', { name: 'Reports', exact: true }).click();

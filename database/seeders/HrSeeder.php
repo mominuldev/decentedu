@@ -192,38 +192,39 @@ class HrSeeder extends Seeder
             $gender = $faker->randomElement(['male', 'female']);
             $employmentType = $faker->randomElement(['permanent', 'contract', 'temporary']);
 
-            $employee = Employee::create([
-                'branch_id' => $branch->id,
-                'employee_uid' => $this->generateEmployeeUid($branch->id, $designation->id, $i + 1),
-                'name' => $faker->name($gender === 'male' ? 'male' : 'female'),
-                'name_bn' => $this->generateBanglaName($gender, $faker),
-                'designation_id' => $designation->id,
-                'hr_section_id' => $hrSection?->id,
-                'sex' => $gender,
-                'religion' => $faker->randomElement(['Islam', 'Hinduism', 'Christianity', 'Buddhism']),
-                'blood_group' => $faker->randomElement(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']),
-                'dob' => $faker->dateTimeBetween('1970-01-01', '1995-12-31')->format('Y-m-d'),
-                'mobile' => $faker->phoneNumber(),
-                'email' => $faker->optional()->email(),
-                'nid' => $faker->numerify('################'),
-                'photo_path' => null,
-                'present_address' => $faker->address(),
-                'permanent_address' => $faker->address(),
-                'joining_date' => $faker->dateTimeBetween('2020-01-01', '2024-12-31')->format('Y-m-d'),
-                'leaving_date' => null,
-                'employment_type' => $employmentType,
-                'status' => 'active',
-                'qualifications' => $faker->randomElement([
-                    ['B.Sc. in Physics', 'M.Sc. in Physics'],
-                    ['B.A. in English', 'M.A. in English'],
-                    ['B.Com. in Accounting', 'M.Com. in Finance'],
-                    ['B.Sc. in Chemistry', 'M.Sc. in Chemistry'],
-                    ['B.Sc. in Mathematics', 'M.Sc. in Mathematics'],
-                    ['Bachelor Degree', 'Master Degree'],
-                ]),
-                'created_by' => 1,
-                'updated_by' => 1,
-            ]);
+            $uid = $this->generateEmployeeUid($branch->id, $designation->id, $i + 1);
+            $employee = Employee::firstOrCreate(
+                ['branch_id' => $branch->id, 'employee_uid' => $uid],
+                [
+                    'name' => $faker->name($gender === 'male' ? 'male' : 'female'),
+                    'name_bn' => $this->generateBanglaName($gender, $faker),
+                    'designation_id' => $designation->id,
+                    'hr_section_id' => $hrSection?->id,
+                    'sex' => $gender,
+                    'religion' => $faker->randomElement(['Islam', 'Hinduism', 'Christianity', 'Buddhism']),
+                    'blood_group' => $faker->randomElement(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']),
+                    'dob' => $faker->dateTimeBetween('1970-01-01', '1995-12-31')->format('Y-m-d'),
+                    'mobile' => $faker->phoneNumber(),
+                    'email' => $faker->optional()->email(),
+                    'nid' => $faker->numerify('################'),
+                    'photo_path' => null,
+                    'present_address' => $faker->address(),
+                    'permanent_address' => $faker->address(),
+                    'joining_date' => $faker->dateTimeBetween('2020-01-01', '2024-12-31')->format('Y-m-d'),
+                    'leaving_date' => null,
+                    'employment_type' => $employmentType,
+                    'status' => 'active',
+                    'qualifications' => $faker->randomElement([
+                        ['B.Sc. in Physics', 'M.Sc. in Physics'],
+                        ['B.A. in English', 'M.A. in English'],
+                        ['B.Com. in Accounting', 'M.Com. in Finance'],
+                        ['B.Sc. in Chemistry', 'M.Sc. in Chemistry'],
+                        ['B.Sc. in Mathematics', 'M.Sc. in Mathematics'],
+                        ['Bachelor Degree', 'Master Degree'],
+                    ]),
+                    'created_by' => 1,
+                    'updated_by' => 1,
+                ]);
 
             // Create some employees with different statuses
             if ($i >= 25) {

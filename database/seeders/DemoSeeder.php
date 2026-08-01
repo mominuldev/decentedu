@@ -40,10 +40,15 @@ class DemoSeeder extends Seeder
         ];
 
         $branches = collect($branchNames)->map(function (string $name, int $i) use ($org) {
-            return Branch::firstOrCreate(
+            $branch = Branch::withTrashed()->firstOrCreate(
                 ['organization_id' => $org->id, 'code' => 'BR'.str_pad((string) ($i + 1), 2, '0', STR_PAD_LEFT)],
                 ['name' => $name, 'status' => true],
             );
+            if ($branch->trashed()) {
+                $branch->restore();
+            }
+
+            return $branch;
         });
 
         // Global role definitions (team_id null); assignments are per-branch below.

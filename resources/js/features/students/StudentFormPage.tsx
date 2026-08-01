@@ -52,7 +52,7 @@ function getInitialForm(student: Student | null, defaultYearId = 0, defaultClass
     name: student?.name || '',
     name_bn: student?.name_bn || '',
     sex: student?.sex || 'male',
-    religion: student?.religion || 'Islam',
+    religion: student?.religion || 'islam',
     blood_group: student?.blood_group || '',
     dob: student?.dob ? student.dob.slice(0, 10) : '',
     birth_certificate_no: student?.birth_certificate_no || '',
