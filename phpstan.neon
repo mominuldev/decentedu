@@ -21,4 +21,5 @@ parameters:
         - '#always exists and is not nullable#'
         - '#always evaluate to false#'
         - '#always evaluate to true#'
+        - '#in empty\(\) always exists#'
 

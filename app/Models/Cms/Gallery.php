@@ -65,8 +65,10 @@ class Gallery extends Model
             ? $this->coverAsset?->toApiPayload()
             : ($this->cover_asset_id ? Asset::query()->with('media')->find($this->cover_asset_id)?->toApiPayload() : null);
 
-        $imageIds = is_array($this->images) ? array_map('intval', array_filter($this->images)) : [];
-        $galleryAssets = ! empty($imageIds)
+        $rawImages = $this->getAttribute('images');
+        /** @var list<int> $imageIds */
+        $imageIds = is_array($rawImages) ? array_values(array_map('intval', array_filter($rawImages))) : [];
+        $galleryAssets = $imageIds !== []
             ? Asset::query()->with('media')->whereIn('id', $imageIds)->get()->map(fn (Asset $a) => $a->toApiPayload())->values()->all()
             : [];
 
