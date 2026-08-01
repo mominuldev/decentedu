@@ -40,6 +40,8 @@ class PublicResultTest extends TestCase
         $org = Organization::create(['name' => 'Test Org', 'slug' => 'test-org']);
         $this->branch = Branch::create(['organization_id' => $org->id, 'name' => 'Main Branch', 'code' => 'MAIN']);
 
+        config()->set('cms.public_branch_id', $this->branch->id);
+
         // Create academic year
         $this->academicYear = new AcademicYear([
             'name' => '2024-2025',
