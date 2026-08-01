@@ -16,7 +16,7 @@ COPY composer.json composer.lock ./
 RUN composer install --no-dev --no-scripts --no-interaction --prefer-dist --optimize-autoloader
 
 # ---- Runtime ---------------------------------------------------------------
-FROM php:8.3-fpm-alpine AS app
+FROM php:8.4-fpm-alpine AS app
 WORKDIR /var/www/html
 
 RUN apk add --no-cache \
