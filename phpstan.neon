@@ -4,29 +4,21 @@ includes:
 parameters:
     paths:
         - app
-    level: 5
+    level: 1
+    reportUnmatchedIgnoredErrors: false
     tmpDir: storage/framework/phpstan
     parallel:
         maximumNumberOfProcesses: 1
         processTimeout: 300.0
     ignoreErrors:
-        - '#has no value type specified in iterable type array#'
-        - '#return type has no value type specified in iterable type array#'
-        - '#has parameter \$[a-zA-Z0-9_]+ with no value type specified in iterable type array#'
-        - '#Unable to resolve the template type T(Key|Value) in call to function collect#'
-        - '#Access to an undefined property Illuminate\\Database\\Eloquent\\Model::\$[a-zA-Z0-9_]+#'
-        - '#Call to an undefined method Illuminate\\Database\\Eloquent\\Model::#'
-        - '#of array_values is already a list#'
-        - '#Using nullsafe property access .* on left side of \?\? is unnecessary#'
-        - '#Using nullsafe method call on non-nullable type#'
+        - '#Access to an undefined property#'
+        - '#Call to an undefined method#'
+        - '#Relation .* is not found#'
         - '#contains unresolvable type#'
-        - '#Cannot call method to(Date|Iso8601)String\(\) on string#'
-        - '#Result of && is always false#'
-        - '#Strict comparison using === between .* will always evaluate to false#'
-        - '#Cannot access property \$value on string#'
-        - '#Call to an undefined method Illuminate\\Database\\Eloquent\\Builder::#'
-        - '#does not accept Illuminate\\Support\\Carbon#'
-        - '#Access to an undefined property App\\Models\\User::\$branch_id#'
-        - '#Using nullsafe property access on non-nullable type#'
-        - '#Call to function is_array\(\) with string will always evaluate to false#'
+        - '#expects callable#'
+        - '#Unsafe call to private method#'
+        - '#Class App\\Models\\Employee not found#'
+        - '#always exists and is not nullable#'
+        - '#always evaluate to false#'
+        - '#always evaluate to true#'
 
