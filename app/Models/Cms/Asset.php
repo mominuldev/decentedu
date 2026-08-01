@@ -89,6 +89,7 @@ class Asset extends Model implements HasMedia
     public function toApiPayload(): array
     {
         $file = $this->file();
+        $isSvg = $file?->mime_type === 'image/svg+xml';
 
         return [
             'id' => $this->id,
@@ -100,7 +101,7 @@ class Asset extends Model implements HasMedia
             'url' => $this->urlFor(),
             'thumb_url' => $this->conversionUrl('thumb'),
             'preview_url' => $this->conversionUrl('preview'),
-            'srcset' => ($this->hasConversion('preview') && ! $this->isPrivate())
+            'srcset' => ($this->hasConversion('preview') && ! $this->isPrivate() && ! $isSvg)
                 ? ($file?->getSrcset('preview') ?: null)
                 : null,
         ];
