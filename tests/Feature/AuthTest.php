@@ -247,10 +247,17 @@ class AuthTest extends TestCase
     {
         $user = $this->actingAsSuperAdmin($this->branch);
 
-        // Pin the "current" session id via cookie so it's stable across requests
-        // (the array driver otherwise mints a fresh id per request).
         $currentSessionId = str_repeat('a', 40);
-        $this->withCookie(config('session.cookie'), $currentSessionId);
+        $cookieName = config('session.cookie');
+
+        DB::table('sessions')->insert([
+            'id' => $currentSessionId,
+            'user_id' => $user->id,
+            'ip_address' => '127.0.0.1',
+            'user_agent' => 'PHPUnit',
+            'last_activity' => now()->timestamp,
+            'payload' => base64_encode(serialize([])),
+        ]);
 
         DB::table('sessions')->insert([
             'id' => 'other-session-id',
@@ -261,13 +268,16 @@ class AuthTest extends TestCase
             'payload' => base64_encode(serialize([])),
         ]);
 
-        $this->deleteJson('/api/v1/auth/sessions/'.$currentSessionId)
+        $this->withCookie($cookieName, $currentSessionId)
+            ->deleteJson('/api/v1/auth/sessions/'.$currentSessionId)
             ->assertStatus(422)
             ->assertJson(['success' => false, 'error_code' => 'CANNOT_REVOKE_CURRENT']);
 
         $this->assertDatabaseHas('sessions', ['id' => 'other-session-id']);
 
-        $this->deleteJson('/api/v1/auth/sessions/other-session-id')->assertOk();
+        $this->withCookie($cookieName, $currentSessionId)
+            ->deleteJson('/api/v1/auth/sessions/other-session-id')
+            ->assertOk();
 
         $this->assertDatabaseMissing('sessions', ['id' => 'other-session-id']);
     }
