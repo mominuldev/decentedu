@@ -6,6 +6,7 @@ namespace App\Models\Concerns;
 
 use App\Enums\Cms\ContentStatus;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Carbon;
 
 /**
  * Publishing semantics shared by pages and posts. A record is publicly
@@ -38,7 +39,7 @@ trait HasPublishing
         $status = $this->getAttribute('status');
         $statusEnum = $status instanceof ContentStatus ? $status : (is_string($status) ? ContentStatus::tryFrom($status) : null);
         $publishedAt = $this->getAttribute('published_at');
-        $carbonDate = $publishedAt instanceof \Illuminate\Support\Carbon ? $publishedAt : ($publishedAt ? \Illuminate\Support\Carbon::parse($publishedAt) : null);
+        $carbonDate = $publishedAt instanceof Carbon ? $publishedAt : ($publishedAt ? Carbon::parse($publishedAt) : null);
 
         if ($statusEnum === ContentStatus::Published) {
             return $carbonDate === null || $carbonDate->isPast();
