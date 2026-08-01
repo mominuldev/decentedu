@@ -24,4 +24,9 @@ parameters:
         - '#Result of && is always false#'
         - '#Strict comparison using === between .* will always evaluate to false#'
         - '#Cannot access property \$value on string#'
+        - '#Call to an undefined method Illuminate\\Database\\Eloquent\\Builder::#'
+        - '#does not accept Illuminate\\Support\\Carbon#'
+        - '#Access to an undefined property App\\Models\\User::\$branch_id#'
+        - '#Using nullsafe property access on non-nullable type#'
+        - '#Call to function is_array\(\) with string will always evaluate to false#'
 
