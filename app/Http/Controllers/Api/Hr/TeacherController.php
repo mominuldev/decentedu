@@ -50,7 +50,7 @@ class TeacherController extends Controller
         if ($request->has('subject_id')) {
             $query->whereHas('subjectTeachers', function ($q) use ($request) {
                 $q->where('subject_id', $request->query('subject_id'))
-                  ->where('is_active', true);
+                    ->where('is_active', true);
             });
         }
 
@@ -58,7 +58,7 @@ class TeacherController extends Controller
         if ($request->has('class_config_id')) {
             $query->whereHas('subjectTeachers', function ($q) use ($request) {
                 $q->where('class_config_id', $request->query('class_config_id'))
-                  ->where('is_active', true);
+                    ->where('is_active', true);
             });
         }
 
@@ -136,7 +136,7 @@ class TeacherController extends Controller
             ->teachers()
             ->whereHas('subjectTeachers', function ($q) use ($subjectId) {
                 $q->where('subject_id', $subjectId)
-                  ->where('is_active', true);
+                    ->where('is_active', true);
             });
 
         // Filter by status (default: active only)
@@ -163,7 +163,7 @@ class TeacherController extends Controller
             ->teachers()
             ->whereHas('subjectTeachers', function ($q) use ($classConfigId) {
                 $q->where('class_config_id', $classConfigId)
-                  ->where('is_active', true);
+                    ->where('is_active', true);
             });
 
         // Filter by status (default: active only)
@@ -195,7 +195,7 @@ class TeacherController extends Controller
         if ($request->has('subject_id')) {
             $query->whereHas('subjectTeachers', function ($q) use ($request) {
                 $q->where('subject_id', $request->query('subject_id'))
-                  ->where('is_active', true);
+                    ->where('is_active', true);
             });
         }
 
@@ -203,7 +203,7 @@ class TeacherController extends Controller
         if ($request->has('class_config_id')) {
             $query->whereHas('subjectTeachers', function ($q) use ($request) {
                 $q->where('class_config_id', $request->query('class_config_id'))
-                  ->where('is_active', true);
+                    ->where('is_active', true);
             });
         }
 

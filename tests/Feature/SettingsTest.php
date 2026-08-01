@@ -14,7 +14,9 @@ class SettingsTest extends TestCase
     use RefreshDatabase;
 
     private Organization $org;
+
     private Branch $branch;
+
     private User $user;
 
     protected function setUp(): void

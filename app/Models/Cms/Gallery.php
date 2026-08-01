@@ -66,7 +66,7 @@ class Gallery extends Model
             : ($this->cover_asset_id ? Asset::query()->with('media')->find($this->cover_asset_id)?->toApiPayload() : null);
 
         $imageIds = is_array($this->images) ? array_map('intval', array_filter($this->images)) : [];
-        $galleryAssets = !empty($imageIds)
+        $galleryAssets = ! empty($imageIds)
             ? Asset::query()->with('media')->whereIn('id', $imageIds)->get()->map(fn (Asset $a) => $a->toApiPayload())->values()->all()
             : [];
 

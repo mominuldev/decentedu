@@ -55,7 +55,7 @@ class UserController extends Controller
 
         return ApiResponse::success(
             $this->present($user->fresh('branches')),
-            'User created. Temporary password: ' . $temporaryPassword . ' — It will not be shown again.',
+            'User created. Temporary password: '.$temporaryPassword.' — It will not be shown again.',
             status: 201,
         );
     }

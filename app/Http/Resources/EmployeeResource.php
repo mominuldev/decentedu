@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Cms\Asset;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -71,8 +72,8 @@ class EmployeeResource extends JsonResource
             return null;
         }
 
-        $asset = \App\Models\Cms\Asset::find($this->photo_path);
-        if (!$asset) {
+        $asset = Asset::find($this->photo_path);
+        if (! $asset) {
             return null;
         }
 
@@ -83,6 +84,7 @@ class EmployeeResource extends JsonResource
 
         // For public assets, use the direct URL
         $payload = $asset->toApiPayload();
+
         return $payload['preview_url'] ?? $payload['url'] ?? null;
     }
 }

@@ -4,6 +4,10 @@ namespace Tests\Feature;
 
 use App\Models\Academic\AcademicYear;
 use App\Models\Academic\ClassConfig;
+use App\Models\Academic\SchoolClass;
+use App\Models\Academic\Section;
+use App\Models\Academic\Shift;
+use App\Models\Academic\Subject;
 use App\Models\Branch;
 use App\Models\Examinations\Exam;
 use App\Models\Examinations\Grade;
@@ -20,9 +24,13 @@ class PublicResultTest extends TestCase
     use RefreshDatabase;
 
     private Branch $branch;
+
     private AcademicYear $academicYear;
+
     private ClassConfig $classConfig;
+
     private Exam $exam;
+
     private Enrollment $enrollment;
 
     protected function setUp(): void
@@ -42,15 +50,15 @@ class PublicResultTest extends TestCase
         $this->academicYear->save();
 
         // Create required setup records for class config
-        $class = new \App\Models\Academic\SchoolClass(['name' => 'Class 10', 'status' => true]);
+        $class = new SchoolClass(['name' => 'Class 10', 'status' => true]);
         $class->branch_id = $this->branch->id;
         $class->save();
 
-        $section = new \App\Models\Academic\Section(['name' => 'Section A', 'status' => true]);
+        $section = new Section(['name' => 'Section A', 'status' => true]);
         $section->branch_id = $this->branch->id;
         $section->save();
 
-        $shift = new \App\Models\Academic\Shift(['name' => 'Morning', 'status' => true]);
+        $shift = new Shift(['name' => 'Morning', 'status' => true]);
         $shift->branch_id = $this->branch->id;
         $shift->save();
 
@@ -146,7 +154,7 @@ class PublicResultTest extends TestCase
         $grade->class_id = $this->classConfig->class_id;
         $grade->save();
 
-        $subject = new \App\Models\Academic\Subject(['name' => 'Mathematics', 'code' => 'MATH', 'status' => true]);
+        $subject = new Subject(['name' => 'Mathematics', 'code' => 'MATH', 'status' => true]);
         $subject->branch_id = $this->branch->id;
         $subject->save();
 
@@ -286,7 +294,7 @@ class PublicResultTest extends TestCase
         $grade->class_id = $this->classConfig->class_id;
         $grade->save();
 
-        $subject = new \App\Models\Academic\Subject(['name' => 'Physics', 'code' => 'PHY', 'status' => true]);
+        $subject = new Subject(['name' => 'Physics', 'code' => 'PHY', 'status' => true]);
         $subject->branch_id = $this->branch->id;
         $subject->save();
 
@@ -324,7 +332,7 @@ class PublicResultTest extends TestCase
         $grade->class_id = $this->classConfig->class_id;
         $grade->save();
 
-        $subject = new \App\Models\Academic\Subject(['name' => 'Physics', 'code' => 'PHY', 'status' => true]);
+        $subject = new Subject(['name' => 'Physics', 'code' => 'PHY', 'status' => true]);
         $subject->branch_id = $this->branch->id;
         $subject->save();
 

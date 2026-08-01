@@ -185,6 +185,7 @@ class HrSeeder extends Seeder
             // Skip if we still don't have a designation
             if ($designation === null) {
                 $this->command->warn("Could not assign designation for employee #{$i}. Skipping.");
+
                 continue;
             }
 

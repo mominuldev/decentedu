@@ -16,6 +16,7 @@ use App\Services\Cms\Blocks\BlockRegistry;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class PageController extends Controller
 {
@@ -133,7 +134,7 @@ class PageController extends Controller
 
         $data = [
             'title' => $original->title.' (Copy)',
-            'slug' => \Illuminate\Support\Str::slug($original->title.' Copy'),
+            'slug' => Str::slug($original->title.' Copy'),
             'parent_id' => $original->parent_id,
             'template' => $original->template,
             'excerpt' => $original->excerpt,

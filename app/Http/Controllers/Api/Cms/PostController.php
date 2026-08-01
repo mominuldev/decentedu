@@ -17,6 +17,7 @@ use App\Services\Cms\Blocks\BlockRegistry;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Spatie\Tags\Tag;
 
 class PostController extends Controller
@@ -132,7 +133,7 @@ class PostController extends Controller
 
         $data = [
             'title' => $original->title.' (Copy)',
-            'slug' => \Illuminate\Support\Str::slug($original->title.' Copy'),
+            'slug' => Str::slug($original->title.' Copy'),
             'excerpt' => $original->excerpt,
             'body' => $original->body,
             'status' => ContentStatus::Draft->value,

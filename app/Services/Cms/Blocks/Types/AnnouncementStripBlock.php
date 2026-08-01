@@ -39,7 +39,7 @@ class AnnouncementStripBlock extends BaseBlockType
 
         if ($noticesMode === 'important') {
             $noticesQuery->where('is_important', true);
-        } elseif ($noticesMode === 'selected' && !empty($payload['notice_ids'])) {
+        } elseif ($noticesMode === 'selected' && ! empty($payload['notice_ids'])) {
             $noticesQuery->whereIn('id', $payload['notice_ids']);
         }
 

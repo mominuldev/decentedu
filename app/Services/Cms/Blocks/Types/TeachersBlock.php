@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Cms\Blocks\Types;
 
 use App\Enums\Cms\BlockType;
+use App\Models\Cms\Asset;
 use App\Models\Hr\Employee;
 use Illuminate\Validation\Rule;
 
@@ -79,7 +80,7 @@ class TeachersBlock extends BaseBlockType
             // Resolve photo URL from Asset if photo_path is an Asset ID
             $photoUrl = null;
             if ($teacher->photo_path) {
-                $asset = \App\Models\Cms\Asset::find($teacher->photo_path);
+                $asset = Asset::find($teacher->photo_path);
                 if ($asset) {
                     $photoUrl = $this->getPublicAssetUrl($asset);
                 }
@@ -103,10 +104,11 @@ class TeachersBlock extends BaseBlockType
     /**
      * Get public URL for an asset (for use in public site rendering)
      */
-    private function getPublicAssetUrl(\App\Models\Cms\Asset $asset): ?string
+    private function getPublicAssetUrl(Asset $asset): ?string
     {
-        if (!$asset->isPrivate()) {
+        if (! $asset->isPrivate()) {
             $payload = $asset->toApiPayload();
+
             return $payload['preview_url'] ?? $payload['url'] ?? null;
         }
 

@@ -11,6 +11,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Validation\ValidationException;
 use Sentry\Laravel\Integration;
 use Spatie\Permission\Middleware\PermissionMiddleware;
@@ -31,7 +32,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Add session support to API routes for Sanctum cookie authentication
         $middleware->api(prepend: [
-            \Illuminate\Session\Middleware\StartSession::class,
+            StartSession::class,
         ]);
 
         // Resolve + enforce the active branch on scoped routes.

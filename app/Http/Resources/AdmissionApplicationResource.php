@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class AdmissionApplicationResource extends JsonResource
 {
@@ -33,8 +34,8 @@ class AdmissionApplicationResource extends JsonResource
             'mother_mobile' => $this->mother_mobile,
             'mobile' => $this->mobile,
             'guardian_mobile' => $this->guardian_mobile,
-            'photo_url' => $this->photo_path ? \Illuminate\Support\Facades\Storage::url($this->photo_path) : null,
-            'photo_path' => $this->photo_path ? \Illuminate\Support\Facades\Storage::url($this->photo_path) : null,
+            'photo_url' => $this->photo_path ? Storage::url($this->photo_path) : null,
+            'photo_path' => $this->photo_path ? Storage::url($this->photo_path) : null,
             'present_address' => $this->present_address,
             'permanent_address' => $this->permanent_address,
             'score' => $this->score !== null ? (float) $this->score : null,

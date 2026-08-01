@@ -50,7 +50,7 @@ class NoticeBoardBlock extends BaseBlockType
 
         if ($noticesMode === 'important') {
             $noticesQuery->where('is_important', true);
-        } elseif ($noticesMode === 'selected' && !empty($payload['notice_ids'])) {
+        } elseif ($noticesMode === 'selected' && ! empty($payload['notice_ids'])) {
             $noticesQuery->whereIn('id', $payload['notice_ids']);
         }
 
@@ -70,7 +70,7 @@ class NoticeBoardBlock extends BaseBlockType
 
         if ($eventsMode === 'upcoming') {
             $eventsQuery->where('starts_at', '>=', now());
-        } elseif ($eventsMode === 'selected' && !empty($payload['event_ids'])) {
+        } elseif ($eventsMode === 'selected' && ! empty($payload['event_ids'])) {
             $eventsQuery->whereIn('id', $payload['event_ids']);
         }
 

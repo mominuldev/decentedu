@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Http\Controllers\Api\Examinations\ResultController;
 use App\Models\Academic\AcademicYear;
 use App\Models\Academic\ClassConfig;
+use App\Models\Academic\SchoolClass;
 use App\Models\Academic\Subject;
 use App\Models\Branch;
 use App\Models\Examinations\AdmitInstruction;
@@ -211,7 +212,7 @@ class ExaminationSeeder extends Seeder
     private function createFourthSubjectAssignments(int $branchId, int $academicYearId, $classConfigs, $subjects): void
     {
         // Get the class IDs for Nine and Ten
-        $higherClassIds = \App\Models\Academic\SchoolClass::where('branch_id', $branchId)
+        $higherClassIds = SchoolClass::where('branch_id', $branchId)
             ->whereIn('name', ['Nine', 'Ten'])
             ->pluck('id');
 

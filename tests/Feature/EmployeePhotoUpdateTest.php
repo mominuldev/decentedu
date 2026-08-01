@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Models\Academic\AcademicYear;
 use App\Models\Academic\ClassConfig;
 use App\Models\Academic\SchoolClass;
 use App\Models\Academic\Section;
@@ -21,8 +20,11 @@ class EmployeePhotoUpdateTest extends TestCase
     use RefreshDatabase;
 
     private Branch $branch;
+
     private Designation $designation;
+
     private Subject $subject;
+
     private ClassConfig $classConfig;
 
     protected function setUp(): void

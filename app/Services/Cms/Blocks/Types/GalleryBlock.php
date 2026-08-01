@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Cms\Blocks\Types;
 
 use App\Enums\Cms\BlockType;
+use App\Models\Cms\Gallery;
 use Illuminate\Validation\Rule;
 
 class GalleryBlock extends BaseBlockType
@@ -38,14 +39,14 @@ class GalleryBlock extends BaseBlockType
         $galleriesData = [];
         $mode = $payload['mode'] ?? 'recent';
 
-        if ($mode === 'selected' && !empty($payload['gallery_ids'])) {
-            $galleries = \App\Models\Cms\Gallery::with(['coverAsset.media'])->whereIn('id', $payload['gallery_ids'])->get();
-            $galleriesData = collect($payload['gallery_ids'])->map(function($id) use ($galleries) {
+        if ($mode === 'selected' && ! empty($payload['gallery_ids'])) {
+            $galleries = Gallery::with(['coverAsset.media'])->whereIn('id', $payload['gallery_ids'])->get();
+            $galleriesData = collect($payload['gallery_ids'])->map(function ($id) use ($galleries) {
                 return $galleries->firstWhere('id', $id);
             })->filter()->map->toApiPayload()->values()->all();
         } else {
             $limit = (int) ($payload['limit'] ?? 4);
-            $galleries = \App\Models\Cms\Gallery::with(['coverAsset.media'])->latest()->limit($limit)->get();
+            $galleries = Gallery::with(['coverAsset.media'])->latest()->limit($limit)->get();
             $galleriesData = $galleries->map->toApiPayload()->all();
         }
 

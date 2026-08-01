@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class GuardianResource extends JsonResource
 {
@@ -21,8 +22,8 @@ class GuardianResource extends JsonResource
             'mobile' => $this->mobile,
             'email' => $this->email,
             'address' => $this->address,
-            'photo_url' => $this->photo_path ? \Illuminate\Support\Facades\Storage::url($this->photo_path) : null,
-            'photo_path' => $this->photo_path ? \Illuminate\Support\Facades\Storage::url($this->photo_path) : null,
+            'photo_url' => $this->photo_path ? Storage::url($this->photo_path) : null,
+            'photo_path' => $this->photo_path ? Storage::url($this->photo_path) : null,
             'occupation' => $this->occupation,
             'nid' => $this->nid,
             'is_emergency_contact' => $this->is_emergency_contact,
