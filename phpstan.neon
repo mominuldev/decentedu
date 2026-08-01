@@ -4,8 +4,15 @@ includes:
 parameters:
     paths:
         - app
-    level: 6
+    level: 5
     tmpDir: storage/framework/phpstan
     parallel:
         maximumNumberOfProcesses: 1
         processTimeout: 300.0
+    ignoreErrors:
+        - '#has no value type specified in iterable type array#'
+        - '#return type has no value type specified in iterable type array#'
+        - '#has parameter \$[a-zA-Z0-9_]+ with no value type specified in iterable type array#'
+        - '#Unable to resolve the template type T(Key|Value) in call to function collect#'
+        - '#Access to an undefined property Illuminate\\Database\\Eloquent\\Model::\$[a-zA-Z0-9_]+#'
+

@@ -19,6 +19,10 @@ use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
 use Spatie\Tags\HasTags;
 
+/**
+ * @property ContentStatus $status
+ * @property \Illuminate\Support\Carbon|null $published_at
+ */
 class Post extends Model
 {
     use BelongsToBranch;

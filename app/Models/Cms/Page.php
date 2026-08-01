@@ -18,6 +18,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
 
+/**
+ * @property ContentStatus $status
+ * @property \Illuminate\Support\Carbon|null $published_at
+ */
 class Page extends Model
 {
     use BelongsToBranch;

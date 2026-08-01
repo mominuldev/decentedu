@@ -35,12 +35,17 @@ trait HasPublishing
 
     public function isPublished(): bool
     {
-        if ($this->status === ContentStatus::Published) {
-            return $this->published_at === null || $this->published_at->isPast();
+        $status = $this->getAttribute('status');
+        $statusEnum = $status instanceof ContentStatus ? $status : (is_string($status) ? ContentStatus::tryFrom($status) : null);
+        $publishedAt = $this->getAttribute('published_at');
+        $carbonDate = $publishedAt instanceof \Illuminate\Support\Carbon ? $publishedAt : ($publishedAt ? \Illuminate\Support\Carbon::parse($publishedAt) : null);
+
+        if ($statusEnum === ContentStatus::Published) {
+            return $carbonDate === null || $carbonDate->isPast();
         }
 
-        return $this->status === ContentStatus::Scheduled
-            && $this->published_at !== null
-            && $this->published_at->isPast();
+        return $statusEnum === ContentStatus::Scheduled
+            && $carbonDate !== null
+            && $carbonDate->isPast();
     }
 }

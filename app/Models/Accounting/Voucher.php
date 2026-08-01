@@ -10,6 +10,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property \Illuminate\Support\Carbon|null $date
+ */
 class Voucher extends Model
 {
     use Auditable, BelongsToBranch, HasFactory;
@@ -21,6 +24,9 @@ class Voucher extends Model
         return ['date' => 'date', 'total' => 'decimal:2'];
     }
 
+    /**
+     * @return HasMany<VoucherEntry, $this>
+     */
     public function entries(): HasMany
     {
         return $this->hasMany(VoucherEntry::class);

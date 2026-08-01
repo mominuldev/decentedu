@@ -19,6 +19,9 @@ class VoucherEntry extends Model
         return $this->belongsTo(Voucher::class);
     }
 
+    /**
+     * @return BelongsTo<LedgerAccount, $this>
+     */
     public function ledgerAccount(): BelongsTo
     {
         return $this->belongsTo(LedgerAccount::class);

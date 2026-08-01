@@ -37,7 +37,7 @@ class SyncBlocks
 
         $keptIds = [];
 
-        foreach (array_values($blocks) as $position => $data) {
+        foreach ($blocks as $position => $data) {
             $attributes = [
                 'type' => $data['type'],
                 // Only validated keys persist — client-side extras are dropped.
@@ -90,7 +90,7 @@ class SyncBlocks
         $errors = [];
         $payloads = [];
 
-        foreach (array_values($blocks) as $index => $data) {
+        foreach ($blocks as $index => $data) {
             $type = $data['type'] ?? null;
 
             if (! is_string($type) || ! $this->registry->has($type)) {
@@ -120,7 +120,7 @@ class SyncBlocks
                 $payload = $data['payload'] ?? [];
                 $rawChildren = is_array($payload['blocks'] ?? null) ? $payload['blocks'] : [];
 
-                foreach (array_values($rawChildren) as $childIndex => $child) {
+                foreach ($rawChildren as $childIndex => $child) {
                     if (($child['type'] ?? null) === 'section') {
                         $errors["{$prefix}.{$index}.payload.blocks.{$childIndex}.type"] = ['Sections cannot be nested inside another section.'];
                     }
@@ -129,7 +129,7 @@ class SyncBlocks
                 [$childPayloads, $childErrors] = $this->validateList($rawChildren, "{$prefix}.{$index}.payload.blocks");
                 $errors = [...$errors, ...$childErrors];
 
-                $validated['blocks'] = collect(array_values($rawChildren))
+                $validated['blocks'] = collect($rawChildren)
                     ->map(fn (array $child, int $childIndex): array => [
                         'type' => $child['type'] ?? null,
                         'payload' => $childPayloads[$childIndex] ?? [],
