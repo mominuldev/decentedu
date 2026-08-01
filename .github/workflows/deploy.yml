@@ -81,6 +81,9 @@ jobs:
             sed -i "s#^image:.*#image: ${IMAGE}#" docker-compose.override.yml || true
             docker compose pull app horizon scheduler
             docker compose up -d --no-deps app horizon scheduler nginx
+            docker compose exec -T app php artisan optimize:clear
+            docker compose exec -T app npm ci
+            docker compose exec -T app npm run build
             docker compose exec -T app php artisan migrate --force
             docker compose exec -T app php artisan config:cache
             docker compose exec -T app php artisan route:cache
@@ -121,6 +124,9 @@ jobs:
             sed -i "s#^image:.*#image: ${IMAGE}#" docker-compose.override.yml || true
             docker compose pull app horizon scheduler
             docker compose up -d --no-deps app horizon scheduler nginx
+            docker compose exec -T app php artisan optimize:clear
+            docker compose exec -T app npm ci
+            docker compose exec -T app npm run build
             docker compose exec -T app php artisan migrate --force
             docker compose exec -T app php artisan config:cache
             docker compose exec -T app php artisan route:cache
