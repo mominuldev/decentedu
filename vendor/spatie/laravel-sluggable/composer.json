@@ -1,0 +1,68 @@
+{
+    "name": "spatie/laravel-sluggable",
+    "description": "Generate slugs when saving Eloquent models",
+    "license": "MIT",
+    "keywords": [
+        "spatie",
+        "laravel",
+        "laravel-sluggable",
+        "slug",
+        "slugs",
+        "eloquent",
+        "self-healing",
+        "translatable"
+    ],
+    "authors": [
+        {
+            "name": "Freek Van der Herten",
+            "email": "freek@spatie.be",
+            "homepage": "https://spatie.be",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://github.com/spatie/laravel-sluggable",
+    "require": {
+        "php": "^8.3",
+        "illuminate/database": "^12.0|^13.0",
+        "illuminate/support": "^12.0|^13.0"
+    },
+    "require-dev": {
+        "larastan/larastan": "^3.0",
+        "laravel/pint": "^1.24",
+        "orchestra/testbench": "^10.0|^11.0",
+        "pestphp/pest": "^4.0",
+        "spatie/laravel-translatable": "^6.0"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Spatie\\Sluggable\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Spatie\\Sluggable\\Tests\\": "tests"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Spatie\\Sluggable\\SluggableServiceProvider"
+            ],
+            "aliases": {
+                "SelfHealing": "Spatie\\Sluggable\\Facades\\SelfHealing"
+            }
+        }
+    },
+    "scripts": {
+        "analyse": "vendor/bin/phpstan analyse",
+        "format": "vendor/bin/pint",
+        "test": "vendor/bin/pest"
+    }
+}
