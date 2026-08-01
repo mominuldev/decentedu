@@ -117,6 +117,10 @@ class Asset extends Model implements HasMedia
             return null;
         }
 
+        if ($this->file()?->mime_type === 'image/svg+xml') {
+            return $this->urlFor();
+        }
+
         return $this->hasConversion($conversion) ? $this->urlFor($conversion) : $this->urlFor();
     }
 

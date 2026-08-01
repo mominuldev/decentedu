@@ -248,7 +248,6 @@ class AuthTest extends TestCase
         $user = $this->actingAsSuperAdmin($this->branch);
 
         $currentSessionId = str_repeat('a', 40);
-        $cookieName = config('session.cookie');
 
         DB::table('sessions')->insert([
             'id' => $currentSessionId,
@@ -268,14 +267,14 @@ class AuthTest extends TestCase
             'payload' => base64_encode(serialize([])),
         ]);
 
-        $this->withCookie($cookieName, $currentSessionId)
+        $this->withHeader('X-Session-Id', $currentSessionId)
             ->deleteJson('/api/v1/auth/sessions/'.$currentSessionId)
             ->assertStatus(422)
             ->assertJson(['success' => false, 'error_code' => 'CANNOT_REVOKE_CURRENT']);
 
         $this->assertDatabaseHas('sessions', ['id' => 'other-session-id']);
 
-        $this->withCookie($cookieName, $currentSessionId)
+        $this->withHeader('X-Session-Id', $currentSessionId)
             ->deleteJson('/api/v1/auth/sessions/other-session-id')
             ->assertOk();
 

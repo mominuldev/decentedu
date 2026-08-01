@@ -133,9 +133,9 @@ class AuthController extends Controller
     public function revokeSession(Request $request, string $id): JsonResponse
     {
         $currentId = $request->session()->getId();
-        $cookieSessionId = $request->cookie(config('session.cookie'));
+        $clientSessionId = $request->header('X-Session-Id') ?? $request->cookie(config('session.cookie'));
 
-        if ($id === $currentId || ($cookieSessionId && $id === $cookieSessionId)) {
+        if ($id === $currentId || ($clientSessionId && $id === $clientSessionId)) {
             return ApiResponse::error('Use logout to end the current session.', 'CANNOT_REVOKE_CURRENT', 422);
         }
 
