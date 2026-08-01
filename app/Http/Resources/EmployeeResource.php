@@ -72,19 +72,23 @@ class EmployeeResource extends JsonResource
             return null;
         }
 
-        $asset = Asset::find($this->photo_path);
-        if (! $asset) {
-            return null;
+        if (is_numeric($this->photo_path)) {
+            $asset = Asset::find($this->photo_path);
+            if (! $asset) {
+                return null;
+            }
+
+            // For private assets (photos, logos), use the public site route
+            if ($asset->isPrivate()) {
+                return "/api/v1/site/media/{$asset->id}/file?conversion=preview";
+            }
+
+            // For public assets, use the direct URL
+            $payload = $asset->toApiPayload();
+
+            return $payload['preview_url'] ?? $payload['url'] ?? null;
         }
 
-        // For private assets (photos, logos), use the public site route
-        if ($asset->isPrivate()) {
-            return "/api/v1/site/media/{$asset->id}/file?conversion=preview";
-        }
-
-        // For public assets, use the direct URL
-        $payload = $asset->toApiPayload();
-
-        return $payload['preview_url'] ?? $payload['url'] ?? null;
+        return (string) $this->photo_path;
     }
 }

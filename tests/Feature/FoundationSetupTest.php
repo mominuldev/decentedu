@@ -94,7 +94,9 @@ class FoundationSetupTest extends TestCase
     {
         $this->actingAsBranchUser();
 
-        AcademicYear::factory()->count(3)->create(['branch_id' => $this->branch->id]);
+        AcademicYear::create(['branch_id' => $this->branch->id, 'name' => '2024-2025', 'start_date' => '2024-01-01', 'end_date' => '2024-12-31']);
+        AcademicYear::create(['branch_id' => $this->branch->id, 'name' => '2025-2026', 'start_date' => '2025-01-01', 'end_date' => '2025-12-31']);
+        AcademicYear::create(['branch_id' => $this->branch->id, 'name' => '2026-2027', 'start_date' => '2026-01-01', 'end_date' => '2026-12-31']);
 
         $response = $this->getJson('/api/v1/academic/academic-years');
 
@@ -235,7 +237,9 @@ class FoundationSetupTest extends TestCase
     {
         $this->actingAsBranchUser();
 
-        Section::factory()->count(3)->create(['branch_id' => $this->branch->id]);
+        Section::create(['branch_id' => $this->branch->id, 'name' => 'Sec A']);
+        Section::create(['branch_id' => $this->branch->id, 'name' => 'Sec B']);
+        Section::create(['branch_id' => $this->branch->id, 'name' => 'Sec C']);
 
         $response = $this->getJson('/api/v1/academic/sections');
 
@@ -281,7 +285,8 @@ class FoundationSetupTest extends TestCase
             'name_bn' => 'ষষ্ঠ',
         ]);
 
-        $response = $this->getJson('/api/v1/academic/classes?search=ষষ্ঠ');
+        $search = urlencode('ষষ্ঠ');
+        $response = $this->getJson("/api/v1/academic/classes?search={$search}");
 
         $response->assertStatus(200);
         $response->assertJsonCount(1, 'data');

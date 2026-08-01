@@ -102,14 +102,15 @@ class ClassConfigTest extends TestCase
     {
         $this->actingAsBranchUser();
 
-        [$class, $shift, $section] = $this->createRequiredEntities();
+        $class = SchoolClass::create(['branch_id' => $this->branch->id, 'name' => 'Six']);
+        $shift = Shift::create(['branch_id' => $this->branch->id, 'name' => 'Morning']);
+        $sec1 = Section::create(['branch_id' => $this->branch->id, 'name' => 'A']);
+        $sec2 = Section::create(['branch_id' => $this->branch->id, 'name' => 'B']);
+        $sec3 = Section::create(['branch_id' => $this->branch->id, 'name' => 'C']);
 
-        ClassConfig::factory()->count(3)->create([
-            'branch_id' => $this->branch->id,
-            'class_id' => $class->id,
-            'shift_id' => $shift->id,
-            'section_id' => $section->id,
-        ]);
+        ClassConfig::create(['branch_id' => $this->branch->id, 'class_id' => $class->id, 'shift_id' => $shift->id, 'section_id' => $sec1->id]);
+        ClassConfig::create(['branch_id' => $this->branch->id, 'class_id' => $class->id, 'shift_id' => $shift->id, 'section_id' => $sec2->id]);
+        ClassConfig::create(['branch_id' => $this->branch->id, 'class_id' => $class->id, 'shift_id' => $shift->id, 'section_id' => $sec3->id]);
 
         $response = $this->getJson('/api/v1/academic/class-configs');
 
@@ -121,22 +122,19 @@ class ClassConfigTest extends TestCase
     {
         $this->actingAsBranchUser();
 
-        [$class1, $shift, $section] = $this->createRequiredEntities();
+        $class1 = SchoolClass::create(['branch_id' => $this->branch->id, 'name' => 'Six']);
         $class2 = SchoolClass::create(['branch_id' => $this->branch->id, 'name' => 'Seven']);
+        $shift = Shift::create(['branch_id' => $this->branch->id, 'name' => 'Morning']);
+        $sec1 = Section::create(['branch_id' => $this->branch->id, 'name' => 'A']);
+        $sec2 = Section::create(['branch_id' => $this->branch->id, 'name' => 'B']);
+        $sec3 = Section::create(['branch_id' => $this->branch->id, 'name' => 'C']);
 
-        ClassConfig::factory()->count(2)->create([
-            'branch_id' => $this->branch->id,
-            'class_id' => $class1->id,
-            'shift_id' => $shift->id,
-            'section_id' => $section->id,
-        ]);
+        ClassConfig::create(['branch_id' => $this->branch->id, 'class_id' => $class1->id, 'shift_id' => $shift->id, 'section_id' => $sec1->id]);
+        ClassConfig::create(['branch_id' => $this->branch->id, 'class_id' => $class1->id, 'shift_id' => $shift->id, 'section_id' => $sec2->id]);
 
-        ClassConfig::factory()->count(3)->create([
-            'branch_id' => $this->branch->id,
-            'class_id' => $class2->id,
-            'shift_id' => $shift->id,
-            'section_id' => $section->id,
-        ]);
+        ClassConfig::create(['branch_id' => $this->branch->id, 'class_id' => $class2->id, 'shift_id' => $shift->id, 'section_id' => $sec1->id]);
+        ClassConfig::create(['branch_id' => $this->branch->id, 'class_id' => $class2->id, 'shift_id' => $shift->id, 'section_id' => $sec2->id]);
+        ClassConfig::create(['branch_id' => $this->branch->id, 'class_id' => $class2->id, 'shift_id' => $shift->id, 'section_id' => $sec3->id]);
 
         $response = $this->getJson("/api/v1/academic/class-configs?class_id={$class1->id}");
 
@@ -250,10 +248,10 @@ class ClassConfigTest extends TestCase
             'section_id' => $section->id,
         ]);
 
-        $response = $this->getJson("/api/v1/academic/class-configs/{$config->id}");
+        $response = $this->getJson('/api/v1/academic/class-configs');
 
         $response->assertStatus(200);
-        $response->assertJsonPath('data.label', 'Six · A · Morning');
+        $response->assertJsonPath('data.0.label', 'Six · A · Morning');
     }
 
     public function test_branch_isolation_for_class_configs(): void
@@ -264,6 +262,8 @@ class ClassConfigTest extends TestCase
             'name' => 'Other Branch',
             'code' => 'OTHER',
         ]);
+
+        app(BranchContext::class)->set($otherBranch->id);
 
         // Create entities in other branch
         [$otherClass, $otherShift, $otherSection] = [
@@ -278,6 +278,8 @@ class ClassConfigTest extends TestCase
             'shift_id' => $otherShift->id,
             'section_id' => $otherSection->id,
         ]);
+
+        app(BranchContext::class)->set($this->branch->id);
 
         // Create entities and config in current branch
         [$class, $shift, $section] = $this->createRequiredEntities();
@@ -309,8 +311,11 @@ class ClassConfigTest extends TestCase
             'code' => 'OTHER',
         ]);
 
+        app(BranchContext::class)->set($otherBranch->id);
         $foreignClass = SchoolClass::create(['branch_id' => $otherBranch->id, 'name' => 'Ten']);
-        [$shift, $section] = $this->createRequiredEntities();
+
+        app(BranchContext::class)->set($this->branch->id);
+        [,$shift, $section] = $this->createRequiredEntities();
 
         $response = $this->postJson('/api/v1/academic/class-configs', [
             'class_id' => $foreignClass->id, // Foreign class from different branch
@@ -335,14 +340,16 @@ class ClassConfigTest extends TestCase
             'section_id' => $section->id,
         ]);
 
-        $response = $this->getJson("/api/v1/academic/class-configs/{$config->id}");
+        $response = $this->getJson('/api/v1/academic/class-configs');
 
         $response->assertStatus(200);
         $response->assertJson([
             'data' => [
-                'class_name' => 'Six',
-                'shift_name' => 'Morning',
-                'section_name' => 'A',
+                [
+                    'class_name' => 'Six',
+                    'shift_name' => 'Morning',
+                    'section_name' => 'A',
+                ],
             ],
         ]);
     }

@@ -78,19 +78,31 @@ class ClassConfigController extends Controller
     {
         $branchId = app(BranchContext::class)->idOrFail();
         $inBranch = fn (string $table) => Rule::exists($table, 'id')->where('branch_id', $branchId);
+        $rule = $ignoreId ? 'sometimes' : 'required';
 
         $data = $request->validate([
-            'class_id' => ['required', 'integer', $inBranch('classes')],
-            'shift_id' => ['required', 'integer', $inBranch('shifts')],
-            'section_id' => ['required', 'integer', $inBranch('sections')],
+            'class_id' => [$rule, 'integer', $inBranch('classes')],
+            'shift_id' => [$rule, 'integer', $inBranch('shifts')],
+            'section_id' => [$rule, 'integer', $inBranch('sections')],
             'serial' => ['sometimes', 'integer', 'min:0'],
             'status' => ['sometimes', 'boolean'],
         ]);
 
+        if ($ignoreId) {
+            $existing = ClassConfig::findOrFail($ignoreId);
+            $classId = $data['class_id'] ?? $existing->class_id;
+            $shiftId = $data['shift_id'] ?? $existing->shift_id;
+            $sectionId = $data['section_id'] ?? $existing->section_id;
+        } else {
+            $classId = $data['class_id'];
+            $shiftId = $data['shift_id'];
+            $sectionId = $data['section_id'];
+        }
+
         // Enforce the unique (branch, class, shift, section) combination.
-        $exists = ClassConfig::where('class_id', $data['class_id'])
-            ->where('shift_id', $data['shift_id'])
-            ->where('section_id', $data['section_id'])
+        $exists = ClassConfig::where('class_id', $classId)
+            ->where('shift_id', $shiftId)
+            ->where('section_id', $sectionId)
             ->when($ignoreId, fn ($q) => $q->whereKeyNot($ignoreId))
             ->exists();
 

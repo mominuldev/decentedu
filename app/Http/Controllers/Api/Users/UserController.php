@@ -53,8 +53,11 @@ class UserController extends Controller
 
         $this->syncBranchesAndRole($user, $data['branch_ids'], $data['default_branch_id'] ?? null, $data['role']);
 
+        $payload = $this->present($user->fresh('branches'));
+        $payload['temporary_password'] = $temporaryPassword;
+
         return ApiResponse::success(
-            $this->present($user->fresh('branches')),
+            $payload,
             'User created. Temporary password: '.$temporaryPassword.' — It will not be shown again.',
             status: 201,
         );
