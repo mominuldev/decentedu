@@ -5,7 +5,6 @@ parameters:
     paths:
         - app
     level: 6
-    memoryLimit: 2G
     tmpDir: storage/framework/phpstan
     parallel:
         maximumNumberOfProcesses: 1

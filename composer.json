@@ -60,7 +60,7 @@
             "@php artisan test"
         ],
         "stan": [
-            "@php vendor/bin/phpstan analyse --memory-limit=1G"
+            "@php vendor/bin/phpstan analyse --memory-limit=2G"
         ],
         "lint": [
             "@php vendor/bin/pint --test"

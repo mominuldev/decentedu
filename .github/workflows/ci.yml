@@ -31,7 +31,7 @@ jobs:
         run: vendor/bin/pint --test
 
       - name: Static analysis (Larastan)
-        run: vendor/bin/phpstan analyse --memory-limit=1G
+        run: vendor/bin/phpstan analyse --memory-limit=2G
 
       - name: Run test suite
         run: php artisan test
