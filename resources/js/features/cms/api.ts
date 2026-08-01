@@ -634,6 +634,7 @@ export interface GalleryRow {
     status: ContentStatus;
     published_at: string | null;
     created_at: string;
+    deleted_at: string | null;
 }
 
 export interface GalleryPayload {

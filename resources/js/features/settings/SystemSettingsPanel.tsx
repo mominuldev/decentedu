@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Loader2, Server, Database, Activity, CheckCircle2, ShieldCheck, Users, GraduationCap, Briefcase } from 'lucide-react';
+import { Loader2, Server, Activity, CheckCircle2, Users, GraduationCap, Briefcase } from 'lucide-react';
 import { Card, Badge } from '@/components/ui';
 import { fetchSystemSettings } from './api';
 
