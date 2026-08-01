@@ -550,36 +550,7 @@ function StudentFormBody({
   );
 }
 
-function initializeForm(student: Student | null): StudentFormData {
-  return {
-    student_uid: student?.student_uid || '',
-    name: student?.name || '',
-    name_bn: student?.name_bn || '',
-    sex: student?.sex || 'male',
-    religion: student?.religion || '',
-    blood_group: student?.blood_group || '',
-    dob: student?.dob?.split('T')[0] || '',
-    birth_certificate_no: student?.birth_certificate_no || '',
-    fathers_name: student?.fathers_name || '',
-    mothers_name: student?.mothers_name || '',
-    father_nid: student?.father_nid || '',
-    mother_nid: student?.mother_nid || '',
-    mobile: student?.mobile || '',
-    father_mobile: student?.father_mobile || '',
-    mother_mobile: student?.mother_mobile || '',
-    photo_path: student?.photo_path || '',
-    present_address: student?.present_address || '',
-    permanent_address: student?.permanent_address || '',
-    status: student?.status || 'active',
-    // Get current enrollment if exists, otherwise default values
-    academic_year_id: student?.current_enrollment?.academic_year_id || 0,
-    class_config_id: student?.current_enrollment?.class_config_id || 0,
-    group_id: student?.current_enrollment?.group_id || 0,
-    category_id: student?.current_enrollment?.category_id || 0,
-    roll: student?.current_enrollment?.roll || '',
-    guardians: [],
-  };
-}
+
 
 // Helper Components
 const slugId = (prefix: string, label: string) => `${prefix}-${label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}`;

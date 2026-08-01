@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { RotateCcw, Trash2, Search } from 'lucide-react';
-import { Card, Badge } from '@/components/ui';
+import { Card, Badge, type Tone } from '@/components/ui';
 import { ConfirmDialog } from '@/components/Modal';
 import { toApiError } from '@/lib/api';
 import { useToast } from '@/components/Toast';
@@ -129,10 +129,10 @@ export function TrashPanel() {
         onError: (err) => toast.error(toApiError(err).message),
     });
 
-    const typeBadgeTone = (t: TrashedItem['type']) => {
+    const typeBadgeTone = (t: TrashedItem['type']): Tone => {
         switch (t) {
             case 'page': return 'brand';
-            case 'post': return 'info';
+            case 'post': return 'sky';
             case 'gallery': return 'warning';
             case 'notice': return 'neutral';
             case 'event': return 'success';
