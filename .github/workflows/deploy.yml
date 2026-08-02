@@ -63,7 +63,7 @@ jobs:
     if: github.event_name == 'push' || github.event.inputs.environment == 'staging'
     environment:
       name: staging
-      url: https://portal.decentthemes.com
+      url: https://staging.decentedu.example
     steps:
       - name: Check staging is configured
         id: check

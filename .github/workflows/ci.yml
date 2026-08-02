@@ -50,7 +50,7 @@ jobs:
     needs: test
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     # If your secrets are stored in a GitHub Environment, uncomment the next line:
-     environment: production
+    # environment: production
 
     steps:
       - uses: actions/checkout@v4
