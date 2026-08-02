@@ -60,40 +60,48 @@ jobs:
           extensions: mbstring, xml, sqlite3, zip, gd, dom, curl, bcmath
           coverage: none
 
-      - name: Install dependencies
+      - name: Install Composer dependencies
         run: composer install --no-dev --prefer-dist --no-interaction --no-progress --optimize-autoloader
 
-      - name: Build app
+      - name: Build Laravel caches
         run: |
           php artisan config:cache
           php artisan route:cache
           php artisan view:cache
 
-      - name: Create SSH folder
-        run: mkdir -p "$HOME/.ssh"
-
-      - name: Save SSH key
-        env:
-          SSH_KEY: ${{ secrets.HOSTINGER_SSH_KEY }}
-        run: |
-          printf '%s\n' "$SSH_KEY" > "$HOME/.ssh/id_rsa"
-          chmod 600 "$HOME/.ssh/id_rsa"
-
-      - name: Trust Hostinger host
+      - name: Setup SSH
         env:
           SSH_HOST: ${{ secrets.HOSTINGER_SSH_HOST }}
-          SSH_PORT: ${{ secrets.HOSTINGER_SSH_PORT || '65002' }}
+          SSH_USER: ${{ secrets.HOSTINGER_SSH_USER }}
+          SSH_PORT: ${{ secrets.HOSTINGER_SSH_PORT }}
+          SSH_KEY: ${{ secrets.HOSTINGER_SSH_KEY }}
         run: |
+          set -eu
+          SSH_PORT="${SSH_PORT:-65002}"
           test -n "$SSH_HOST"
+          test -n "$SSH_USER"
+          test -n "$SSH_KEY"
+
           mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -T 30 -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
 
       - name: Deploy files
+        env:
+          SSH_HOST: ${{ secrets.HOSTINGER_SSH_HOST }}
+          SSH_USER: ${{ secrets.HOSTINGER_SSH_USER }}
+          SSH_PORT: ${{ secrets.HOSTINGER_SSH_PORT }}
+          DEPLOY_PATH: ${{ secrets.HOSTINGER_DEPLOY_PATH }}
         run: |
+          set -eu
+          SSH_PORT="${SSH_PORT:-65002}"
+
           rsync -az --delete \
+            -e "ssh -i ~/.ssh/id_rsa -p $SSH_PORT" \
             --exclude=".git" \
             --exclude=".github" \
             --exclude="node_modules" \
             --exclude="tests" \
             --exclude=".env" \
-            ./ ${{ secrets.HOSTINGER_SSH_USER }}@${{ secrets.HOSTINGER_SSH_HOST }}:${{ secrets.HOSTINGER_DEPLOY_PATH }}
+            ./ "$SSH_USER@$SSH_HOST:$DEPLOY_PATH"
