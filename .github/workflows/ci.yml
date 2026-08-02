@@ -82,9 +82,11 @@ jobs:
       - name: Trust Hostinger host
         env:
           SSH_HOST: ${{ secrets.HOSTINGER_SSH_HOST }}
-          SSH_PORT: ${{ secrets.HOSTINGER_SSH_PORT || '22' }}
+          SSH_PORT: ${{ secrets.HOSTINGER_SSH_PORT || '65002' }}
         run: |
-          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> "$HOME/.ssh/known_hosts"
+          test -n "$SSH_HOST"
+          mkdir -p ~/.ssh
+          ssh-keyscan -T 30 -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
 
       - name: Deploy files
         run: |
